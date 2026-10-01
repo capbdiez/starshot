@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import type { AssetManifest, Content } from '../../content/index.ts';
 import type { InputSource } from '../../platform/index.ts';
-import { Presenter, registerAnimations } from '../../presentation/index.ts';
+import { AudioDirector, Presenter, registerAnimations } from '../../presentation/index.ts';
 import { TICK_MS } from '../../shared/index.ts';
 import type { Sim } from '../../sim/index.ts';
 import { createGameLoop, type GameLoop } from '../game-loop.ts';
@@ -48,6 +48,9 @@ export class BootScene extends Phaser.Scene {
   private loop?: GameLoop;
   private paused = false;
   private restarts = 0;
+  private hitStopMs = 0;
+  private slowMotionMs = 0;
+  private slowScale = 1;
 
   constructor(deps: BootSceneDeps) {
     super('boot');
@@ -73,16 +76,25 @@ export class BootScene extends Phaser.Scene {
   create(): void {
     const { content, manifest, sim, input } = this.deps;
     registerAnimations(this.anims, content.sprites, manifest);
-    const presenter = new Presenter(this, content, manifest, (clip) => {
-      if (this.cache.audio.exists(SFX_KEY)) this.sound.playAudioSprite(SFX_KEY, clip);
+    const audio = new AudioDirector({
+      play: (clip, config) => {
+        if (!this.cache.audio.exists(SFX_KEY)) return undefined;
+        const sound = this.sound.addAudioSprite(SFX_KEY);
+        sound.play(clip, config);
+        return sound;
+      },
     });
+    const presenter = new Presenter(this, content, manifest, audio);
     this.presenter = presenter;
 
     const step = (): void => {
       sim.step(input.poll());
       const events = sim.drainEvents();
       for (const event of events) if (event.type === 'GameRestarted') this.restarts += 1;
-      presenter.handle(events);
+      const timing = presenter.handle(events);
+      this.hitStopMs = Math.max(this.hitStopMs, timing.hitStopMs);
+      this.slowMotionMs = Math.max(this.slowMotionMs, timing.slowMotionMs);
+      this.slowScale = Math.min(this.slowScale, timing.slowScale);
     };
     const loop = createGameLoop({ stepMs: TICK_MS, maxFrameMs: MAX_FRAME_MS, step });
     this.loop = loop;
@@ -104,8 +116,16 @@ export class BootScene extends Phaser.Scene {
   }
 
   override update(_time: number, delta: number): void {
+    this.presenter?.update(delta);
     if (!this.loop || this.paused) return;
-    this.loop.advance(delta);
+    if (this.hitStopMs > 0) {
+      this.hitStopMs = Math.max(0, this.hitStopMs - delta);
+      return;
+    }
+    const scale = this.slowMotionMs > 0 ? this.slowScale : 1;
+    this.slowMotionMs = Math.max(0, this.slowMotionMs - delta);
+    if (this.slowMotionMs === 0) this.slowScale = 1;
+    this.loop.advance(delta * scale);
     this.render(this.loop.alpha);
   }
 

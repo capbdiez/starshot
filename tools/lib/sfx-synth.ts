@@ -45,6 +45,14 @@ export const SFX_RECIPES: Readonly<Record<string, SfxRecipe>> = {
     decayMs: 320,
     volume: 0.6,
   },
+  sfx_player_die: {
+    wave: 'saw',
+    freqStart: 520,
+    freqEnd: 90,
+    attackMs: 8,
+    decayMs: 360,
+    volume: 0.65,
+  },
 };
 
 /** Renders a recipe to mono float samples in [-1, 1]. Deterministic (own LCG for noise). */

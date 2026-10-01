@@ -1,25 +1,29 @@
 import type { Content, FxEntry } from '../../content/index.ts';
 import type { SimEvent } from '../../sim/index.ts';
 
-/** What presentation should do this frame for a batch of sim events. */
+/** One event paired with its validated, data-driven presentation reaction. */
+export interface FxReaction {
+  readonly event: SimEvent;
+  readonly entry: FxEntry;
+}
+
+/** Effects requested by a batch of simulation events. */
 export interface FxReactions {
-  /** Audio-sprite clips to play, in event order. */
-  readonly sfx: readonly string[];
-  /** Whether any event asked for a screen flash. */
+  readonly reactions: readonly FxReaction[];
   readonly flash: boolean;
 }
 
-/** Looks up the data-driven reaction (`content/fx`) for each event. Pure: no Phaser. */
+/** Looks up data-driven reactions (`content/fx`) for events. Pure: no Phaser. */
 export function reactionsFor(fx: Content['fx'], events: readonly SimEvent[]): FxReactions {
-  const sfx: string[] = [];
+  const reactions: FxReaction[] = [];
   let flash = false;
   for (const event of events) {
     const entry: FxEntry | undefined = fx[event.type];
     if (!entry) continue;
-    if (entry.sfx !== undefined) sfx.push(entry.sfx);
-    if (entry.flash === true) flash = true;
+    reactions.push({ event, entry });
+    flash ||= entry.flash === true;
   }
-  return { sfx, flash };
+  return { reactions, flash };
 }
 
 /** Linear interpolation from the previous to the current tick position (render smoothing). */

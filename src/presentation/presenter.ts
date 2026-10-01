@@ -3,11 +3,18 @@ import type { AssetManifest, Content } from '../content/index.ts';
 import { GAME_HEIGHT, GAME_WIDTH } from '../shared/index.ts';
 import type { SimEvent, SimView } from '../sim/index.ts';
 import { animationKey } from './anim/register-animations.ts';
+import type { AudioDirector } from './audio/audio-director.ts';
 import { reactionsFor, smooth } from './fx/event-fx.ts';
+import { Trauma } from './fx/trauma.ts';
+import { Starfield, VisualFx } from './fx/visual-fx.ts';
 import { SpriteLayer, type SpriteSource } from './renderer/sprite-layer.ts';
 
-/** Plays one audio-sprite clip; the app wires it to Phaser sound (or a no-op). */
-export type PlaySfx = (clip: string) => void;
+/** Time effects requested by the event map for the loop driver. */
+export interface FxTiming {
+  readonly hitStopMs: number;
+  readonly slowMotionMs: number;
+  readonly slowScale: number;
+}
 
 /** Flash colour (palette white) and length in render frames. */
 const FLASH_COLOUR = 0xffffff;
@@ -42,13 +49,23 @@ export class Presenter {
   private readonly scene: Phaser.Scene;
   private readonly content: Content;
   private readonly manifest: AssetManifest;
-  private readonly playSfx: PlaySfx;
+  private readonly audio: AudioDirector;
+  private readonly trauma = new Trauma();
+  private readonly visual: VisualFx;
+  private readonly starfield: Starfield;
 
-  constructor(scene: Phaser.Scene, content: Content, manifest: AssetManifest, playSfx: PlaySfx) {
+  constructor(
+    scene: Phaser.Scene,
+    content: Content,
+    manifest: AssetManifest,
+    audio: AudioDirector,
+  ) {
     this.scene = scene;
     this.content = content;
     this.manifest = manifest;
-    this.playSfx = playSfx;
+    this.audio = audio;
+    this.starfield = new Starfield(scene);
+    this.visual = new VisualFx(scene);
     const g = content.gameplay;
     this.grunts = new SpriteLayer(
       scene,
@@ -116,23 +133,45 @@ export class Presenter {
     }
   }
 
-  /** Reacts to the events of the steps run this frame. */
-  handle(events: readonly SimEvent[]): void {
+  /** Advances render-only effects, parallax and trauma shake. */
+  update(deltaMs: number): void {
+    this.starfield.update(deltaMs);
+    this.visual.update(deltaMs);
+    const intensity = this.trauma.advance(deltaMs);
+    this.scene.cameras.main.shake(0, 0);
+    if (intensity > 0) this.scene.cameras.main.shake(16, intensity * 5);
+  }
+
+  /** Reacts to sim events exclusively through their data-driven FX entries. */
+  handle(events: readonly SimEvent[]): FxTiming {
     const reactions = reactionsFor(this.content.fx, events);
-    for (const clip of reactions.sfx) this.playSfx(clip);
+    let hitStopMs = 0;
+    let slowMotionMs = 0;
+    let slowScale = 1;
     if (reactions.flash) {
       this.flashFrames = FLASH_FRAMES;
       this.flash.setAlpha(1).setVisible(true);
     }
     const g = this.content.gameplay;
-    for (const event of events) {
-      if (event.type === 'EnemyKilled') this.playDeath(g.grunt.sprite, event.x, event.y);
-      if (event.type === 'PlayerHit') {
+    for (const { event, entry } of reactions.reactions) {
+      if (entry.sfx !== undefined)
+        this.audio.play(entry.sfx, entry.voiceLimit, entry.pitchVariance);
+      if (entry.muzzle === true && 'x' in event) this.visual.muzzleFlash(event.x, event.y);
+      if (entry.particles !== undefined && 'x' in event)
+        this.visual.sparks(event.x, event.y, entry.particles);
+      if (entry.trauma !== undefined) this.trauma.add(entry.trauma);
+      hitStopMs = Math.max(hitStopMs, entry.hitStopMs ?? 0);
+      slowMotionMs = Math.max(slowMotionMs, entry.slowMotionMs ?? 0);
+      slowScale = Math.min(slowScale, entry.slowScale ?? 1);
+      if (entry.explosion === true && event.type === 'EnemyKilled')
+        this.playDeath(g.grunt.sprite, event.x, event.y);
+      if (entry.explosion === true && event.type === 'PlayerHit') {
         this.playDeath(g.player.sprite, event.x, event.y);
         this.playerAnim = '';
       }
-      if (event.type === 'GameRestarted') this.clearDeaths();
     }
+    for (const event of events) if (event.type === 'GameRestarted') this.clearDeaths();
+    return { hitStopMs, slowMotionMs, slowScale };
   }
 
   private playDeath(spriteKey: string, x: number, y: number): void {

@@ -11,9 +11,14 @@
       "end": 0.644,
       "loop": false
     },
-    "sfx_shot": {
+    "sfx_player_die": {
       "start": 0.894,
-      "end": 0.986,
+      "end": 1.262,
+      "loop": false
+    },
+    "sfx_shot": {
+      "start": 1.512,
+      "end": 1.604,
       "loop": false
     }
   }

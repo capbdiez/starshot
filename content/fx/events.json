@@ -1,8 +1,29 @@
 {
   "events": {
-    "PlayerFired": { "sfx": "sfx_shot" },
-    "EnemyHit": { "sfx": "sfx_hit" },
-    "EnemyKilled": { "sfx": "sfx_explode_s" },
-    "PlayerHit": { "sfx": "sfx_explode_s", "flash": true }
+    "PlayerFired": {
+      "sfx": "sfx_shot",
+      "voiceLimit": 4,
+      "pitchVariance": 0.05,
+      "muzzle": true
+    },
+    "EnemyHit": { "sfx": "sfx_hit", "voiceLimit": 6, "particles": 4 },
+    "EnemyKilled": {
+      "sfx": "sfx_explode_s",
+      "voiceLimit": 4,
+      "explosion": true,
+      "particles": 12,
+      "trauma": 0.1,
+      "popup": true
+    },
+    "PlayerHit": {
+      "sfx": "sfx_player_die",
+      "voiceLimit": 1,
+      "flash": true,
+      "explosion": true,
+      "particles": 20,
+      "trauma": 0.7,
+      "slowMotionMs": 300,
+      "slowScale": 0.35
+    }
   }
 }

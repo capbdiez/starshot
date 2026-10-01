@@ -13,7 +13,13 @@ describe('event → effect mapping', () => {
       { type: 'PlayerFired', id: 1, x: 0, y: 0 },
       { type: 'PlayerFired', id: 2, x: 0, y: 0 },
     ]);
-    expect(reactions).toEqual({ sfx: ['sfx_shot', 'sfx_shot'], flash: false });
+    expect(reactions).toEqual({
+      reactions: [
+        { event: { type: 'PlayerFired', id: 1, x: 0, y: 0 }, entry: { sfx: 'sfx_shot' } },
+        { event: { type: 'PlayerFired', id: 2, x: 0, y: 0 }, entry: { sfx: 'sfx_shot' } },
+      ],
+      flash: false,
+    });
   });
 
   it('requests a flash when any event asks for one', () => {
