@@ -13,6 +13,21 @@ Evidence for the MVP release. Mark a manual/deployment item only after its linke
 | NFR-07 | Architecture enforced; sim coverage ≥ 80% | **Automated:** `npm run lint:deps && npm test` (Vitest coverage threshold/report). |
 | NFR-08 | ART_DIRECTION §9 asset gates | **Automated:** `npm run check:assets`; it validates content references, atlas frames/sizes, palette and rejects every `placeholder: true` manifest entry. |
 
+## G1 Graphics Baseline Record (before 540×960 migration)
+
+Captured from the current MVP production build on 2026-01-10. These values are a regression reference, not a final release sign-off.
+
+| Measure | Baseline | Reproduction |
+| --- | --- | --- |
+| Simulation/world and current render | 270×480 logical/render px | `src/shared/constants.ts`; current Phaser canvas test |
+| Planned presentation buffer | 540×960 presentation px (not implemented in G1) | `docs/ART_DIRECTION.md` coordinate contract |
+| Main atlas | 1024×128 px; 36,820 bytes | `identify -format '%w x %h %b\\n' assets/atlas/main.png` |
+| Fresh production `dist/` gzip stream | 1,135,033 bytes (≈1.08 MiB) | `npm run build && find dist -type f -print0 | xargs -0 gzip -c | wc -c` |
+| Largest production payload | JavaScript bundle: 1,527,187 bytes raw; 401.45 kB gzip | `npm run build` output |
+| Automated visual captures | Chromium fixed seed `20260110`: title, representative gameplay, reduced-flash + high-contrast bullets | `npm run test:e2e -- --project=chromium tests/e2e/graphics-baselines.spec.ts` |
+| Peak bullet density and boss play captures | Pending manual fixed-seed capture: the current public flow exposes no stable non-gameplay jump to those states, and G1 forbids simulation/debug-harness changes | Record approved captures and reference-device evidence before G2 visual implementation |
+| Stress-scene performance | Pending reference-device measurement | Run the 300-bullet/400-particle scene, record device/browser/OS, sustained FPS, and frame-time evidence here; do not infer device performance from CI. |
+
 ## Automated release gates
 
 - [x] Final manifest has no placeholder sprites (`tests/assets/atlas-gates.test.ts`, `npm run check:assets`).

@@ -199,6 +199,215 @@ is actually recorded; no local change can substitute for a public deployment or 
 
 ---
 
+## Graphics Overhaul Program (Post-MVP)
+
+The MVP milestones above remain the historical release plan. This is a separate, incremental visual-modernization program for the `grpahics` branch. It upgrades Starshot to premium neo-arcade presentation while retaining the code-authored, deterministic asset workflow.
+
+**Program constraints**
+- Retain Phaser and the existing sim/presentation boundary; this is not an engine migration.
+- Keep the current 270×480 simulation/world coordinate system for gameplay, content tuning, hitboxes, and replay determinism.
+- Add a canonical 540×960 presentation buffer for higher-detail generated art, UI, backgrounds, masks, and effects.
+- Centralize world-to-presentation conversion in presentation code. Gameplay systems and content should not manually multiply coordinates.
+- Keep `sim/` unchanged unless separately approved. Graphics work belongs in `tools/`, `presentation/`, `ui/`, and presentation-only content.
+- Generate all visual assets in-repository; no externally authored/imported art is required.
+- Preserve sprite keys, anchors, and required clips unless a milestone explicitly migrates their content contract.
+- Readability wins over spectacle: player, hostile bullets, pickups, and attack tells must remain distinct in greyscale and at peak density.
+- Quality tiers may remove cosmetic work but never gameplay cues.
+
+### Graphics Program Overview (≈ 9–13 weeks)
+
+| # | Milestone | Est. | Primary deliverable |
+|---|-----------|------|---------------------|
+| G1 | Visual foundation & baselines | 0.5–1 wk | Art contract, ADR, visual/performance baselines |
+| G2 | Presentation resolution migration | 1 wk | 270×480 world rendered through a 540×960 presentation buffer |
+| G3 | Procedural raster-art toolkit | 1–1.5 wk | Palette-safe deterministic 2× art recipes |
+| G4 | Player, projectile & pickup art pass | 1 wk | Premium core-combat silhouettes and animation |
+| G5 | Enemy roster & boss art pass | 1.5–2 wk | Cohesive enemy materials, tells, and boss treatment |
+| G6 | Stage backgrounds & scene composition | 1–1.5 wk | Seeded multi-layer 540×960 environments |
+| G7 | Modern FX compositor & quality tiers | 1.5–2 wk | Pooled layered effects and accessible quality modes |
+| G8 | HUD, menu & transition art pass | 1–1.5 wk | Cohesive title, UI, typography, and transitions |
+| G9 | Visual QA, optimization & release candidate | 1 wk | Final regression, device validation, documentation |
+
+---
+
+## G1 — Visual Foundation & Baselines
+
+**Scope**
+- Rewrite `docs/ART_DIRECTION.md` into a premium neo-arcade style contract: silhouette/value hierarchy, material and emissive rules, background luminance limits, effect limits, and the 270×480 world → 540×960 presentation model.
+- Add an ADR retaining Phaser and extending the deterministic code-authored asset pipeline instead of replacing the engine or importing external generation tooling.
+- Add fixed-seed Playwright screenshot baselines for title, representative gameplay, peak bullet density, boss play, flash reduction, and high-contrast bullets at the current MVP resolution before migration.
+- Record atlas dimensions, build/download size, and stress-scene performance in `docs/release-checklist.md`.
+
+**Out of scope:** asset replacement, palette changes, shaders, simulation/gameplay changes, resolution implementation.
+
+**Acceptance criteria**
+- The art contract defines player/enemy/bullet/pickup hierarchy evaluable from greyscale screenshots.
+- The resolution contract clearly distinguishes world coordinates from presentation pixels.
+- Fixed-seed screenshots are deterministic and fail on an intentional visual change.
+- Performance and bundle baselines are recorded before visual complexity increases.
+
+**Testing:** full existing regression; visual screenshot coverage; manual greyscale review of baseline scenes.
+
+---
+
+## G2 — Presentation Resolution Migration
+
+**Scope**
+- Introduce explicit world and presentation constants, for example 270×480 world coordinates and 540×960 presentation pixels, instead of treating one size as both gameplay and rendering resolution.
+- Configure Phaser to render to the 540×960 presentation buffer while preserving crisp scaling and portrait letterboxing on modern displays.
+- Centralize the fixed 2× world-to-presentation transform in presentation helpers/layers; sprite sync, particles, camera effects, backgrounds, HUD, menus, and debug/status assumptions use the correct coordinate space.
+- Preserve gameplay content coordinates, hitboxes, speeds, paths, boss positions, and replay hashes unless an individual visual contract requires a documented presentation-only mapping.
+- Update E2E canvas-size expectations, display-zoom tests, visual-baseline dimensions, and documentation references that currently assume 270×480 is the render target.
+- Define small-screen behavior: prefer integer display scaling when possible, and document any fallback scaling used when a viewport cannot fit 540×960 at 1×.
+
+**Out of scope:** retuning gameplay to a 540×960 world, changing collision/hitboxes, new art generation, UI redesign beyond layout-space migration.
+
+**Acceptance criteria**
+- A fixed-seed replay produces the same simulation hash before and after the migration.
+- The browser canvas reports a 540×960 internal render size while world entities appear at the same gameplay-relative positions.
+- Existing MVP art can render correctly through the 2× presentation path as an interim compatibility layer.
+- Title, play, pause, settings, results, boss, high-contrast bullets, and flash-reduction modes remain usable after the migration.
+- Integer or documented fallback scaling keeps the canvas crisp and centered on desktop and the reference device.
+
+**Testing:** display-zoom unit tests; replay golden tests; Chromium/WebKit smoke and core-loop E2E; screenshot baseline refresh for 540×960; manual reference-device performance check.
+
+---
+
+## G3 — Procedural Raster-Art Toolkit
+
+**Scope**
+- Add reusable deterministic palette-safe tooling under `tools/art/`: layered raster canvas, mirrored silhouettes, primitives, outlines, palette ramps, dithering, seeded noise, material passes, glow masks, and animation helpers.
+- Split monolithic sprite definitions into focused player, enemy, boss, projectile, pickup, and FX recipe modules.
+- Retain `tools/build-art.ts` and its Aseprite-compatible output contract so atlas packing, manifests, and runtime loading remain compatible.
+- Support 2× detail recipe output where appropriate, while keeping sprite anchors/clips stable and documenting any intentional frame-size migrations.
+- Add recipe metadata/versioning sufficient to reproduce and review intended art changes.
+
+**Out of scope:** runtime FX rewrite, gameplay coordinate changes, external image dependencies.
+
+**Acceptance criteria**
+- Identical recipe inputs produce byte-identical raster output and atlas metadata.
+- The toolkit produces layered hull shading, emissive cores, controlled dithering, and mirrored silhouettes using only the master palette.
+- Existing export, atlas, manifest, and asset gates pass with presentation-resolution-aware assets.
+
+**Testing:** primitive/seed determinism tests; palette/size/clip tests; `npm run assets:build` and `npm run check:assets`.
+
+---
+
+## G4 — Player, Projectile & Pickup Art Pass
+
+**Scope**
+- Rebuild player ship art with a stronger silhouette, hull panels, cockpit/engine detail, designed bank frames, and staged destruction at presentation-buffer detail.
+- Rebuild player shots, enemy bullets, and pickups through the new recipe toolkit.
+- Add generated support art for thrusters, projectile glow, and pickup pulse while keeping enemy bullets round and high contrast.
+- Preserve gameplay-relative size, position, anchors, and clip meaning; any frame-size changes are atlas/content migrations only, not collision changes.
+
+**Out of scope:** enemy/boss redesign, background replacement, UI redesign, collision/hitbox changes.
+
+**Acceptance criteria**
+- The player is identifiable within 100 ms in the peak-density scene.
+- Enemy bullets remain distinct from player shots, pickups, and backgrounds in colour and greyscale.
+- New art works through existing gameplay/animation contracts with no simulation changes.
+
+**Testing:** atlas/manifest/palette gates; combat screenshots; high-contrast setting coverage; reference-device stress check.
+
+---
+
+## G5 — Enemy Roster & Boss Art Pass
+
+**Scope**
+- Rebuild Grunt, Swooper, Tank, and Elite with distinct silhouettes, material families, energy/weak points, and escalating tells at presentation-buffer detail.
+- Rebuild boss core, wings, and cannon as a unified modular machine with readable destruction and phase-state treatment.
+- Add material-aware generated destruction/debris frames for enemies and boss parts.
+- Retain all entity/boss keys, part-layout contracts, anchors, required animations, and gameplay hitboxes.
+
+**Out of scope:** new enemy behavior, boss mechanics, balance changes, additional enemies/bosses.
+
+**Acceptance criteria**
+- Each enemy remains distinguishable by silhouette at gameplay scale and in greyscale.
+- Existing attack tells are visible for their current duration and cannot be mistaken for player effects.
+- Boss part destruction and phase changes are legible without audio or subtitles.
+
+**Testing:** atlas/manifest/palette gates; seeded enemy/boss screenshots; existing boss/replay tests; peak-boss-density performance validation.
+
+---
+
+## G6 — Stage Backgrounds & Scene Composition
+
+**Scope**
+- Replace the simple starfield with deterministic 540×960 multi-layer presentation: deep-space field, low-contrast nebulae, distant stars, sparse large objects, and optional foreground detail.
+- Add presentation-only stage environment schema/data for theme, seed, palette role, layer density, and motion speed.
+- Derive layouts from stable stage/run seeds; backgrounds never affect simulation determinism.
+- Pre-render/cache static layers and pool moving elements rather than rebuilding geometry each frame.
+
+**Out of scope:** scrolling gameplay, mechanics changes, decorative objects resembling bullets, unbounded generation.
+
+**Acceptance criteria**
+- Every stage has a distinct atmosphere while background luminance stays within the art-direction limit.
+- The same stage and seed always produce the same layout.
+- Backgrounds preserve player/bullet readability in peak-density and greyscale checks.
+
+**Testing:** deterministic layout tests; schema tests; stage screenshots; device performance with all background layers enabled.
+
+---
+
+## G7 — Modern FX Compositor & Quality Tiers
+
+**Scope**
+- Replace rectangle-only sparks with pooled layered 540×960 FX for thrusters, muzzle flashes, trails, hits, debris, explosions, bomb waves, tells, pickups, and boss destruction chains.
+- Drive effect selection/budgets from `content/fx/` where appropriate and preserve the event-driven presentation boundary.
+- Add visual-quality, background-motion, and effects-intensity settings while retaining shake, flash reduction, CRT, subtitles, and high-contrast bullets.
+- Evaluate Phaser 4 WebGL post-processing only behind a tested optional path with generated-sprite fallback.
+
+**Out of scope:** mandatory custom shaders, FX triggered directly from `sim/`, unbounded particles, gameplay/hitbox changes.
+
+**Acceptance criteria**
+- Every high-impact event has a readable pooled reaction and reduced-flash alternative.
+- Low quality removes cosmetic work first while retaining bullets, tells, and accessibility cues.
+- The 300-bullet/400-particle target holds 60 FPS at high and low quality on the reference device.
+- Flash reduction remains at or below 3 Hz.
+
+**Testing:** event/quality-tier unit tests; full/reduced FX screenshots; particle-pool budget tests; stress and renderer-fallback validation.
+
+---
+
+## G8 — HUD, Menu & Transition Art Pass
+
+**Scope**
+- Replace generic monospace/rectangle presentation with generated bitmap/display glyphs, panel frames, icons, and palette-safe ornaments targeting the 540×960 presentation buffer.
+- Add title-logo treatment, animated title backdrop, compact HUD hierarchy, and stylized title/pause/results/settings panels.
+- Add restrained palette-safe wipes or dissolves; retain the string-table, input, flow, and persistence contracts.
+
+**Out of scope:** new menu features, rebinding, non-English localization, external font/image assets.
+
+**Acceptance criteria**
+- HUD remains legible at presentation 1× and never obstructs gameplay.
+- Menus, HUD, title, and gameplay share one coherent palette, border, typography, and emissive language.
+- Every flow state remains keyboard/pointer operable without console errors.
+
+**Testing:** UI asset gates; title/HUD/menu screenshot baselines; existing scene-flow and Chromium/WebKit E2E tests.
+
+---
+
+## G9 — Visual QA, Optimization & Release Candidate
+
+**Scope**
+- Audit generated art, environments, effects, UI, and quality modes against the G1 contract.
+- Optimize atlas packing, textures, pools, draw order, optional effects, and 540×960 rendering cost without reducing required readability.
+- Complete accessibility/compatibility checks: greyscale/colour-blind screenshots, flash reduction, high-contrast bullets, quality tiers, fullscreen, and browser fallbacks.
+- Update credits, release checklist, art documentation, baselines, and affected ADRs.
+
+**Out of scope:** new gameplay content, engine migration, runtime dependencies without a new ADR, unrelated post-MVP work.
+
+**Acceptance criteria**
+- No visual asset is a placeholder; generated outputs are reproducible and committed.
+- Graphics-program screenshot baselines are intentionally approved and passing.
+- NFR-01 through NFR-08 remain met, including ≤ 5 MB gzipped initial download and ≤ 3 s first playable.
+- Reference-device and target-browser checks confirm stable 60 FPS at peak visual load.
+
+**Testing:** required command suite; Chromium/WebKit and production smoke tests; visual regression; device evidence; final colour-blind and flash-safety review.
+
+---
+
 ## Post-MVP Roadmap (not scheduled in detail)
 
 | ID | Milestone | Key Deliverables |
