@@ -25,6 +25,7 @@ describe('final M1 sprite art', () => {
         'enemy_grunt',
         'enemy_swooper',
         'enemy_tank',
+        'pickup_weapon',
         'player_ship',
         'player_shot',
       ].sort(),

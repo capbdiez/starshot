@@ -28,6 +28,11 @@ const EVENT_TYPES: Record<SimEventType, true> = {
   PlayerRespawned: true,
   WaveStarted: true,
   GameOver: true,
+  PickupSpawned: true,
+  PickupCollected: true,
+  BombUsed: true,
+  ScoreAwarded: true,
+  ExtraLifeAwarded: true,
   GameRestarted: true,
 };
 
@@ -42,6 +47,23 @@ describe('gameplay.json', () => {
       g['grunt'] = { ...g['grunt'], sprite: 'enemy_ghost' };
     });
     expect(issues(bad)).toMatch(/grunt\.sprite: sprite "enemy_ghost" is not defined/);
+  });
+
+  it('rejects malformed M4 tuning values', () => {
+    expect(
+      issues(
+        withGameplay((g) => {
+          g['bomb'] = { damage: 0, invulnerableTicks: 1 };
+        }),
+      ),
+    ).toMatch(/bomb.damage/);
+    expect(
+      issues(
+        withGameplay((g) => {
+          g['player'] = { ...g['player'], weaponLevels: [] };
+        }),
+      ),
+    ).toMatch(/weaponLevels/);
   });
 
   it('rejects out-of-range numbers and unknown keys', () => {

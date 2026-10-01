@@ -20,12 +20,12 @@
     [5, 300]
   ],
   "expected": {
-    "hash": "bb583568",
+    "hash": "8b5790a9",
     "tick": 4145,
     "lives": 1,
     "wave": 1,
     "kills": 11,
     "gameOvers": 4
   },
-  "reason": "M3 stage-1 entry paths, formation, attack tells, dives and data-defined bullet patterns."
+  "reason": "M4 scoring state and the dive boundary cull: enemies retain their downward attack path but no longer remain alive below the play field."
 }

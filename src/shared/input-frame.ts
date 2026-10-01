@@ -12,6 +12,7 @@ export const InputBit = {
   left: 1 << 0,
   right: 1 << 1,
   fire: 1 << 2,
+  bomb: 1 << 3,
 } as const;
 
 /** Whether `bit` is set in `frame`. */

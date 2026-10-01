@@ -27,6 +27,16 @@ export const gameplaySchema = z
       fireIntervalTicks: ticks,
       /** Most player shots on screen at once (weapon level 1). */
       maxShots: z.int().min(1).max(32),
+      weaponLevels: z
+        .array(
+          z.strictObject({
+            shots: z.int().min(1).max(5),
+            spread: z.number().min(0).max(8),
+            maxShots: z.int().min(1).max(32),
+          }),
+        )
+        .length(3),
+      bombsPerLife: z.int().min(0).max(9),
     }),
     playerShot: z.strictObject({ sprite: spriteKey, speed, hitbox }),
     grunt: z.strictObject({
@@ -54,6 +64,22 @@ export const gameplaySchema = z
         message: 'minIntervalTicks must be <= maxIntervalTicks',
       }),
     enemyBullet: z.strictObject({ sprite: spriteKey, speed, hitbox }),
+    pickups: z.strictObject({
+      sprite: spriteKey,
+      hitbox,
+      speed,
+      /** Deterministic pickup cadence; zero would disable M4 pickups. */
+      dropEveryKills: z.int().min(1).max(100),
+    }),
+    scoring: z.strictObject({
+      basePoints: z.record(z.string().regex(/^[a-z][a-z0-9_]*$/), z.int().min(1).max(100_000)),
+      chainWindowTicks: ticks,
+      maxMultiplier: z.int().min(1).max(99),
+      diveBonus: z.int().min(0).max(100_000),
+      extraLifeFirstScore: z.int().min(1).max(10_000_000),
+      extraLifeEveryScore: z.int().min(1).max(10_000_000),
+    }),
+    bomb: z.strictObject({ damage: z.int().min(1).max(99), invulnerableTicks: ticks }),
     /** Ticks from game over to the automatic restart (acceptance: ≤ 2 s). */
     gameOverTicks: z.int().min(1).max(120),
   })

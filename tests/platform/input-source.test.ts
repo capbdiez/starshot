@@ -17,6 +17,7 @@ describe('keyboard mapping (FR-02)', () => {
     expect(keyBit('KeyD')).toBe(InputBit.right);
     expect(keyBit('KeyZ')).toBe(InputBit.fire);
     expect(keyBit('Space')).toBe(InputBit.fire);
+    expect(keyBit('KeyX')).toBe(InputBit.bomb);
     expect(keyBit('KeyQ')).toBe(0);
   });
 });
@@ -32,6 +33,7 @@ describe('gamepad mapping', () => {
     expect(padBits(pad(0, [14]))).toBe(InputBit.left);
     expect(padBits(pad(0, [15, 0]))).toBe(InputBit.right | InputBit.fire);
     expect(padBits(pad(0, [3]))).toBe(InputBit.fire);
+    expect(padBits(pad(0, [4]))).toBe(InputBit.bomb);
   });
 
   it('tolerates pads with missing axes/buttons', () => {

@@ -169,6 +169,7 @@ function gameplaySpriteIssues(gameplay: Gameplay, sprites: Record<string, Sprite
     'playerShot.sprite': gameplay.playerShot.sprite,
     'grunt.sprite': gameplay.grunt.sprite,
     'enemyBullet.sprite': gameplay.enemyBullet.sprite,
+    'pickups.sprite': gameplay.pickups.sprite,
   };
   return Object.entries(refs)
     .filter(([, key]) => !(key in sprites))

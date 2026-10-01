@@ -15,6 +15,14 @@
       "trauma": 0.1,
       "popup": true
     },
+    "PickupCollected": { "sfx": "sfx_pickup", "voiceLimit": 2, "particles": 10, "popup": true },
+    "BombUsed": {
+      "sfx": "sfx_bomb",
+      "voiceLimit": 1,
+      "flash": true,
+      "particles": 30,
+      "trauma": 0.4
+    },
     "PlayerHit": {
       "sfx": "sfx_player_die",
       "voiceLimit": 1,

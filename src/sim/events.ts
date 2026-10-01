@@ -28,6 +28,27 @@ export type SimEvent =
   | { readonly type: 'PlayerRespawned'; readonly x: number; readonly y: number }
   | { readonly type: 'WaveStarted'; readonly wave: number }
   | { readonly type: 'GameOver'; readonly wave: number }
+  | { readonly type: 'PickupSpawned'; readonly id: number; readonly x: number; readonly y: number }
+  | {
+      readonly type: 'PickupCollected';
+      readonly id: number;
+      readonly x: number;
+      readonly y: number;
+      readonly weaponLevel: number;
+    }
+  | {
+      readonly type: 'BombUsed';
+      readonly x: number;
+      readonly y: number;
+      readonly enemiesHit: number;
+    }
+  | {
+      readonly type: 'ScoreAwarded';
+      readonly points: number;
+      readonly score: number;
+      readonly multiplier: number;
+    }
+  | { readonly type: 'ExtraLifeAwarded'; readonly lives: number; readonly score: number }
   | { readonly type: 'GameRestarted' };
 
 /** Every event kind, e.g. for exhaustive event → effect maps. */

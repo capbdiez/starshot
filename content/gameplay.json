@@ -9,7 +9,13 @@
     "respawnTicks": 60,
     "invulnerableTicks": 120,
     "fireIntervalTicks": 8,
-    "maxShots": 3
+    "maxShots": 3,
+    "weaponLevels": [
+      { "shots": 1, "spread": 0, "maxShots": 3 },
+      { "shots": 2, "spread": 1.25, "maxShots": 5 },
+      { "shots": 3, "spread": 1.5, "maxShots": 7 }
+    ],
+    "bombsPerLife": 2
   },
   "playerShot": {
     "sprite": "player_shot",
@@ -32,6 +38,24 @@
     "sprite": "enemy_bullet",
     "speed": 3,
     "hitbox": { "w": 4, "h": 4 }
+  },
+  "pickups": {
+    "sprite": "pickup_weapon",
+    "hitbox": { "w": 12, "h": 12 },
+    "speed": 1,
+    "dropEveryKills": 5
+  },
+  "scoring": {
+    "basePoints": { "grunt": 100, "swooper": 200, "tank": 300, "elite": 500 },
+    "chainWindowTicks": 180,
+    "maxMultiplier": 8,
+    "diveBonus": 100,
+    "extraLifeFirstScore": 20000,
+    "extraLifeEveryScore": 60000
+  },
+  "bomb": {
+    "damage": 3,
+    "invulnerableTicks": 90
   },
   "gameOverTicks": 90
 }

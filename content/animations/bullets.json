@@ -10,6 +10,15 @@
       }
     },
     {
+      "key": "pickup_weapon",
+      "role": "pickup",
+      "size": { "w": 12, "h": 12 },
+      "anchor": { "x": 0.5, "y": 0.5 },
+      "clips": {
+        "idle": { "frames": 4, "fps": 8, "repeat": -1 }
+      }
+    },
+    {
       "key": "enemy_bullet",
       "role": "enemy_bullet",
       "size": { "w": 6, "h": 6 },

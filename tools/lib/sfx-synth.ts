@@ -45,6 +45,22 @@ export const SFX_RECIPES: Readonly<Record<string, SfxRecipe>> = {
     decayMs: 320,
     volume: 0.6,
   },
+  sfx_pickup: {
+    wave: 'triangle',
+    freqStart: 700,
+    freqEnd: 1800,
+    attackMs: 2,
+    decayMs: 140,
+    volume: 0.45,
+  },
+  sfx_bomb: {
+    wave: 'noise',
+    freqStart: 180,
+    freqEnd: 50,
+    attackMs: 4,
+    decayMs: 280,
+    volume: 0.7,
+  },
   sfx_player_die: {
     wave: 'saw',
     freqStart: 520,

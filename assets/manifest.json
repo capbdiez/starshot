@@ -114,6 +114,18 @@
         ]
       }
     },
+    "pickup_weapon": {
+      "atlas": "main",
+      "placeholder": false,
+      "clips": {
+        "idle": [
+          "pickup_weapon/idle/0",
+          "pickup_weapon/idle/1",
+          "pickup_weapon/idle/2",
+          "pickup_weapon/idle/3"
+        ]
+      }
+    },
     "player_ship": {
       "atlas": "main",
       "placeholder": false,

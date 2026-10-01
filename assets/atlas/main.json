@@ -2,7 +2,7 @@
   "frames": {
     "enemy_bullet/idle/0": {
       "frame": {
-        "x": 213,
+        "x": 265,
         "y": 26,
         "w": 6,
         "h": 6
@@ -26,7 +26,7 @@
     },
     "enemy_bullet/idle/1": {
       "frame": {
-        "x": 220,
+        "x": 272,
         "y": 26,
         "w": 6,
         "h": 6
@@ -1200,6 +1200,102 @@
         "y": 0.5
       }
     },
+    "pickup_weapon/idle/0": {
+      "frame": {
+        "x": 205,
+        "y": 26,
+        "w": 12,
+        "h": 12
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 12
+      },
+      "sourceSize": {
+        "w": 12,
+        "h": 12
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "pickup_weapon/idle/1": {
+      "frame": {
+        "x": 218,
+        "y": 26,
+        "w": 12,
+        "h": 12
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 12
+      },
+      "sourceSize": {
+        "w": 12,
+        "h": 12
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "pickup_weapon/idle/2": {
+      "frame": {
+        "x": 231,
+        "y": 26,
+        "w": 12,
+        "h": 12
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 12
+      },
+      "sourceSize": {
+        "w": 12,
+        "h": 12
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "pickup_weapon/idle/3": {
+      "frame": {
+        "x": 244,
+        "y": 26,
+        "w": 12,
+        "h": 12
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 12
+      },
+      "sourceSize": {
+        "w": 12,
+        "h": 12
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
     "player_ship/bank_left/0": {
       "frame": {
         "x": 981,
@@ -1538,7 +1634,7 @@
     },
     "player_shot/idle/0": {
       "frame": {
-        "x": 205,
+        "x": 257,
         "y": 26,
         "w": 3,
         "h": 8
@@ -1562,7 +1658,7 @@
     },
     "player_shot/idle/1": {
       "frame": {
-        "x": 209,
+        "x": 261,
         "y": 26,
         "w": 3,
         "h": 8

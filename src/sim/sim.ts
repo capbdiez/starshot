@@ -28,6 +28,10 @@ export interface SimView {
   readonly phase: Phase;
   readonly lives: number;
   readonly wave: number;
+  readonly score: number;
+  readonly multiplier: number;
+  readonly bombs: number;
+  readonly weaponLevel: number;
   readonly player: {
     readonly alive: boolean;
     readonly x: number;
@@ -45,6 +49,7 @@ export interface SimView {
   }[];
   readonly shots: readonly MoverView[];
   readonly enemyBullets: readonly MoverView[];
+  readonly pickups: readonly MoverView[];
 }
 
 function moverViews(pool: readonly Mover[]): MoverView[] {
@@ -60,6 +65,10 @@ function view(world: World): Readonly<SimView> {
     phase: world.phase,
     lives: world.lives,
     wave: world.wave,
+    score: world.score,
+    multiplier: world.chain,
+    bombs: p.bombs,
+    weaponLevel: p.weaponLevel,
     player: Object.freeze({
       alive: p.alive,
       x: p.x,
@@ -77,6 +86,7 @@ function view(world: World): Readonly<SimView> {
     ),
     shots: Object.freeze(moverViews(world.shots)),
     enemyBullets: Object.freeze(moverViews(world.bullets)),
+    pickups: Object.freeze(moverViews(world.pickups)),
   });
 }
 
@@ -94,11 +104,19 @@ function stateWords(world: World): number[] {
     world.enemyFireTimer,
     world.diveTimer,
     world.gameOverTimer,
+    world.score,
+    world.chain,
+    world.chainTimer,
+    world.kills,
+    world.nextExtraLifeScore,
     p.alive ? 1 : 0,
     p.dir & 0xff,
     p.fireCooldown,
     p.invulnerable,
     p.respawnTimer,
+    p.weaponLevel,
+    p.bombs,
+    p.bombHeld ? 1 : 0,
   ];
   pushFloat(words, p.x);
   for (const g of world.grunts) {
@@ -116,7 +134,7 @@ function stateWords(world: World): number[] {
     pushFloat(words, g.x);
     pushFloat(words, g.y);
   }
-  for (const m of [...world.shots, ...world.bullets]) {
+  for (const m of [...world.shots, ...world.bullets, ...world.pickups]) {
     words.push(m.id, m.active ? 1 : 0);
     pushFloat(words, m.x);
     pushFloat(words, m.y);
@@ -155,6 +173,7 @@ export function createSim(content: Content, seed: number): Sim {
       world.tick += 1;
       moveMovers(world.shots);
       moveMovers(world.bullets);
+      moveMovers(world.pickups);
       if (updateGameOver(world)) return;
       updatePlayer(world, input >>> 0);
       updateEnemyFire(world);

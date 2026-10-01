@@ -6,6 +6,7 @@ import { readContentFiles } from '../../tools/lib/repo.ts';
 export const L = InputBit.left;
 export const R = InputBit.right;
 export const F = InputBit.fire;
+export const B = InputBit.bomb;
 
 const files = readContentFiles();
 

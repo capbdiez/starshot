@@ -1,10 +1,12 @@
-import type { Content, Gameplay } from '../content/index.ts';
+import type { Content } from '../content/index.ts';
 import { GAME_WIDTH } from '../shared/index.ts';
 import type { SimEvent } from './events.ts';
 import { createRng, type Rng } from './rng.ts';
 
 /** Capacity of the enemy bullet pool (structural limit, not a tuning value). */
 export const ENEMY_BULLET_POOL = 64;
+/** Capacity of the pickup pool; drops are throttled by content. */
+export const PICKUP_POOL = 8;
 
 /** A pooled moving entity (shot or bullet). `prevX/prevY` are positions before this tick. */
 export interface Mover {
@@ -45,13 +47,16 @@ export interface Player {
   fireCooldown: number;
   invulnerable: number;
   respawnTimer: number;
+  weaponLevel: number;
+  bombs: number;
+  bombHeld: boolean;
 }
 
 export type Phase = 'playing' | 'gameOver';
 
 /** Private mutable simulation state. Never handed out; `snapshot()` copies from it. */
 export interface World {
-  readonly rules: Gameplay;
+  readonly rules: Content['gameplay'];
   readonly content: Content;
   readonly rng: Rng;
   readonly seed: number;
@@ -64,10 +69,16 @@ export interface World {
   enemyFireTimer: number;
   diveTimer: number;
   gameOverTimer: number;
+  score: number;
+  chain: number;
+  chainTimer: number;
+  kills: number;
+  nextExtraLifeScore: number;
   readonly player: Player;
   readonly grunts: Grunt[];
   readonly shots: Mover[];
   readonly bullets: Mover[];
+  readonly pickups: Mover[];
   /** Events emitted this tick; drained by `sim.drainEvents()`. */
   events: SimEvent[];
 }
@@ -93,6 +104,11 @@ export function createWorld(content: Content, seed: number): World {
     enemyFireTimer: 0,
     diveTimer: 0,
     gameOverTimer: 0,
+    score: 0,
+    chain: 0,
+    chainTimer: 0,
+    kills: 0,
+    nextExtraLifeScore: rules.scoring.extraLifeFirstScore,
     player: {
       alive: true,
       x: 0,
@@ -102,6 +118,9 @@ export function createWorld(content: Content, seed: number): World {
       fireCooldown: 0,
       invulnerable: 0,
       respawnTimer: 0,
+      weaponLevel: 1,
+      bombs: rules.player.bombsPerLife,
+      bombHeld: false,
     },
     grunts: Array.from(
       {
@@ -129,6 +148,7 @@ export function createWorld(content: Content, seed: number): World {
     ),
     shots: Array.from({ length: rules.player.maxShots }, mover),
     bullets: Array.from({ length: ENEMY_BULLET_POOL }, mover),
+    pickups: Array.from({ length: PICKUP_POOL }, mover),
     events: [],
   };
   resetGame(world);
@@ -151,6 +171,8 @@ export function placePlayer(world: World): void {
   p.dir = 0;
   p.fireCooldown = 0;
   p.respawnTimer = 0;
+  p.bombs = world.rules.player.bombsPerLife;
+  p.bombHeld = false;
 }
 
 /** Spawns the configured stage formation and announces the wave. */
@@ -198,8 +220,14 @@ export function resetGame(world: World): void {
   world.lives = world.rules.player.lives;
   world.wave = 0;
   world.gameOverTimer = 0;
+  world.score = 0;
+  world.chain = 0;
+  world.chainTimer = 0;
+  world.kills = 0;
+  world.nextExtraLifeScore = world.rules.scoring.extraLifeFirstScore;
   for (const m of world.shots) m.active = false;
   for (const m of world.bullets) m.active = false;
+  for (const m of world.pickups) m.active = false;
   placePlayer(world);
   world.player.invulnerable = 0;
   spawnWave(world);

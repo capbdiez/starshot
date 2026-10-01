@@ -24,7 +24,16 @@ const BLINK_TICKS = 8;
 /** Ceiling on simultaneous death animations (one-shot pool). */
 const MAX_DEATHS = 24;
 
-const DEPTH = { enemy: 10, player: 20, shot: 30, bullet: 40, death: 50, flash: 100 } as const;
+const DEPTH = {
+  enemy: 10,
+  player: 20,
+  shot: 30,
+  bullet: 40,
+  pickup: 45,
+  death: 50,
+  hud: 90,
+  flash: 100,
+} as const;
 
 function source(manifest: AssetManifest, key: string): SpriteSource {
   const entry = manifest.sprites[key];
@@ -41,7 +50,9 @@ export class Presenter {
   private readonly grunts: Map<string, SpriteLayer>;
   private readonly shots: SpriteLayer;
   private readonly bullets: SpriteLayer;
+  private readonly pickups: SpriteLayer;
   private readonly player: Phaser.GameObjects.Sprite;
+  private readonly hud: Phaser.GameObjects.Text;
   private readonly deaths: Phaser.GameObjects.Sprite[] = [];
   private readonly flash: Phaser.GameObjects.Rectangle;
   private flashFrames = 0;
@@ -90,9 +101,25 @@ export class Presenter {
       animationKey(g.enemyBullet.sprite, 'idle'),
       DEPTH.bullet,
     );
+    this.pickups = new SpriteLayer(
+      scene,
+      source(manifest, g.pickups.sprite),
+      animationKey(g.pickups.sprite, 'idle'),
+      DEPTH.pickup,
+    );
     const ship = source(manifest, g.player.sprite);
     this.player = scene.add.sprite(GAME_WIDTH / 2, g.player.y, ship.atlas, ship.frame);
     this.player.setDepth(DEPTH.player);
+    this.hud = scene.add
+      .text(4, 2, '', {
+        fontFamily: 'monospace',
+        fontSize: '8px',
+        color: '#ffffff',
+        stroke: '#0b0b1a',
+        strokeThickness: 1,
+      })
+      .setDepth(DEPTH.hud)
+      .setResolution(1);
     this.flash = scene.add
       .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, FLASH_COLOUR)
       .setOrigin(0, 0)
@@ -142,6 +169,17 @@ export class Presenter {
     for (const b of view.enemyBullets)
       this.bullets.place(b.id, smooth(b.prevX, b.x, alpha), smooth(b.prevY, b.y, alpha));
     this.bullets.end();
+    this.pickups.begin();
+    for (const pickup of view.pickups)
+      this.pickups.place(
+        pickup.id,
+        smooth(pickup.prevX, pickup.x, alpha),
+        smooth(pickup.prevY, pickup.y, alpha),
+      );
+    this.pickups.end();
+    this.hud.setText(
+      `SCORE ${String(view.score).padStart(6, '0')}  x${String(view.multiplier)}\nW${String(view.weaponLevel)}                 L${String(view.lives)} B${String(view.bombs)}`,
+    );
 
     if (this.flashFrames > 0) {
       this.flashFrames -= 1;

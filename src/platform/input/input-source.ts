@@ -16,12 +16,14 @@ const KEY_BITS: Readonly<Record<string, number>> = {
   KeyD: InputBit.right,
   KeyZ: InputBit.fire,
   Space: InputBit.fire,
+  KeyX: InputBit.bomb,
 };
 
 /** Analog stick dead zone. */
 const STICK_DEAD_ZONE = 0.4;
 /** Standard-mapping buttons: A/B/X/Y fire, d-pad left/right move. */
 const PAD_FIRE_BUTTONS = [0, 1, 2, 3];
+const PAD_BOMB_BUTTON = 4;
 const PAD_LEFT = 14;
 const PAD_RIGHT = 15;
 
@@ -38,6 +40,7 @@ export function padBits(pad: PadState): InputFrame {
   if (x < -STICK_DEAD_ZONE || pad.buttons[PAD_LEFT]?.pressed) bits |= InputBit.left;
   if (x > STICK_DEAD_ZONE || pad.buttons[PAD_RIGHT]?.pressed) bits |= InputBit.right;
   if (PAD_FIRE_BUTTONS.some((i) => pad.buttons[i]?.pressed)) bits |= InputBit.fire;
+  if (pad.buttons[PAD_BOMB_BUTTON]?.pressed) bits |= InputBit.bomb;
   return bits;
 }
 

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { createSim } from '../../src/sim/index.ts';
+import { peaceful, run } from './helpers.ts';
 import { diveInterval } from '../../src/sim/dive-scheduler.ts';
 import { easeInOut, sampleCubic } from '../../src/sim/path.ts';
 import { patternVelocities } from '../../src/sim/patterns.ts';
@@ -33,5 +35,11 @@ describe('M3 patterns and dive scheduler', () => {
     expect(diveInterval(60, 180, 10, 10)).toBe(180);
     expect(diveInterval(60, 180, 1, 10)).toBeLessThan(diveInterval(60, 180, 10, 10));
     expect(diveInterval(60, 180, 0, 10)).toBe(60);
+  });
+
+  it('removes divers that cross the bottom boundary so the next wave can start', () => {
+    const sim = createSim(peaceful, 1);
+    const events = run(sim, 3_000);
+    expect(events.filter((event) => event.type === 'WaveStarted').length).toBeGreaterThan(1);
   });
 });

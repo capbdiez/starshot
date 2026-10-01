@@ -30,7 +30,7 @@ function launch(world: World, m: Mover, x: number, y: number, vx: number, vy: nu
   m.vy = vy;
 }
 
-/** Horizontal movement, edge clamping and autofire. */
+/** Horizontal movement, weapon-level autofire and bomb activation. */
 export function updatePlayer(world: World, input: InputFrame): void {
   const p = world.player;
   const rules = world.rules.player;
@@ -45,21 +45,79 @@ export function updatePlayer(world: World, input: InputFrame): void {
     return;
   }
   if (p.invulnerable > 0) p.invulnerable -= 1;
+  if (world.chainTimer > 0) world.chainTimer -= 1;
+  else world.chain = 0;
 
   const left = hasInput(input, InputBit.left);
   const right = hasInput(input, InputBit.right);
   p.dir = left === right ? 0 : left ? -1 : 1;
-  const min = rules.edgeMargin;
-  const max = GAME_WIDTH - rules.edgeMargin;
-  p.x = Math.min(max, Math.max(min, p.x + p.dir * rules.speed));
+  p.x = Math.min(
+    GAME_WIDTH - rules.edgeMargin,
+    Math.max(rules.edgeMargin, p.x + p.dir * rules.speed),
+  );
 
+  const bombPressed = hasInput(input, InputBit.bomb);
+  if (bombPressed && !p.bombHeld && p.bombs > 0) useBomb(world);
+  p.bombHeld = bombPressed;
   if (p.fireCooldown > 0) p.fireCooldown -= 1;
-  if (hasInput(input, InputBit.fire) && p.fireCooldown === 0) {
+  if (!hasInput(input, InputBit.fire) || p.fireCooldown !== 0) return;
+  const level = rules.weaponLevels[p.weaponLevel - 1];
+  if (!level || world.shots.filter((shot) => shot.active).length + level.shots > level.maxShots)
+    return;
+  for (let i = 0; i < level.shots; i += 1) {
     const shot = findFree(world.shots);
-    if (shot) {
-      launch(world, shot, p.x, p.y - rules.hitbox.h, 0, -world.rules.playerShot.speed);
-      p.fireCooldown = rules.fireIntervalTicks;
-      world.events.push({ type: 'PlayerFired', id: shot.id, x: shot.x, y: shot.y });
+    if (!shot) break;
+    const offset = (i - (level.shots - 1) / 2) * level.spread;
+    launch(world, shot, p.x, p.y - rules.hitbox.h, offset, -world.rules.playerShot.speed);
+    world.events.push({ type: 'PlayerFired', id: shot.id, x: shot.x, y: shot.y });
+  }
+  p.fireCooldown = rules.fireIntervalTicks;
+}
+
+function useBomb(world: World): void {
+  const p = world.player;
+  p.bombs -= 1;
+  p.invulnerable = Math.max(p.invulnerable, world.rules.bomb.invulnerableTicks);
+  for (const bullet of world.bullets) bullet.active = false;
+  let enemiesHit = 0;
+  for (const enemy of world.grunts) {
+    if (!enemy.alive) continue;
+    enemiesHit += 1;
+    enemy.hp -= world.rules.bomb.damage;
+    if (enemy.hp <= 0) killEnemy(world, enemy);
+    else world.events.push({ type: 'EnemyHit', id: enemy.id, x: enemy.x, y: enemy.y });
+  }
+  world.events.push({ type: 'BombUsed', x: p.x, y: p.y, enemiesHit });
+}
+
+function killEnemy(world: World, enemy: World['grunts'][number]): void {
+  enemy.alive = false;
+  const scoring = world.rules.scoring;
+  world.chain = Math.min(scoring.maxMultiplier, world.chain + 1);
+  world.chainTimer = scoring.chainWindowTicks;
+  const points =
+    ((scoring.basePoints[enemy.kind] ?? 0) + (enemy.diving > 0 ? scoring.diveBonus : 0)) *
+    world.chain;
+  world.score += points;
+  world.kills += 1;
+  world.events.push({
+    type: 'EnemyKilled',
+    id: enemy.id,
+    kind: enemy.kind,
+    x: enemy.x,
+    y: enemy.y,
+  });
+  world.events.push({ type: 'ScoreAwarded', points, score: world.score, multiplier: world.chain });
+  while (world.score >= world.nextExtraLifeScore) {
+    world.lives += 1;
+    world.events.push({ type: 'ExtraLifeAwarded', lives: world.lives, score: world.score });
+    world.nextExtraLifeScore += scoring.extraLifeEveryScore;
+  }
+  if (world.kills % world.rules.pickups.dropEveryKills === 0) {
+    const pickup = findFree(world.pickups);
+    if (pickup) {
+      launch(world, pickup, enemy.x, enemy.y, 0, world.rules.pickups.speed);
+      world.events.push({ type: 'PickupSpawned', id: pickup.id, x: pickup.x, y: pickup.y });
     }
   }
 }
@@ -144,6 +202,9 @@ export function updateEnemyFire(world: World): void {
         (trigSin(((world.tick + enemy.slot * 11) * Math.PI * 2) / wave.formation.swayTicks) *
           wave.formation.sway) /
         wave.formation.swayTicks;
+    // Escaped divers are no longer active wave members. Without this cull they remain alive below
+    // the play field and prevent updateWave() from ever advancing to the next formation.
+    if (enemy.y > GAME_HEIGHT) enemy.alive = false;
   }
   world.diveTimer -= 1;
   if (world.diveTimer <= 0) {
@@ -164,6 +225,9 @@ function killPlayer(world: World): void {
   p.alive = false;
   p.dir = 0;
   world.lives -= 1;
+  p.weaponLevel = Math.max(1, p.weaponLevel - 1);
+  world.chain = 0;
+  world.chainTimer = 0;
   for (const b of world.bullets) b.active = false;
   world.events.push({ type: 'PlayerHit', x: p.x, y: p.y, livesLeft: world.lives });
   if (world.lives <= 0) {
@@ -190,19 +254,29 @@ export function resolveCollisions(world: World): void {
     target.hp -= 1;
     if (target.hp > 0) {
       world.events.push({ type: 'EnemyHit', id: target.id, x: target.x, y: target.y });
-    } else {
-      target.alive = false;
-      world.events.push({
-        type: 'EnemyKilled',
-        id: target.id,
-        kind: target.kind,
-        x: target.x,
-        y: target.y,
-      });
-    }
+    } else killEnemy(world, target);
   }
 
   const p = world.player;
+  if (p.alive) {
+    const playerBox = { x: p.x, y: p.y, ...playerRules.hitbox };
+    for (const pickup of world.pickups) {
+      if (
+        !pickup.active ||
+        !overlaps(playerBox, { x: pickup.x, y: pickup.y, ...world.rules.pickups.hitbox })
+      )
+        continue;
+      pickup.active = false;
+      p.weaponLevel = Math.min(world.rules.player.weaponLevels.length, p.weaponLevel + 1);
+      world.events.push({
+        type: 'PickupCollected',
+        id: pickup.id,
+        x: pickup.x,
+        y: pickup.y,
+        weaponLevel: p.weaponLevel,
+      });
+    }
+  }
   if (!p.alive || p.invulnerable > 0) return;
   const playerBox = { x: p.x, y: p.y, ...playerRules.hitbox };
   const bulletHit = world.bullets.some(
