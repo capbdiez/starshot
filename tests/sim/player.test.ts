@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GAME_WIDTH } from '../../src/shared/index.ts';
+import { WORLD_WIDTH } from '../../src/shared/index.ts';
 import { createSim } from '../../src/sim/index.ts';
 import { contentWith, F, L, ofType, peaceful, R, realContent, run } from './helpers.ts';
 
@@ -9,9 +9,9 @@ describe('player movement', () => {
   it('moves by the configured speed per tick and ignores left+right together', () => {
     const sim = createSim(peaceful, 1);
     run(sim, 1, R);
-    expect(sim.snapshot().player.x).toBe(GAME_WIDTH / 2 + rules.player.speed);
+    expect(sim.snapshot().player.x).toBe(WORLD_WIDTH / 2 + rules.player.speed);
     run(sim, 1, L | R);
-    expect(sim.snapshot().player.x).toBe(GAME_WIDTH / 2 + rules.player.speed);
+    expect(sim.snapshot().player.x).toBe(WORLD_WIDTH / 2 + rules.player.speed);
     expect(sim.snapshot().player.dir).toBe(0);
   });
 
@@ -20,7 +20,7 @@ describe('player movement', () => {
     run(sim, 200, L);
     expect(sim.snapshot().player.x).toBe(rules.player.edgeMargin);
     run(sim, 200, R);
-    expect(sim.snapshot().player.x).toBe(GAME_WIDTH - rules.player.edgeMargin);
+    expect(sim.snapshot().player.x).toBe(WORLD_WIDTH - rules.player.edgeMargin);
   });
 
   it('never moves vertically', () => {

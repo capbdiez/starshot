@@ -1,5 +1,5 @@
 import type Phaser from 'phaser';
-import { GAME_HEIGHT, GAME_WIDTH } from '../../shared/index.ts';
+import { WORLD_HEIGHT, WORLD_WIDTH } from '../../shared/index.ts';
 
 interface Particle {
   readonly shape: Phaser.GameObjects.Rectangle;
@@ -94,11 +94,11 @@ export class Starfield {
       const graphics = scene.add.graphics().setDepth(-10 + layer);
       graphics.fillStyle(spec.colour, spec.alpha);
       for (let i = 0; i < spec.count; i += 1) {
-        const x = starHash(i * 2 + layer * 1_001) % GAME_WIDTH;
-        const y = starHash(i * 2 + layer * 1_001 + 1) % GAME_HEIGHT;
+        const x = starHash(i * 2 + layer * 1_001) % WORLD_WIDTH;
+        const y = starHash(i * 2 + layer * 1_001 + 1) % WORLD_HEIGHT;
         graphics.fillRect(x, y, spec.size, spec.size);
         // A second copy makes the scroll wrap continuously instead of leaving a blank strip.
-        graphics.fillRect(x, y - GAME_HEIGHT, spec.size, spec.size);
+        graphics.fillRect(x, y - WORLD_HEIGHT, spec.size, spec.size);
       }
       return graphics;
     });
@@ -109,7 +109,7 @@ export class Starfield {
       const layer = this.layers[i];
       const spec = STAR_LAYERS[i];
       if (!layer || !spec) continue;
-      this.offsets[i] = ((this.offsets[i] ?? 0) + deltaMs * spec.speed) % GAME_HEIGHT;
+      this.offsets[i] = ((this.offsets[i] ?? 0) + deltaMs * spec.speed) % WORLD_HEIGHT;
       layer.setY(Math.round(this.offsets[i] ?? 0));
     }
   }

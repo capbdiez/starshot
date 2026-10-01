@@ -269,7 +269,7 @@ The MVP milestones above remain the historical release plan. This is a separate,
 - Title, play, pause, settings, results, boss, high-contrast bullets, and flash-reduction modes remain usable after the migration.
 - Integer or documented fallback scaling keeps the canvas crisp and centered on desktop and the reference device.
 
-**Testing:** display-zoom unit tests; replay golden tests; Chromium/WebKit smoke and core-loop E2E; screenshot baseline refresh for 540×960; manual reference-device performance check.
+**Testing:** display-zoom and presentation-transform unit tests; replay golden tests; Chromium/WebKit smoke and core-loop E2E; screenshot baseline refresh for 540×960; manual reference-device performance check.
 
 ---
 

@@ -41,7 +41,7 @@ async function open(page: Page, settings: Record<string, boolean> = {}) {
   await expect(page.locator('#game')).toHaveAttribute('data-state', 'ready');
 }
 
-test.describe('G1 current-MVP visual baselines', () => {
+test.describe('G2 presentation-resolution visual baselines', () => {
   test.skip(
     ({ browserName }) => browserName !== 'chromium',
     'Baselines are approved for Chromium only.',
@@ -49,17 +49,17 @@ test.describe('G1 current-MVP visual baselines', () => {
 
   test('captures fixed-seed title and representative gameplay', async ({ page }) => {
     await open(page);
-    await expectCanvasBaseline(page, 'g1-title.png');
+    await expectCanvasBaseline(page, 'g2-title.png');
 
     await page.keyboard.press('KeyZ');
     await expect(page.locator('#game')).toHaveAttribute('data-flow', 'play');
-    await expectCanvasBaseline(page, 'g1-gameplay.png');
+    await expectCanvasBaseline(page, 'g2-gameplay.png');
   });
 
   test('captures reduced-flash and high-contrast accessibility baselines', async ({ page }) => {
     await open(page, { flashReduction: true, highContrastBullets: true });
     await page.keyboard.press('KeyZ');
     await expect(page.locator('#game')).toHaveAttribute('data-flow', 'play');
-    await expectCanvasBaseline(page, 'g1-flash-reduction-high-contrast.png');
+    await expectCanvasBaseline(page, 'g2-flash-reduction-high-contrast.png');
   });
 });

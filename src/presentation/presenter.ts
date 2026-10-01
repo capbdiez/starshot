@@ -1,6 +1,6 @@
 import type Phaser from 'phaser';
 import type { AssetManifest, Content } from '../content/index.ts';
-import { GAME_HEIGHT, GAME_WIDTH } from '../shared/index.ts';
+import { PRESENTATION_SCALE, WORLD_HEIGHT, WORLD_WIDTH } from '../shared/index.ts';
 import type { SimEvent, SimView } from '../sim/index.ts';
 import { animationKey } from './anim/register-animations.ts';
 import type { AudioDirector } from './audio/audio-director.ts';
@@ -99,6 +99,9 @@ export class Presenter {
     audio: AudioDirector,
   ) {
     this.scene = scene;
+    // The scene continues to use simulation/world coordinates. This camera is the single
+    // compatibility transform from the 270×480 world into the 540×960 presentation buffer.
+    scene.cameras.main.setZoom(PRESENTATION_SCALE);
     this.content = content;
     this.manifest = manifest;
     this.audio = audio;
@@ -149,7 +152,7 @@ export class Presenter {
         ]),
     );
     const ship = source(manifest, g.player.sprite);
-    this.player = scene.add.sprite(GAME_WIDTH / 2, g.player.y, ship.atlas, ship.frame);
+    this.player = scene.add.sprite(WORLD_WIDTH / 2, g.player.y, ship.atlas, ship.frame);
     this.player.setDepth(DEPTH.player);
     this.hud = scene.add
       .text(4, 2, '', {
@@ -162,7 +165,7 @@ export class Presenter {
       .setDepth(DEPTH.hud)
       .setResolution(1);
     this.subtitle = scene.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT - 42, '', {
+      .text(WORLD_WIDTH / 2, WORLD_HEIGHT - 42, '', {
         align: 'center',
         color: '#ffffff',
         fontFamily: 'monospace',
@@ -175,9 +178,9 @@ export class Presenter {
       .setVisible(false);
     this.scanlines = scene.add.graphics().setDepth(DEPTH.scanlines).setVisible(false);
     this.scanlines.lineStyle(1, 0x0b0b1a, 0.28);
-    for (let y = 0; y < GAME_HEIGHT; y += 2) this.scanlines.lineBetween(0, y, GAME_WIDTH, y);
+    for (let y = 0; y < WORLD_HEIGHT; y += 2) this.scanlines.lineBetween(0, y, WORLD_WIDTH, y);
     this.flash = scene.add
-      .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, FLASH_COLOUR)
+      .rectangle(0, 0, WORLD_WIDTH, WORLD_HEIGHT, FLASH_COLOUR)
       .setOrigin(0, 0)
       .setDepth(DEPTH.flash)
       .setVisible(false);

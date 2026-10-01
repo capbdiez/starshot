@@ -9,11 +9,10 @@ Art, animation, audio, and effects are **first-class presentation systems**. The
 | Space | Size | Owner | Rules |
 | --- | --- | --- | --- |
 | World / simulation | **270×480 logical px** | `sim/`, gameplay content | Positions, hitboxes, paths, waves, and replay inputs use this space only. Never manually multiply gameplay coordinates. |
-| Current MVP render | **270×480 px** | Phaser presentation | Current pre-migration baseline; integer-scaled with letterboxing and nearest-neighbour filtering. |
-| Future presentation buffer | **540×960 px** | presentation / UI only | G2 target for 2× generated art, UI, backgrounds, masks, and effects. Each world pixel maps to a 2×2 presentation-pixel area; conversion is centralized in presentation code. |
-| Browser display | Variable CSS/device pixels | app scale layer | Integer scaling and letterboxing preserve aspect ratio; browser DPR never changes world coordinates. |
+| Presentation buffer | **540×960 px** | Phaser presentation / UI | G2 canonical internal render target. The main presentation camera centrally maps each world pixel to a 2×2 presentation-pixel area. |
+| Browser display | Variable CSS/device pixels | app scale layer | Integer scaling and letterboxing preserve aspect ratio when 1× fits. Below that, a centered fractional fit is used so the complete portrait canvas remains visible; browser DPR never changes world coordinates. |
 
-G1 does **not** implement the 540×960 buffer. It establishes the contract so G2 can migrate rendering without changing the 270×480 simulation, content tuning, hitboxes, or replay determinism.
+G2 implements the 540×960 buffer without changing the 270×480 simulation, content tuning, hitboxes, or replay determinism. Current MVP art is rendered through the camera's 2× compatibility transform until later art milestones replace it.
 
 ## 1. Visual Pillars
 
