@@ -1,0 +1,16 @@
+{
+  "sprites": [
+    {
+      "key": "player_ship",
+      "role": "player",
+      "size": { "w": 16, "h": 16 },
+      "anchor": { "x": 0.5, "y": 0.5 },
+      "clips": {
+        "idle": { "frames": 2, "fps": 8, "repeat": -1 },
+        "bank_left": { "frames": 2, "fps": 12, "repeat": 0 },
+        "bank_right": { "frames": 2, "fps": 12, "repeat": 0 },
+        "death": { "frames": 8, "fps": 12, "repeat": 0 }
+      }
+    }
+  ]
+}

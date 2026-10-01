@@ -1,0 +1,20 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+/* Letterbox: the integer-zoomed canvas is centered and the rest stays black. */
+#game {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+#game canvas {
+  display: block;
+  image-rendering: pixelated;
+}

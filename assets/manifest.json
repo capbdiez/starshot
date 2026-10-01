@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "atlases": [
+    {
+      "key": "main",
+      "image": "main.png",
+      "data": "main.json"
+    }
+  ],
+  "sprites": {
+    "player_ship": {
+      "atlas": "main",
+      "placeholder": true,
+      "clips": {
+        "idle": [
+          "player_ship/idle/0",
+          "player_ship/idle/1"
+        ],
+        "bank_left": [
+          "player_ship/bank_left/0",
+          "player_ship/bank_left/1"
+        ],
+        "bank_right": [
+          "player_ship/bank_right/0",
+          "player_ship/bank_right/1"
+        ],
+        "death": [
+          "player_ship/death/0",
+          "player_ship/death/1",
+          "player_ship/death/2",
+          "player_ship/death/3",
+          "player_ship/death/4",
+          "player_ship/death/5",
+          "player_ship/death/6",
+          "player_ship/death/7"
+        ]
+      }
+    }
+  }
+}
