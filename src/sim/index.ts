@@ -1,2 +1,3 @@
-export type { SimEvent } from './events.ts';
-export { createSim, type Sim, type SimView } from './sim.ts';
+export type { SimEvent, SimEventType } from './events.ts';
+export { createSim, type MoverView, type Sim, type SimView } from './sim.ts';
+export type { Phase } from './world.ts';

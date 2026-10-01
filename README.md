@@ -2,7 +2,10 @@
 
 A neo-arcade **fixed shooter** (Galaga / Space Invaders lineage) for the web, built art-first.
 
-> Status: **M0 — Foundation & pipelines** complete. No gameplay yet.
+> Status: **M1 — Core loop vertical slice** complete. Move (←/→ or A/D, gamepad stick/d-pad),
+> hold Z/Space (or a face button) to autofire. Clear the Grunt row and it respawns; 3 lives;
+> game over restarts automatically after 1.5 s. `?seed=N` fixes the run seed.
+> Dev builds: `P` pauses, `.` steps one tick (frame-step latency check).
 
 ## Development
 
@@ -13,7 +16,7 @@ npm ci
 npm run dev            # http://localhost:5173 — 270×480 integer-scaled canvas + placeholder ship
 npm run typecheck && npm run lint && npm run lint:deps && npm test && npm run check:assets
 npm run test:e2e       # Playwright smoke (Chromium + WebKit); first run: npx playwright install
-npm run assets:build   # Aseprite export → atlas pack → asset gates (see art-src/README.md)
+npm run assets:build   # Aseprite + code-art export → atlas → SFX sprite (ffmpeg) → asset gates
 ```
 
 CI (`.github/workflows/`) runs every check above plus E2E, and deploys each PR to a Cloudflare

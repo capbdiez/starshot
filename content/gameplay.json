@@ -1,0 +1,37 @@
+{
+  "player": {
+    "sprite": "player_ship",
+    "y": 440,
+    "speed": 2.5,
+    "edgeMargin": 8,
+    "hitbox": { "w": 3, "h": 3 },
+    "lives": 3,
+    "respawnTicks": 60,
+    "invulnerableTicks": 120,
+    "fireIntervalTicks": 8,
+    "maxShots": 3
+  },
+  "playerShot": {
+    "sprite": "player_shot",
+    "speed": 6,
+    "hitbox": { "w": 3, "h": 8 }
+  },
+  "grunt": {
+    "sprite": "enemy_grunt",
+    "hp": 1,
+    "hitbox": { "w": 12, "h": 12 },
+    "row": { "count": 9, "y": 80, "spacing": 28 },
+    "respawnTicks": 60
+  },
+  "enemyFire": {
+    "minIntervalTicks": 30,
+    "maxIntervalTicks": 60,
+    "aimChance": 0.5
+  },
+  "enemyBullet": {
+    "sprite": "enemy_bullet",
+    "speed": 3,
+    "hitbox": { "w": 4, "h": 4 }
+  },
+  "gameOverTicks": 90
+}

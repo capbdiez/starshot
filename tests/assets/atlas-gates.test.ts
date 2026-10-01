@@ -43,6 +43,7 @@ describe('atlas build + asset gates', () => {
     const { built, atlas, atlases } = build();
     expect(checkPalette(atlas, palette)).toEqual([]);
     expect(checkManifest(content, built.manifest, atlases)).toEqual([]);
+    // No sources passed in → every sprite is generated as a greybox placeholder.
     expect(built.manifest.sprites['player_ship']?.placeholder).toBe(true);
   });
 

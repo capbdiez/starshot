@@ -1,6 +1,54 @@
 {
   "frames": {
-    "player_ship/bank_left/0": {
+    "enemy_bullet/idle/0": {
+      "frame": {
+        "x": 383,
+        "y": 1,
+        "w": 6,
+        "h": 6
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 6
+      },
+      "sourceSize": {
+        "w": 6,
+        "h": 6
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "enemy_bullet/idle/1": {
+      "frame": {
+        "x": 390,
+        "y": 1,
+        "w": 6,
+        "h": 6
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 6
+      },
+      "sourceSize": {
+        "w": 6,
+        "h": 6
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "enemy_grunt/death/0": {
       "frame": {
         "x": 1,
         "y": 1,
@@ -24,7 +72,7 @@
         "y": 0.5
       }
     },
-    "player_ship/bank_left/1": {
+    "enemy_grunt/death/1": {
       "frame": {
         "x": 18,
         "y": 1,
@@ -48,7 +96,7 @@
         "y": 0.5
       }
     },
-    "player_ship/bank_right/0": {
+    "enemy_grunt/death/2": {
       "frame": {
         "x": 35,
         "y": 1,
@@ -72,7 +120,7 @@
         "y": 0.5
       }
     },
-    "player_ship/bank_right/1": {
+    "enemy_grunt/death/3": {
       "frame": {
         "x": 52,
         "y": 1,
@@ -96,7 +144,7 @@
         "y": 0.5
       }
     },
-    "player_ship/death/0": {
+    "enemy_grunt/death/4": {
       "frame": {
         "x": 69,
         "y": 1,
@@ -120,7 +168,7 @@
         "y": 0.5
       }
     },
-    "player_ship/death/1": {
+    "enemy_grunt/death/5": {
       "frame": {
         "x": 86,
         "y": 1,
@@ -144,7 +192,7 @@
         "y": 0.5
       }
     },
-    "player_ship/death/2": {
+    "enemy_grunt/idle/0": {
       "frame": {
         "x": 103,
         "y": 1,
@@ -168,7 +216,7 @@
         "y": 0.5
       }
     },
-    "player_ship/death/3": {
+    "enemy_grunt/idle/1": {
       "frame": {
         "x": 120,
         "y": 1,
@@ -192,7 +240,7 @@
         "y": 0.5
       }
     },
-    "player_ship/death/4": {
+    "player_ship/bank_left/0": {
       "frame": {
         "x": 137,
         "y": 1,
@@ -216,7 +264,7 @@
         "y": 0.5
       }
     },
-    "player_ship/death/5": {
+    "player_ship/bank_left/1": {
       "frame": {
         "x": 154,
         "y": 1,
@@ -240,7 +288,7 @@
         "y": 0.5
       }
     },
-    "player_ship/death/6": {
+    "player_ship/bank_right/0": {
       "frame": {
         "x": 171,
         "y": 1,
@@ -264,7 +312,7 @@
         "y": 0.5
       }
     },
-    "player_ship/death/7": {
+    "player_ship/bank_right/1": {
       "frame": {
         "x": 188,
         "y": 1,
@@ -288,7 +336,7 @@
         "y": 0.5
       }
     },
-    "player_ship/idle/0": {
+    "player_ship/death/0": {
       "frame": {
         "x": 205,
         "y": 1,
@@ -312,7 +360,7 @@
         "y": 0.5
       }
     },
-    "player_ship/idle/1": {
+    "player_ship/death/1": {
       "frame": {
         "x": 222,
         "y": 1,
@@ -335,12 +383,252 @@
         "x": 0.5,
         "y": 0.5
       }
+    },
+    "player_ship/death/2": {
+      "frame": {
+        "x": 239,
+        "y": 1,
+        "w": 16,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "player_ship/death/3": {
+      "frame": {
+        "x": 256,
+        "y": 1,
+        "w": 16,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "player_ship/death/4": {
+      "frame": {
+        "x": 273,
+        "y": 1,
+        "w": 16,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "player_ship/death/5": {
+      "frame": {
+        "x": 290,
+        "y": 1,
+        "w": 16,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "player_ship/death/6": {
+      "frame": {
+        "x": 307,
+        "y": 1,
+        "w": 16,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "player_ship/death/7": {
+      "frame": {
+        "x": 324,
+        "y": 1,
+        "w": 16,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "player_ship/idle/0": {
+      "frame": {
+        "x": 341,
+        "y": 1,
+        "w": 16,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "player_ship/idle/1": {
+      "frame": {
+        "x": 358,
+        "y": 1,
+        "w": 16,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "player_shot/idle/0": {
+      "frame": {
+        "x": 375,
+        "y": 1,
+        "w": 3,
+        "h": 8
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 3,
+        "h": 8
+      },
+      "sourceSize": {
+        "w": 3,
+        "h": 8
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "player_shot/idle/1": {
+      "frame": {
+        "x": 379,
+        "y": 1,
+        "w": 3,
+        "h": 8
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 3,
+        "h": 8
+      },
+      "sourceSize": {
+        "w": 3,
+        "h": 8
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
     }
   },
   "meta": {
     "image": "main.png",
     "size": {
-      "w": 256,
+      "w": 512,
       "h": 32
     }
   }

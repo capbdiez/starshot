@@ -1,0 +1,14 @@
+{
+  "sprites": [
+    {
+      "key": "enemy_grunt",
+      "role": "enemy",
+      "size": { "w": 16, "h": 16 },
+      "anchor": { "x": 0.5, "y": 0.5 },
+      "clips": {
+        "idle": { "frames": 2, "fps": 4, "repeat": -1 },
+        "death": { "frames": 6, "fps": 12, "repeat": 0 }
+      }
+    }
+  ]
+}

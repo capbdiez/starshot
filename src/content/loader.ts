@@ -1,5 +1,7 @@
 import type { z } from 'zod';
 import { deepFreeze, type DeepReadonly } from '../shared/index.ts';
+import { fxFileSchema, type FxEntry } from './schemas/fx.ts';
+import { gameplaySchema, type Gameplay } from './schemas/gameplay.ts';
 import { spriteFileSchema, type SpriteSpec } from './schemas/sprites.ts';
 
 /** Parsed JSON files keyed by their path relative to `content/` (e.g. `animations/player.json`). */
@@ -8,7 +10,12 @@ export type RawContentFiles = Readonly<Record<string, unknown>>;
 /** Fully validated, frozen game data. */
 export type Content = DeepReadonly<{
   sprites: Record<string, SpriteSpec>;
+  gameplay: Gameplay;
+  /** Sim event type → presentation reaction (merged from `fx/*.json`). */
+  fx: Record<string, FxEntry>;
 }>;
+
+const GAMEPLAY_FILE = 'gameplay.json';
 
 /** One problem found while validating content. */
 export interface ContentIssue {
@@ -37,6 +44,8 @@ export class ContentError extends Error {
 
 interface MutableContent {
   sprites: Record<string, SpriteSpec>;
+  fx: Record<string, FxEntry>;
+  gameplay?: Gameplay;
 }
 
 interface ContentKind {
@@ -71,11 +80,56 @@ const CONTENT_KINDS: readonly ContentKind[] = [
       return issues;
     },
   },
+  {
+    pattern: /^gameplay\.json$/,
+    apply: (data, file, into) => {
+      const parsed = gameplaySchema.safeParse(data);
+      if (!parsed.success) {
+        return schemaIssues(file, parsed.error);
+      }
+      into.gameplay = parsed.data;
+      return [];
+    },
+  },
+  {
+    pattern: /^fx\/[a-z0-9-]+\.json$/,
+    apply: (data, file, into) => {
+      const parsed = fxFileSchema.safeParse(data);
+      if (!parsed.success) {
+        return schemaIssues(file, parsed.error);
+      }
+      const issues: ContentIssue[] = [];
+      for (const [event, entry] of Object.entries(parsed.data.events)) {
+        if (event in into.fx) {
+          issues.push({ file, message: `duplicate fx entry for event "${event}"` });
+        } else {
+          into.fx[event] = entry;
+        }
+      }
+      return issues;
+    },
+  },
 ];
+
+/** Cross-file rule: every sprite referenced by gameplay rules is defined in `animations/`. */
+function gameplaySpriteIssues(gameplay: Gameplay, sprites: Record<string, SpriteSpec>) {
+  const refs = {
+    'player.sprite': gameplay.player.sprite,
+    'playerShot.sprite': gameplay.playerShot.sprite,
+    'grunt.sprite': gameplay.grunt.sprite,
+    'enemyBullet.sprite': gameplay.enemyBullet.sprite,
+  };
+  return Object.entries(refs)
+    .filter(([, key]) => !(key in sprites))
+    .map(([path, key]) => ({
+      file: GAMEPLAY_FILE,
+      message: `${path}: sprite "${key}" is not defined in content/animations`,
+    }));
+}
 
 /** Validates raw content files against their schemas and cross-file rules without throwing. */
 export function validateContent(files: RawContentFiles): ContentValidationResult {
-  const into: MutableContent = { sprites: {} };
+  const into: MutableContent = { sprites: {}, fx: {} };
   const issues: ContentIssue[] = [];
 
   for (const file of Object.keys(files).sort()) {
@@ -90,7 +144,15 @@ export function validateContent(files: RawContentFiles): ContentValidationResult
   if (issues.length > 0) {
     return { ok: false, issues };
   }
-  return { ok: true, content: deepFreeze(into) };
+  const { gameplay, sprites, fx } = into;
+  if (!gameplay) {
+    return { ok: false, issues: [{ file: GAMEPLAY_FILE, message: 'required file is missing' }] };
+  }
+  const refIssues = gameplaySpriteIssues(gameplay, sprites);
+  if (refIssues.length > 0) {
+    return { ok: false, issues: refIssues };
+  }
+  return { ok: true, content: deepFreeze({ sprites, gameplay, fx }) };
 }
 
 /** Validates and returns frozen, typed content; throws {@link ContentError} listing every issue. */

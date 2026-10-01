@@ -1,0 +1,22 @@
+{
+  "sprites": [
+    {
+      "key": "player_shot",
+      "role": "player_shot",
+      "size": { "w": 3, "h": 8 },
+      "anchor": { "x": 0.5, "y": 0.5 },
+      "clips": {
+        "idle": { "frames": 2, "fps": 12, "repeat": -1 }
+      }
+    },
+    {
+      "key": "enemy_bullet",
+      "role": "enemy_bullet",
+      "size": { "w": 6, "h": 6 },
+      "anchor": { "x": 0.5, "y": 0.5 },
+      "clips": {
+        "idle": { "frames": 2, "fps": 8, "repeat": -1 }
+      }
+    }
+  ]
+}

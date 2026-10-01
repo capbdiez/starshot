@@ -5,9 +5,13 @@ Items deliberately left out of the current milestone (AGENTS §1). Each has a ta
 | Item | Why deferred | Target |
 |------|--------------|--------|
 | Final palette sign-off by the artist | M0 palette is a role-based starting point; swaps are data-only | M1 (with final ship art) |
-| `InputFrame` bit layout, keyboard/gamepad `InputSource` | Gameplay input is M1 scope | M1 |
-| Seeded RNG, golden replay fixtures | No gameplay state yet to replay | M1 |
-| Render smoothing using `GameLoop.alpha` | Nothing moves yet | M1 |
+| Scoring, score in `EnemyKilled` events, HUD (lives display) | Scoring UI is out of M1 scope | M4 |
+| Grunt `dive` clip and dive behaviour; formations | Out of M1 scope | M3 |
+| Muzzle flash, hit flash shader, particles, shake, `sfx_player_die` | "Effects beyond a basic flash" are out of M1 scope | M2 |
+| AudioDirector (buses, voice limits, ±5 % pitch variance) | M1 maps events → SFX directly | M2 |
+| Bombs, weapon levels, extra lives | Out of M1 scope | M4 |
+| Artist pass on code-authored M1 sprites/SFX (ADR 0003) | Final-quality originals exist; an artist may re-author them in Aseprite as a pure asset swap | M7 |
+| Pause on tab hidden / focus loss (FR-11) | Scene flow + platform visibility arrive with menus | M5 |
 | Shared trig lookup tables for `sim` | Raw trig is already lint-banned in `sim`; helpers arrive when first needed | M3 (paths) |
 | Visual screenshot baselines | Nothing stable to baseline in M0 | M2 |
 | `debug/` overlay | FR-12, not in M0 scope | M2 |

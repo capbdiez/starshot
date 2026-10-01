@@ -12,6 +12,8 @@ export {
   assetManifestSchema,
   type AssetManifest,
 } from './schemas/asset-manifest.ts';
+export { SFX_KEY_PATTERN, type FxEntry } from './schemas/fx.ts';
+export { type Gameplay } from './schemas/gameplay.ts';
 export {
   CLIP_NAME_PATTERN,
   ENTITY_ROLES,

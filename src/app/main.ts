@@ -1,18 +1,32 @@
 import Phaser from 'phaser';
 import { loadContent } from '../content/index.ts';
-import { watchViewport, readViewport } from '../platform/index.ts';
-import { GAME_HEIGHT, GAME_WIDTH, NO_INPUT, TICK_MS } from '../shared/index.ts';
+import { createInputSource, readViewport, watchViewport } from '../platform/index.ts';
+import { GAME_HEIGHT, GAME_WIDTH } from '../shared/index.ts';
 import { createSim } from '../sim/index.ts';
-import { atlasFileUrl, bundledContentFiles, bundledManifest } from './bundled-assets.ts';
+import {
+  atlasFileUrl,
+  audioFileUrl,
+  bundledContentFiles,
+  bundledManifest,
+} from './bundled-assets.ts';
 import { displayZoom } from './display-zoom.ts';
-import { createGameLoop } from './game-loop.ts';
-import { BootScene } from './scenes/boot-scene.ts';
+import { BootScene, type DebugHooks } from './scenes/boot-scene.ts';
 import './style.css';
 
-/** Frames longer than this (tab switch, debugger) are clamped instead of fast-forwarded. */
-const MAX_FRAME_MS = 250;
-/** Fixed seed until run seeding arrives with gameplay in M1. */
-const DEV_SEED = 1;
+/** Run seed: `?seed=N` for reproducible sessions, otherwise random per page load. */
+function runSeed(): number {
+  const param = new URLSearchParams(window.location.search).get('seed');
+  const parsed = param === null ? Number.NaN : Number.parseInt(param, 10);
+  return Number.isFinite(parsed) ? parsed >>> 0 : (Math.random() * 0x1_0000_0000) >>> 0;
+}
+
+/** Loads the dev-only frame-step view; the dynamic import is tree-shaken from prod builds. */
+function attachDebug(hooks: DebugHooks): void {
+  if (!import.meta.env.DEV) return;
+  void import('../debug/index.ts').then(({ attachFrameStep }) => {
+    attachFrameStep(window, hooks);
+  });
+}
 
 function boot(): void {
   const container = document.getElementById('game');
@@ -22,15 +36,10 @@ function boot(): void {
 
   const content = loadContent(bundledContentFiles());
   const manifest = bundledManifest();
-  const sim = createSim(content, DEV_SEED);
-  const loop = createGameLoop({
-    stepMs: TICK_MS,
-    maxFrameMs: MAX_FRAME_MS,
-    step: () => {
-      sim.step(NO_INPUT);
-      sim.drainEvents();
-    },
-  });
+  const seed = runSeed();
+  container.dataset['seed'] = String(seed);
+  const sim = createSim(content, seed);
+  const input = createInputSource(window);
 
   const zoomFor = (): number => displayZoom(readViewport(window), GAME_WIDTH, GAME_HEIGHT);
 
@@ -42,12 +51,16 @@ function boot(): void {
     backgroundColor: '#0b0b1a',
     pixelArt: true,
     scale: { mode: Phaser.Scale.NONE, zoom: zoomFor() },
+    input: { gamepad: false, keyboard: false },
     scene: new BootScene({
       content,
       manifest,
-      loop,
+      sim,
+      input,
       atlasUrl: atlasFileUrl,
+      audioUrl: audioFileUrl,
       statusElement: container,
+      attachDebug,
     }),
   });
 

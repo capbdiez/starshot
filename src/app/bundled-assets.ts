@@ -15,6 +15,23 @@ const atlasUrls = import.meta.glob<string>('../../assets/atlas/*.{png,json}', {
   import: 'default',
 });
 
+const AUDIO_PREFIX = '../../assets/audio/';
+
+const audioUrls = import.meta.glob<string>('../../assets/audio/*.{ogg,m4a,json}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
+
+/** Public URL of a file in `assets/audio/`. */
+export function audioFileUrl(fileName: string): string {
+  const url = audioUrls[AUDIO_PREFIX + fileName];
+  if (url === undefined) {
+    throw new Error(`Audio file "${fileName}" was not bundled`);
+  }
+  return url;
+}
+
 /** Every `content/**.json` file bundled by Vite, keyed by its path relative to `content/`. */
 export function bundledContentFiles(): RawContentFiles {
   const files: Record<string, unknown> = {};

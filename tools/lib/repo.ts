@@ -12,6 +12,7 @@ export const PATHS = {
   palette: join(ROOT, 'assets', 'palette', 'starshot.hex'),
   atlasDir: join(ROOT, 'assets', 'atlas'),
   manifest: join(ROOT, 'assets', 'manifest.json'),
+  audioDir: join(ROOT, 'assets', 'audio'),
   artSprites: join(ROOT, 'art-src', 'sprites'),
   artExport: join(ROOT, 'art-src', 'export'),
 } as const;

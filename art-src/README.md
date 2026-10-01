@@ -13,7 +13,14 @@ assets/atlas/main.png + main.json  +  assets/manifest.json   (committed, loaded 
    │  npm run check:assets    (palette, manifest ↔ content, clip frame counts, sizes, anchors)
 ```
 
-`npm run assets:build` runs all three steps.
+`npm run assets:build` runs every step.
+
+**Code-authored sprites (ADR 0003):** `tools/art/sprites.ts` holds the M1 sprites as palette-letter
+grids; `npm run assets:art` writes them to `art-src/export/` in the same format. Adding
+`art-src/sprites/<key>.aseprite` replaces one (`assets:art` skips keys with an Aseprite source).
+
+**SFX:** recipes in `tools/lib/sfx-synth.ts` → `npm run assets:sfx` (needs `ffmpeg`) →
+`assets/audio/sfx.{ogg,m4a,json}` audio sprite.
 
 ## Rules for a sprite file
 

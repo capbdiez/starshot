@@ -1,12 +1,108 @@
 import type { Content } from '../content/index.ts';
 import type { InputFrame } from '../shared/index.ts';
 import type { SimEvent } from './events.ts';
-import { fnv1a32 } from './hash.ts';
+import { fnv1a32, pushFloat } from './hash.ts';
+import {
+  moveMovers,
+  resolveCollisions,
+  updateEnemyFire,
+  updateGameOver,
+  updatePlayer,
+  updateWave,
+} from './systems.ts';
+import { createWorld, type Mover, type Phase, type World } from './world.ts';
+
+/** A moving entity in a {@link SimView}; `prev*` is its position one tick earlier (smoothing). */
+export interface MoverView {
+  readonly id: number;
+  readonly x: number;
+  readonly y: number;
+  readonly prevX: number;
+  readonly prevY: number;
+}
 
 /** Read-only snapshot of the simulation handed to presentation each frame. */
 export interface SimView {
   /** Number of fixed steps simulated so far. */
   readonly tick: number;
+  readonly phase: Phase;
+  readonly lives: number;
+  readonly wave: number;
+  readonly player: {
+    readonly alive: boolean;
+    readonly x: number;
+    readonly y: number;
+    readonly prevX: number;
+    readonly dir: number;
+    readonly invulnerable: boolean;
+  };
+  readonly grunts: readonly { readonly id: number; readonly x: number; readonly y: number }[];
+  readonly shots: readonly MoverView[];
+  readonly enemyBullets: readonly MoverView[];
+}
+
+function moverViews(pool: readonly Mover[]): MoverView[] {
+  return pool
+    .filter((m) => m.active)
+    .map((m) => Object.freeze({ id: m.id, x: m.x, y: m.y, prevX: m.prevX, prevY: m.prevY }));
+}
+
+function view(world: World): Readonly<SimView> {
+  const p = world.player;
+  return Object.freeze({
+    tick: world.tick,
+    phase: world.phase,
+    lives: world.lives,
+    wave: world.wave,
+    player: Object.freeze({
+      alive: p.alive,
+      x: p.x,
+      y: p.y,
+      prevX: p.prevX,
+      dir: p.dir,
+      invulnerable: p.invulnerable > 0,
+    }),
+    grunts: Object.freeze(
+      world.grunts.filter((g) => g.alive).map((g) => Object.freeze({ id: g.id, x: g.x, y: g.y })),
+    ),
+    shots: Object.freeze(moverViews(world.shots)),
+    enemyBullets: Object.freeze(moverViews(world.bullets)),
+  });
+}
+
+function stateWords(world: World): number[] {
+  const p = world.player;
+  const words = [
+    world.seed,
+    world.tick,
+    world.rng.state,
+    world.nextId,
+    world.phase === 'playing' ? 0 : 1,
+    world.lives,
+    world.wave,
+    world.waveTimer,
+    world.enemyFireTimer,
+    world.gameOverTimer,
+    p.alive ? 1 : 0,
+    p.dir & 0xff,
+    p.fireCooldown,
+    p.invulnerable,
+    p.respawnTimer,
+  ];
+  pushFloat(words, p.x);
+  for (const g of world.grunts) {
+    words.push(g.id, g.alive ? 1 : 0, g.hp);
+    pushFloat(words, g.x);
+    pushFloat(words, g.y);
+  }
+  for (const m of [...world.shots, ...world.bullets]) {
+    words.push(m.id, m.active ? 1 : 0);
+    pushFloat(words, m.x);
+    pushFloat(words, m.y);
+    pushFloat(words, m.vx);
+    pushFloat(words, m.vy);
+  }
+  return words;
 }
 
 /** Handle to one deterministic simulation run. */
@@ -26,35 +122,34 @@ export interface Sim {
 
 /**
  * Creates a simulation for `content`, seeded with `seed` (coerced to uint32).
- * M0 only tracks the tick counter; gameplay state arrives in M1.
+ * Game over restarts automatically after `gameplay.gameOverTicks` (instant retry, US-08).
  */
 export function createSim(content: Content, seed: number): Sim {
-  const state = {
-    seed: seed >>> 0,
-    tick: 0,
-    lastInput: 0,
-  };
-  // Kept for M1 systems; referenced so the dependency on content is explicit.
-  const sprites = content.sprites;
-  // Double-buffered event queue: systems push to `pending`; drainEvents swaps the buffers.
-  let pending: SimEvent[] = [];
+  const world = createWorld(content, seed);
+  // Double-buffered event queue: systems push to `world.events`; drainEvents swaps buffers.
   let drained: SimEvent[] = [];
 
   return {
     step(input) {
-      state.lastInput = input >>> 0;
-      state.tick += 1;
+      world.tick += 1;
+      moveMovers(world.shots);
+      moveMovers(world.bullets);
+      if (updateGameOver(world)) return;
+      updatePlayer(world, input >>> 0);
+      updateEnemyFire(world);
+      resolveCollisions(world);
+      updateWave(world);
     },
     snapshot() {
-      return Object.freeze({ tick: state.tick });
+      return view(world);
     },
     drainEvents() {
       drained.length = 0;
-      [drained, pending] = [pending, drained];
+      [drained, world.events] = [world.events, drained];
       return drained;
     },
     hash() {
-      return fnv1a32([state.seed, state.tick, state.lastInput, Object.keys(sprites).length]);
+      return fnv1a32(stateWords(world));
     },
   };
 }

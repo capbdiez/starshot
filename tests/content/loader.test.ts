@@ -9,7 +9,7 @@ import { readContentFiles } from '../../tools/lib/repo.ts';
 
 function sprite(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    key: 'enemy_grunt',
+    key: 'enemy_test',
     role: 'enemy',
     size: { w: 16, h: 16 },
     anchor: { x: 0.5, y: 0.5 },
@@ -21,8 +21,11 @@ function sprite(overrides: Record<string, unknown> = {}): Record<string, unknown
   };
 }
 
+const real = readContentFiles();
+
+/** Real content plus one extra test animations file. */
 function files(...sprites: Record<string, unknown>[]): RawContentFiles {
-  return { 'animations/test.json': { sprites } };
+  return { ...real, 'animations/test.json': { sprites } };
 }
 
 function issuesOf(input: RawContentFiles): string[] {
@@ -38,7 +41,7 @@ describe('content loader', () => {
 
   it('returns deeply frozen content', () => {
     const content = loadContent(files(sprite()));
-    const grunt = content.sprites['enemy_grunt'];
+    const grunt = content.sprites['enemy_test'];
     expect(Object.isFrozen(content)).toBe(true);
     expect(Object.isFrozen(grunt?.clips['idle'])).toBe(true);
   });
@@ -71,10 +74,11 @@ describe('content loader', () => {
 
   it('rejects duplicate sprite keys across files', () => {
     const input = {
-      'animations/a.json': { sprites: [sprite()] },
-      'animations/b.json': { sprites: [sprite()] },
+      ...real,
+      'animations/a.json': { sprites: [sprite({ key: 'enemy_dup' })] },
+      'animations/b.json': { sprites: [sprite({ key: 'enemy_dup' })] },
     };
-    expect(issuesOf(input).join()).toMatch(/duplicate sprite key "enemy_grunt"/);
+    expect(issuesOf(input).join()).toMatch(/duplicate sprite key "enemy_dup"/);
   });
 
   it('rejects files with no registered schema', () => {

@@ -14,7 +14,7 @@ test('boots to a 270×480 integer-scaled canvas showing the atlas ship, without 
 
   const game = page.locator('#game');
   await expect(game).toHaveAttribute('data-state', 'ready');
-  await expect(game).toHaveAttribute('data-ship-frame', 'player_ship/idle/0');
+  await expect(game).toHaveAttribute('data-ship-frame', /^player_ship\/idle\/\d$/);
 
   const canvas = page.locator('#game canvas');
   const size = await canvas.evaluate((element) => {

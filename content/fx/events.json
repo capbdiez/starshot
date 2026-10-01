@@ -1,0 +1,8 @@
+{
+  "events": {
+    "PlayerFired": { "sfx": "sfx_shot" },
+    "EnemyHit": { "sfx": "sfx_hit" },
+    "EnemyKilled": { "sfx": "sfx_explode_s" },
+    "PlayerHit": { "sfx": "sfx_explode_s", "flash": true }
+  }
+}

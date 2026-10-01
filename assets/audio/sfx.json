@@ -1,0 +1,20 @@
+{
+  "resources": ["sfx.ogg", "sfx.m4a"],
+  "spritemap": {
+    "sfx_explode_s": {
+      "start": 0,
+      "end": 0.323,
+      "loop": false
+    },
+    "sfx_hit": {
+      "start": 0.573,
+      "end": 0.644,
+      "loop": false
+    },
+    "sfx_shot": {
+      "start": 0.894,
+      "end": 0.986,
+      "loop": false
+    }
+  }
+}

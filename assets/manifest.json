@@ -8,9 +8,37 @@
     }
   ],
   "sprites": {
+    "enemy_bullet": {
+      "atlas": "main",
+      "placeholder": false,
+      "clips": {
+        "idle": [
+          "enemy_bullet/idle/0",
+          "enemy_bullet/idle/1"
+        ]
+      }
+    },
+    "enemy_grunt": {
+      "atlas": "main",
+      "placeholder": false,
+      "clips": {
+        "idle": [
+          "enemy_grunt/idle/0",
+          "enemy_grunt/idle/1"
+        ],
+        "death": [
+          "enemy_grunt/death/0",
+          "enemy_grunt/death/1",
+          "enemy_grunt/death/2",
+          "enemy_grunt/death/3",
+          "enemy_grunt/death/4",
+          "enemy_grunt/death/5"
+        ]
+      }
+    },
     "player_ship": {
       "atlas": "main",
-      "placeholder": true,
+      "placeholder": false,
       "clips": {
         "idle": [
           "player_ship/idle/0",
@@ -33,6 +61,16 @@
           "player_ship/death/5",
           "player_ship/death/6",
           "player_ship/death/7"
+        ]
+      }
+    },
+    "player_shot": {
+      "atlas": "main",
+      "placeholder": false,
+      "clips": {
+        "idle": [
+          "player_shot/idle/0",
+          "player_shot/idle/1"
         ]
       }
     }
