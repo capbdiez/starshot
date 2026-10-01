@@ -15,9 +15,13 @@ assets/atlas/main.png + main.json  +  assets/manifest.json   (committed, loaded 
 
 `npm run assets:build` runs every step.
 
-**Code-authored sprites (ADR 0003):** `tools/art/sprites.ts` holds the M1 sprites as palette-letter
-grids; `npm run assets:art` writes them to `art-src/export/` in the same format. Adding
-`art-src/sprites/<key>.aseprite` replaces one (`assets:art` skips keys with an Aseprite source).
+**Code-authored sprites (ADR 0003, G3 toolkit):** category recipes under `tools/art/` build
+palette-letter grids through the deterministic raster toolkit. `tools/art/sprites.ts` combines those
+recipes and records their IDs, versions, seeds, and intended 1×/2× raster detail in
+`art-src/export/recipe-manifest.json`; `npm run assets:art` writes the sprite sheets in the same
+Aseprite-compatible format. Recipe detail may be rendered at 2× for review while current frame
+sizes, anchors, keys, and clips remain the content contract. Adding `art-src/sprites/<key>.aseprite`
+replaces one (`assets:art` skips keys with an Aseprite source).
 
 **SFX:** recipes in `tools/lib/sfx-synth.ts` → `npm run assets:sfx` (needs `ffmpeg`) →
 `assets/audio/sfx.{ogg,m4a,json}` audio sprite.
