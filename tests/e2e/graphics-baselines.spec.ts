@@ -15,28 +15,40 @@ async function expectCanvasBaseline(page: Page, name: string): Promise<void> {
   expect(frame).toMatchSnapshot(name, LIVE_CANVAS_TOLERANCE);
 }
 
-async function open(page: Page, settings: Record<string, boolean> = {}) {
+const SEEDED_SCORES = Array.from({ length: 10 }, (_, index) => ({
+  score: (10 - index) * 10_000,
+  stage: 10 - index,
+}));
+
+async function open(
+  page: Page,
+  settings: Record<string, boolean> = {},
+  scores: readonly { readonly score: number; readonly stage: number }[] = [],
+) {
   await page.setViewportSize(VIEWPORT);
-  await page.addInitScript((savedSettings) => {
-    localStorage.setItem(
-      'starshot.save',
-      JSON.stringify({
-        version: 2,
-        settings: {
-          music: 0,
-          sfx: 0,
-          ui: 0,
-          shake: 0,
-          flashReduction: false,
-          crt: false,
-          highContrastBullets: false,
-          subtitles: true,
-          ...savedSettings,
-        },
-        scores: [],
-      }),
-    );
-  }, settings);
+  await page.addInitScript(
+    ({ savedSettings, savedScores }) => {
+      localStorage.setItem(
+        'starshot.save',
+        JSON.stringify({
+          version: 2,
+          settings: {
+            music: 0,
+            sfx: 0,
+            ui: 0,
+            shake: 0,
+            flashReduction: false,
+            crt: false,
+            highContrastBullets: false,
+            subtitles: true,
+            ...savedSettings,
+          },
+          scores: savedScores,
+        }),
+      );
+    },
+    { savedSettings: settings, savedScores: scores },
+  );
   await page.goto(`/?seed=${String(FIXED_SEED)}`);
   await expect(page.locator('#game')).toHaveAttribute('data-state', 'ready');
 }
@@ -54,6 +66,11 @@ test.describe('G2 presentation-resolution visual baselines', () => {
     await page.keyboard.press('KeyZ');
     await expect(page.locator('#game')).toHaveAttribute('data-flow', 'play');
     await expectCanvasBaseline(page, 'g2-gameplay.png');
+  });
+
+  test('captures full high-score title layout', async ({ page }) => {
+    await open(page, {}, SEEDED_SCORES);
+    await expectCanvasBaseline(page, 'g2-title-high-scores.png');
   });
 
   test('captures reduced-flash and high-contrast accessibility baselines', async ({ page }) => {

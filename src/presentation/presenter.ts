@@ -101,7 +101,7 @@ export class Presenter {
     this.scene = scene;
     // The scene continues to use simulation/world coordinates. This camera is the single
     // compatibility transform from the 270×480 world into the 540×960 presentation buffer.
-    scene.cameras.main.setZoom(PRESENTATION_SCALE);
+    scene.cameras.main.setOrigin(0, 0).setZoom(PRESENTATION_SCALE).setScroll(0, 0);
     this.content = content;
     this.manifest = manifest;
     this.audio = audio;

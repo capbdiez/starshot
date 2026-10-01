@@ -3,8 +3,8 @@
   "recipes": [
     {
       "id": "player_ship",
-      "version": 1,
-      "seed": 1281,
+      "version": 2,
+      "seed": 1284,
       "detailScale": 2
     },
     {
@@ -21,9 +21,9 @@
     },
     {
       "id": "projectiles_pickup",
-      "version": 1,
-      "seed": 2577,
-      "detailScale": 1
+      "version": 2,
+      "seed": 2580,
+      "detailScale": 2
     },
     {
       "id": "explosion_fx",

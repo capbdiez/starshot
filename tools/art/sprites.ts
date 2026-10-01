@@ -10,10 +10,10 @@ import type { RecipeRecord, SpriteArt } from './recipe-types.ts';
 
 /** Recipe manifest: stable IDs, versions, seeds, and intended raster detail for review/reproduction. */
 export const RECIPE_METADATA: readonly RecipeRecord[] = [
-  { id: 'player_ship', version: 1, seed: 0x501, detailScale: 2 },
+  { id: 'player_ship', version: 2, seed: 0x504, detailScale: 2 },
   { id: 'enemy_roster', version: 1, seed: 0xe301, detailScale: 2 },
   { id: 'boss_parts', version: 1, seed: 0xb055, detailScale: 2 },
-  { id: 'projectiles_pickup', version: 1, seed: 0xa11, detailScale: 1 },
+  { id: 'projectiles_pickup', version: 2, seed: 0xa14, detailScale: 2 },
   { id: 'explosion_fx', version: 1, seed: 0xf10, detailScale: 2 },
 ];
 

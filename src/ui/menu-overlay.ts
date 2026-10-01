@@ -30,6 +30,10 @@ export interface MenuOverlayEvents {
 }
 
 const DEPTH = 200;
+const PANEL_WIDTH = 246;
+const PANEL_HEIGHT = 350;
+const TITLE_SCORE_START_Y = 55;
+const TITLE_SCORE_ROW_STEP = 12;
 
 /** Phaser menu overlay; it emits commands and never accesses simulation or browser APIs. */
 export class MenuOverlay {
@@ -53,7 +57,9 @@ export class MenuOverlay {
     this.panel.removeAll(true);
     this.panel.setVisible(true);
     this.panel.add(
-      this.scene.add.rectangle(0, 0, 246, 350, 0x0b0b1a, 0.94).setStrokeStyle(2, 0xa6f6ff),
+      this.scene.add
+        .rectangle(0, 0, PANEL_WIDTH, PANEL_HEIGHT, 0x0b0b1a, 0.94)
+        .setStrokeStyle(2, 0xa6f6ff),
     );
     if (state === 'title') this.title(scores);
     if (state === 'pause') this.pause();
@@ -105,7 +111,7 @@ export class MenuOverlay {
     this.button(this.strings['settings'] ?? 'SETTINGS', 15, () => {
       this.events.command('settings');
     });
-    this.scoreLines(scores, 75);
+    this.scoreLines(scores, TITLE_SCORE_START_Y, TITLE_SCORE_ROW_STEP);
   }
 
   private pause(): void {
@@ -174,7 +180,7 @@ export class MenuOverlay {
     });
   }
 
-  private scoreLines(scores: readonly UiHighScore[], startY: number): void {
+  private scoreLines(scores: readonly UiHighScore[], startY: number, rowStep = 15): void {
     this.label('HIGH SCORES', startY - 20);
     const entries =
       scores.length === 0
@@ -183,6 +189,8 @@ export class MenuOverlay {
             (entry, index) =>
               `${String(index + 1).padStart(2, '0')}  ${String(entry.score).padStart(6, '0')}  STG ${String(entry.stage)}`,
           );
-    entries.slice(0, 10).forEach((entry, index) => this.label(entry, startY + index * 15, '10px'));
+    entries
+      .slice(0, 10)
+      .forEach((entry, index) => this.label(entry, startY + index * rowStep, '10px'));
   }
 }
