@@ -1,0 +1,29 @@
+{
+  "waves": [
+    {
+      "key": "elite",
+      "formation": {
+        "columns": 4,
+        "spacingX": 44,
+        "spacingY": 32,
+        "y": 78,
+        "sway": 7,
+        "swayTicks": 100
+      },
+      "entries": [
+        {
+          "enemy": "elite",
+          "count": 8,
+          "path": [
+            { "x": 290, "y": 25 },
+            { "x": 215, "y": 65 },
+            { "x": 60, "y": 25 },
+            { "x": 135, "y": 78 }
+          ],
+          "delayTicks": 0
+        }
+      ],
+      "dive": { "minIntervalTicks": 72, "maxIntervalTicks": 156, "durationTicks": 100 }
+    }
+  ]
+}

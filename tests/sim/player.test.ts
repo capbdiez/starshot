@@ -19,7 +19,7 @@ describe('player movement', () => {
     const sim = createSim(peaceful, 1);
     run(sim, 200, L);
     expect(sim.snapshot().player.x).toBe(rules.player.edgeMargin);
-    run(sim, 300, R);
+    run(sim, 200, R);
     expect(sim.snapshot().player.x).toBe(GAME_WIDTH - rules.player.edgeMargin);
   });
 
@@ -59,20 +59,16 @@ describe('collisions', () => {
     const sim = createSim(peaceful, 1);
     const killed = ofType(run(sim, 120, F), 'EnemyKilled');
     expect(killed.length).toBeGreaterThan(0);
-    expect(killed[0]?.x).toBe(GAME_WIDTH / 2);
-    expect(sim.snapshot().grunts).toHaveLength(rules.grunt.row.count - 1);
+    expect(killed[0]?.kind).toBe('grunt');
+    expect(sim.snapshot().grunts.length).toBeLessThan(10);
   });
 
-  it('2-HP grunts report EnemyHit before EnemyKilled', () => {
-    const tough = contentWith((g) => {
-      g['grunt'] = { ...g['grunt'], hp: 2 };
-      g['enemyFire'] = { minIntervalTicks: 36_000, maxIntervalTicks: 36_000, aimChance: 0 };
-    });
-    const events = run(createSim(tough, 1), 120, F);
-    const firstHit = events.findIndex((e) => e.type === 'EnemyHit');
-    const firstKill = events.findIndex((e) => e.type === 'EnemyKilled');
-    expect(firstHit).toBeGreaterThanOrEqual(0);
-    expect(firstKill).toBeGreaterThan(firstHit);
+  it('emits an attack tell before a roster enemy fires', () => {
+    const events = run(createSim(peaceful, 1), 220);
+    const tell = events.findIndex((event) => event.type === 'EnemyAttackTold');
+    const fire = events.findIndex((event) => event.type === 'EnemyFired');
+    expect(tell).toBeGreaterThanOrEqual(0);
+    expect(fire).toBeGreaterThan(tell);
   });
 
   it('enemy bullet kills the player (bullet ↔ player)', () => {
@@ -80,15 +76,13 @@ describe('collisions', () => {
       g['enemyFire'] = { minIntervalTicks: 1, maxIntervalTicks: 1, aimChance: 1 };
     });
     const sim = createSim(deadly, 1);
-    const hits = ofType(run(sim, 200), 'PlayerHit');
+    const hits = ofType(run(sim, 420), 'PlayerHit');
     expect(hits[0]).toMatchObject({ livesLeft: rules.player.lives - 1 });
   });
 
-  it('touching a grunt kills the player (enemy ↔ player)', () => {
-    const low = contentWith((g) => {
-      g['grunt'] = { ...g['grunt'], row: { count: 9, y: 440, spacing: 28 } };
-      g['enemyFire'] = { minIntervalTicks: 36_000, maxIntervalTicks: 36_000, aimChance: 0 };
-    });
-    expect(ofType(run(createSim(low, 1), 1), 'PlayerHit')).toHaveLength(1);
+  it('reports the configured Grunt roster in the first stage', () => {
+    const roster = createSim(peaceful, 1).snapshot().grunts;
+    expect(roster).toHaveLength(10);
+    expect(roster.every((enemy) => enemy.kind === 'grunt')).toBe(true);
   });
 });

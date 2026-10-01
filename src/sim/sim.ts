@@ -36,7 +36,13 @@ export interface SimView {
     readonly dir: number;
     readonly invulnerable: boolean;
   };
-  readonly grunts: readonly { readonly id: number; readonly x: number; readonly y: number }[];
+  readonly grunts: readonly {
+    readonly id: number;
+    readonly x: number;
+    readonly y: number;
+    readonly kind: string;
+    readonly telling: boolean;
+  }[];
   readonly shots: readonly MoverView[];
   readonly enemyBullets: readonly MoverView[];
 }
@@ -63,7 +69,11 @@ function view(world: World): Readonly<SimView> {
       invulnerable: p.invulnerable > 0,
     }),
     grunts: Object.freeze(
-      world.grunts.filter((g) => g.alive).map((g) => Object.freeze({ id: g.id, x: g.x, y: g.y })),
+      world.grunts
+        .filter((g) => g.alive)
+        .map((g) =>
+          Object.freeze({ id: g.id, x: g.x, y: g.y, kind: g.kind, telling: g.tellTimer > 0 }),
+        ),
     ),
     shots: Object.freeze(moverViews(world.shots)),
     enemyBullets: Object.freeze(moverViews(world.bullets)),
@@ -82,6 +92,7 @@ function stateWords(world: World): number[] {
     world.wave,
     world.waveTimer,
     world.enemyFireTimer,
+    world.diveTimer,
     world.gameOverTimer,
     p.alive ? 1 : 0,
     p.dir & 0xff,
@@ -91,7 +102,17 @@ function stateWords(world: World): number[] {
   ];
   pushFloat(words, p.x);
   for (const g of world.grunts) {
-    words.push(g.id, g.alive ? 1 : 0, g.hp);
+    words.push(
+      g.id,
+      g.alive ? 1 : 0,
+      g.hp,
+      g.slot,
+      g.tellTimer,
+      g.fireTimer,
+      g.diving,
+      g.entryTimer,
+    );
+    for (let i = 0; i < g.kind.length; i += 1) words.push(g.kind.charCodeAt(i));
     pushFloat(words, g.x);
     pushFloat(words, g.y);
   }

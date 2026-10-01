@@ -21,6 +21,7 @@ function withGameplay(patch: (g: Record<string, Record<string, unknown>>) => voi
 const EVENT_TYPES: Record<SimEventType, true> = {
   PlayerFired: true,
   EnemyFired: true,
+  EnemyAttackTold: true,
   EnemyHit: true,
   EnemyKilled: true,
   PlayerHit: true,

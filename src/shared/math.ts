@@ -2,6 +2,19 @@
  * Largest integer scale at which a `width`×`height` image fits inside `availWidth`×`availHeight`.
  * Never returns less than 1 (the canvas is shown at 1× and overflows instead of shrinking blurrily).
  */
+/** Shared trigonometry boundary for deterministic simulation path and pattern helpers. */
+export function trigSin(radians: number): number {
+  return Math.sin(radians);
+}
+/** Shared trigonometry boundary for deterministic simulation path and pattern helpers. */
+export function trigCos(radians: number): number {
+  return Math.cos(radians);
+}
+/** Shared trigonometry boundary for deterministic simulation path and pattern helpers. */
+export function trigAtan2(y: number, x: number): number {
+  return Math.atan2(y, x);
+}
+
 export function integerScale(
   availWidth: number,
   availHeight: number,

@@ -1,0 +1,29 @@
+{
+  "waves": [
+    {
+      "key": "swoop",
+      "formation": {
+        "columns": 5,
+        "spacingX": 32,
+        "spacingY": 28,
+        "y": 82,
+        "sway": 6,
+        "swayTicks": 110
+      },
+      "entries": [
+        {
+          "enemy": "swooper",
+          "count": 10,
+          "path": [
+            { "x": 290, "y": 30 },
+            { "x": 230, "y": 60 },
+            { "x": 50, "y": 20 },
+            { "x": 135, "y": 82 }
+          ],
+          "delayTicks": 0
+        }
+      ],
+      "dive": { "minIntervalTicks": 84, "maxIntervalTicks": 168, "durationTicks": 110 }
+    }
+  ]
+}

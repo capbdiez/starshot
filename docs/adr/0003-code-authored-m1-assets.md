@@ -22,5 +22,8 @@ and binary sources would be hard to review in text-only, AI-assisted workflows.
 ## Consequences
 
 - No new dependencies (ffmpeg is a build-time tool only, needed just to regenerate audio).
-- An artist can later replace any sprite with `art-src/sprites/<key>.aseprite`; `assets:art`
-  skips keys that have an Aseprite source — a pure asset swap, no game-code changes.
+- This code-authored route is the default for all future visual asset categories: sprites, backgrounds,
+  UI, fonts and effects. The M7 final-art pass improves these source grids/generators in-repository;
+  it does not require externally authored images.
+- An Aseprite source at `art-src/sprites/<key>.aseprite` remains an optional compatible override;
+  `assets:art` skips that key — a pure asset swap, no game-code changes.

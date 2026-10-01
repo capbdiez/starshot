@@ -17,9 +17,17 @@ const content = loadContent(readContentFiles());
 const palette = new Set(parsePalette(readFileSync(PATHS.palette, 'utf8')));
 
 describe('final M1 sprite art', () => {
-  it('covers the player ship, Grunt and both bullet types', () => {
+  it('covers the player ship, all four enemy roster entries and both bullet types', () => {
     expect(Object.keys(SPRITE_ART).sort()).toEqual(
-      ['enemy_bullet', 'enemy_grunt', 'player_ship', 'player_shot'].sort(),
+      [
+        'enemy_bullet',
+        'enemy_elite',
+        'enemy_grunt',
+        'enemy_swooper',
+        'enemy_tank',
+        'player_ship',
+        'player_shot',
+      ].sort(),
     );
   });
 

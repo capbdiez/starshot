@@ -14,6 +14,8 @@ export {
 } from './schemas/asset-manifest.ts';
 export { SFX_KEY_PATTERN, type FxEntry } from './schemas/fx.ts';
 export { type Gameplay } from './schemas/gameplay.ts';
+export { type BulletPattern, type EnemySpec } from './schemas/enemies.ts';
+export { type StageSpec, type WaveSpec } from './schemas/waves.ts';
 export {
   CLIP_NAME_PATTERN,
   ENTITY_ROLES,

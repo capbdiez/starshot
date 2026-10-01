@@ -18,6 +18,33 @@
         ]
       }
     },
+    "enemy_elite": {
+      "atlas": "main",
+      "placeholder": false,
+      "clips": {
+        "idle": [
+          "enemy_elite/idle/0",
+          "enemy_elite/idle/1",
+          "enemy_elite/idle/2",
+          "enemy_elite/idle/3"
+        ],
+        "attack_tell": [
+          "enemy_elite/attack_tell/0",
+          "enemy_elite/attack_tell/1",
+          "enemy_elite/attack_tell/2"
+        ],
+        "death": [
+          "enemy_elite/death/0",
+          "enemy_elite/death/1",
+          "enemy_elite/death/2",
+          "enemy_elite/death/3",
+          "enemy_elite/death/4",
+          "enemy_elite/death/5",
+          "enemy_elite/death/6",
+          "enemy_elite/death/7"
+        ]
+      }
+    },
     "enemy_grunt": {
       "atlas": "main",
       "placeholder": false,
@@ -26,6 +53,11 @@
           "enemy_grunt/idle/0",
           "enemy_grunt/idle/1"
         ],
+        "attack_tell": [
+          "enemy_grunt/attack_tell/0",
+          "enemy_grunt/attack_tell/1",
+          "enemy_grunt/attack_tell/2"
+        ],
         "death": [
           "enemy_grunt/death/0",
           "enemy_grunt/death/1",
@@ -33,6 +65,52 @@
           "enemy_grunt/death/3",
           "enemy_grunt/death/4",
           "enemy_grunt/death/5"
+        ]
+      }
+    },
+    "enemy_swooper": {
+      "atlas": "main",
+      "placeholder": false,
+      "clips": {
+        "idle": [
+          "enemy_swooper/idle/0",
+          "enemy_swooper/idle/1"
+        ],
+        "attack_tell": [
+          "enemy_swooper/attack_tell/0",
+          "enemy_swooper/attack_tell/1",
+          "enemy_swooper/attack_tell/2"
+        ],
+        "death": [
+          "enemy_swooper/death/0",
+          "enemy_swooper/death/1",
+          "enemy_swooper/death/2",
+          "enemy_swooper/death/3",
+          "enemy_swooper/death/4",
+          "enemy_swooper/death/5"
+        ]
+      }
+    },
+    "enemy_tank": {
+      "atlas": "main",
+      "placeholder": false,
+      "clips": {
+        "idle": [
+          "enemy_tank/idle/0",
+          "enemy_tank/idle/1"
+        ],
+        "attack_tell": [
+          "enemy_tank/attack_tell/0",
+          "enemy_tank/attack_tell/1",
+          "enemy_tank/attack_tell/2"
+        ],
+        "death": [
+          "enemy_tank/death/0",
+          "enemy_tank/death/1",
+          "enemy_tank/death/2",
+          "enemy_tank/death/3",
+          "enemy_tank/death/4",
+          "enemy_tank/death/5"
         ]
       }
     },

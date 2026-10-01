@@ -7,7 +7,41 @@
       "anchor": { "x": 0.5, "y": 0.5 },
       "clips": {
         "idle": { "frames": 2, "fps": 4, "repeat": -1 },
+        "attack_tell": { "frames": 3, "fps": 12, "repeat": 0 },
         "death": { "frames": 6, "fps": 12, "repeat": 0 }
+      }
+    },
+    {
+      "key": "enemy_swooper",
+      "role": "enemy",
+      "size": { "w": 16, "h": 16 },
+      "anchor": { "x": 0.5, "y": 0.5 },
+      "clips": {
+        "idle": { "frames": 2, "fps": 6, "repeat": -1 },
+        "attack_tell": { "frames": 3, "fps": 12, "repeat": 0 },
+        "death": { "frames": 6, "fps": 12, "repeat": 0 }
+      }
+    },
+    {
+      "key": "enemy_tank",
+      "role": "enemy",
+      "size": { "w": 20, "h": 20 },
+      "anchor": { "x": 0.5, "y": 0.5 },
+      "clips": {
+        "idle": { "frames": 2, "fps": 4, "repeat": -1 },
+        "attack_tell": { "frames": 3, "fps": 12, "repeat": 0 },
+        "death": { "frames": 6, "fps": 12, "repeat": 0 }
+      }
+    },
+    {
+      "key": "enemy_elite",
+      "role": "enemy",
+      "size": { "w": 24, "h": 24 },
+      "anchor": { "x": 0.5, "y": 0.5 },
+      "clips": {
+        "idle": { "frames": 4, "fps": 8, "repeat": -1 },
+        "attack_tell": { "frames": 3, "fps": 12, "repeat": 0 },
+        "death": { "frames": 8, "fps": 12, "repeat": 0 }
       }
     }
   ]

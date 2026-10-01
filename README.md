@@ -2,10 +2,11 @@
 
 A neo-arcade **fixed shooter** (Galaga / Space Invaders lineage) for the web, built art-first.
 
-> Status: **M2 — Juice & presentation layer** complete. Move (←/→ or A/D, gamepad stick/d-pad),
-> hold Z/Space (or a face button) to autofire. Events drive muzzle flashes, sparks, explosions,
-> trauma shake, player-hit slow motion, SFX pitch variation and a three-layer parallax starfield.
-> Clear the Grunt row and it respawns; 3 lives; game over restarts automatically after 1.5 s.
+> Status: **M3 — Waves, formations & enemy roster** complete. Move (←/→ or A/D, gamepad stick/d-pad),
+> hold Z/Space (or a face button) to autofire. Four data-defined stages field Grunts, Swoopers,
+> Tanks and Elites with formation sway, dives, visible attack tells, and data-defined bullet patterns.
+> Events drive muzzle flashes, sparks, explosions, trauma shake, player-hit slow motion, SFX pitch
+> variation and a three-layer parallax starfield; 3 lives; game over restarts automatically after 1.5 s.
 > `?seed=N` fixes the run seed. Dev builds: `P` pauses, `.` steps one tick (frame-step latency check).
 
 ## Development

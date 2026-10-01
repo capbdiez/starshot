@@ -1,0 +1,29 @@
+{
+  "waves": [
+    {
+      "key": "armored",
+      "formation": {
+        "columns": 4,
+        "spacingX": 42,
+        "spacingY": 30,
+        "y": 78,
+        "sway": 4,
+        "swayTicks": 130
+      },
+      "entries": [
+        {
+          "enemy": "tank",
+          "count": 8,
+          "path": [
+            { "x": -20, "y": 25 },
+            { "x": 55, "y": 65 },
+            { "x": 210, "y": 25 },
+            { "x": 135, "y": 78 }
+          ],
+          "delayTicks": 0
+        }
+      ],
+      "dive": { "minIntervalTicks": 96, "maxIntervalTicks": 192, "durationTicks": 130 }
+    }
+  ]
+}

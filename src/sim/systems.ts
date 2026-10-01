@@ -1,5 +1,15 @@
-import { GAME_HEIGHT, GAME_WIDTH, hasInput, InputBit, type InputFrame } from '../shared/index.ts';
+import {
+  GAME_HEIGHT,
+  GAME_WIDTH,
+  hasInput,
+  InputBit,
+  trigSin,
+  type InputFrame,
+} from '../shared/index.ts';
 import { overlaps } from './collision.ts';
+import { diveInterval } from './dive-scheduler.ts';
+import { easeInOut, sampleCubic } from './path.ts';
+import { patternVelocities } from './patterns.ts';
 import { newId, placePlayer, resetGame, spawnWave, type Mover, type World } from './world.ts';
 
 /** Off-screen margin after which shots and bullets are recycled. */
@@ -68,40 +78,85 @@ export function moveMovers(pool: readonly Mover[]): void {
   }
 }
 
-/**
- * Fires one enemy bullet every random interval. With `aimChance` it is aimed at the player's
- * current position (sqrt is correctly rounded in IEEE-754, so this stays deterministic);
- * otherwise it falls straight down from a random grunt.
- */
+/** Advances attack tells, data-defined patterns, formation sway and the thinning-aware dive scheduler. */
 export function updateEnemyFire(world: World): void {
   if (!world.player.alive) return;
-  world.enemyFireTimer -= 1;
-  if (world.enemyFireTimer > 0) return;
-  const fire = world.rules.enemyFire;
-  world.enemyFireTimer = world.rng.int(fire.minIntervalTicks, fire.maxIntervalTicks);
-
-  const alive = world.grunts.filter((g) => g.alive);
-  if (alive.length === 0) return;
-  const shooter = alive[world.rng.int(0, alive.length - 1)];
-  const aimed = world.rng.nextFloat() < fire.aimChance;
-  const bullet = findFree(world.bullets);
-  if (!shooter || !bullet) return;
-  const speed = world.rules.enemyBullet.speed;
-  const x = shooter.x;
-  const y = shooter.y + world.rules.grunt.hitbox.h / 2;
-  let vx = 0;
-  let vy = speed;
-  if (aimed) {
-    const dx = world.player.x - x;
-    const dy = world.player.y - y;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    if (len > 0) {
-      vx = (dx / len) * speed;
-      vy = (dy / len) * speed;
+  const stage = world.content.stages[(world.wave - 1) % world.content.stages.length];
+  const wave = stage === undefined ? undefined : world.content.waves[stage.wave];
+  if (!wave) return;
+  for (const enemy of world.grunts) {
+    if (!enemy.alive) continue;
+    const spec = world.content.enemies[enemy.kind];
+    if (!spec) continue;
+    enemy.prevX = enemy.x;
+    enemy.prevY = enemy.y;
+    const entry = wave.entries.find((candidate) => candidate.enemy === enemy.kind);
+    if (enemy.entryTimer > 0 && entry) {
+      enemy.entryTimer -= 1;
+      const [start, controlA, controlB, end] = entry.path;
+      if (!start || !controlA || !controlB || !end) continue;
+      const targetX =
+        GAME_WIDTH / 2 -
+        ((wave.formation.columns - 1) * wave.formation.spacingX) / 2 +
+        (enemy.slot % wave.formation.columns) * wave.formation.spacingX;
+      const targetY =
+        wave.formation.y +
+        Math.floor(enemy.slot / wave.formation.columns) * wave.formation.spacingY;
+      const point = sampleCubic(
+        [start, controlA, controlB, end],
+        easeInOut(1 - enemy.entryTimer / 60),
+      );
+      enemy.x = point.x + targetX - end.x;
+      enemy.y = point.y + targetY - end.y;
+      continue;
     }
+    if (enemy.tellTimer > 0) {
+      enemy.tellTimer -= 1;
+      if (enemy.tellTimer === 0) {
+        const pattern = world.content.patterns[spec.pattern];
+        if (!pattern) continue;
+        for (const velocity of patternVelocities(
+          pattern,
+          enemy.x,
+          enemy.y,
+          world.player.x,
+          world.player.y,
+        )) {
+          const bullet = findFree(world.bullets);
+          if (!bullet) break;
+          launch(world, bullet, enemy.x, enemy.y, velocity.vx, velocity.vy);
+          world.events.push({ type: 'EnemyFired', id: bullet.id, x: bullet.x, y: bullet.y });
+        }
+        enemy.fireTimer = spec.fireIntervalTicks;
+      }
+      continue;
+    }
+    enemy.fireTimer -= 1;
+    if (enemy.fireTimer <= 0) {
+      enemy.tellTimer = spec.tellTicks;
+      world.events.push({ type: 'EnemyAttackTold', id: enemy.id, x: enemy.x, y: enemy.y });
+    }
+    if (enemy.diving > 0) {
+      enemy.diving -= 1;
+      enemy.y += 2;
+    } else
+      enemy.x +=
+        (trigSin(((world.tick + enemy.slot * 11) * Math.PI * 2) / wave.formation.swayTicks) *
+          wave.formation.sway) /
+        wave.formation.swayTicks;
   }
-  launch(world, bullet, x, y, vx, vy);
-  world.events.push({ type: 'EnemyFired', id: bullet.id, x: bullet.x, y: bullet.y });
+  world.diveTimer -= 1;
+  if (world.diveTimer <= 0) {
+    const alive = world.grunts.filter((enemy) => enemy.alive && enemy.diving === 0);
+    const diver = alive[world.rng.int(0, alive.length - 1)];
+    if (diver) diver.diving = wave.dive.durationTicks / 2;
+    world.diveTimer = diveInterval(
+      wave.dive.minIntervalTicks,
+      wave.dive.maxIntervalTicks,
+      alive.length,
+      world.grunts.length,
+    );
+  }
 }
 
 function killPlayer(world: World): void {
@@ -122,13 +177,14 @@ function killPlayer(world: World): void {
 
 /** FR-05 pairs for M1: player shots ↔ grunts, enemy bullets ↔ player, grunts ↔ player. */
 export function resolveCollisions(world: World): void {
-  const { grunt: gruntRules, playerShot, enemyBullet, player: playerRules } = world.rules;
+  const { playerShot, enemyBullet, player: playerRules } = world.rules;
   for (const shot of world.shots) {
     if (!shot.active) continue;
     const shotBox = { x: shot.x, y: shot.y, ...playerShot.hitbox };
-    const target = world.grunts.find(
-      (g) => g.alive && overlaps(shotBox, { x: g.x, y: g.y, ...gruntRules.hitbox }),
-    );
+    const target = world.grunts.find((g) => {
+      const spec = world.content.enemies[g.kind];
+      return g.alive && spec !== undefined && overlaps(shotBox, { x: g.x, y: g.y, ...spec.hitbox });
+    });
     if (!target) continue;
     shot.active = false;
     target.hp -= 1;
@@ -139,7 +195,7 @@ export function resolveCollisions(world: World): void {
       world.events.push({
         type: 'EnemyKilled',
         id: target.id,
-        kind: 'grunt',
+        kind: target.kind,
         x: target.x,
         y: target.y,
       });
@@ -152,9 +208,10 @@ export function resolveCollisions(world: World): void {
   const bulletHit = world.bullets.some(
     (b) => b.active && overlaps(playerBox, { x: b.x, y: b.y, ...enemyBullet.hitbox }),
   );
-  const bodyHit = world.grunts.some(
-    (g) => g.alive && overlaps(playerBox, { x: g.x, y: g.y, ...gruntRules.hitbox }),
-  );
+  const bodyHit = world.grunts.some((g) => {
+    const spec = world.content.enemies[g.kind];
+    return g.alive && spec !== undefined && overlaps(playerBox, { x: g.x, y: g.y, ...spec.hitbox });
+  });
   if (bulletHit || bodyHit) killPlayer(world);
 }
 

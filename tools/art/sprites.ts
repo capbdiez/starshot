@@ -65,7 +65,49 @@ export const SPRITE_ART: Readonly<Record<string, Readonly<Record<string, readonl
       [...GRUNT_LEGS_A, ...GRUNT_BODY],
       [...GRUNT_LEGS_B, ...GRUNT_BODY],
     ],
+    attack_tell: [
+      recolour([...GRUNT_LEGS_A, ...GRUNT_BODY], 0, 16, { m: 'W' }),
+      [...GRUNT_LEGS_A, ...GRUNT_BODY],
+      recolour([...GRUNT_LEGS_B, ...GRUNT_BODY], 0, 16, { m: 'W' }),
+    ],
     death: burst(16, 6, 'm'),
+  },
+  enemy_swooper: {
+    idle: [
+      [...GRUNT_LEGS_A, ...GRUNT_BODY],
+      recolour([...GRUNT_LEGS_B, ...GRUNT_BODY], 0, 16, { m: 'P' }),
+    ],
+    attack_tell: [
+      recolour([...GRUNT_LEGS_A, ...GRUNT_BODY], 0, 16, { m: 'W' }),
+      [...GRUNT_LEGS_A, ...GRUNT_BODY],
+      recolour([...GRUNT_LEGS_A, ...GRUNT_BODY], 0, 16, { m: 'W' }),
+    ],
+    death: burst(16, 6, 'P'),
+  },
+  enemy_tank: {
+    idle: [
+      Array.from({ length: 20 }, () => '...oooooooooooooo...'),
+      Array.from({ length: 20 }, () => '...oOOOOOOOOOOOOo...'),
+    ],
+    attack_tell: [
+      Array.from({ length: 20 }, () => '...oWWWWWWWWWWWWo...'),
+      Array.from({ length: 20 }, () => '...oooooooooooooo...'),
+      Array.from({ length: 20 }, () => '...oWWWWWWWWWWWWo...'),
+    ],
+    death: burst(20, 6, 'o'),
+  },
+  enemy_elite: {
+    idle: Array.from({ length: 4 }, (_, i) =>
+      Array.from({ length: 24 }, () =>
+        i % 2 === 0 ? 'VVVVVVVVVVVVVVVVVVVVVVVV' : 'VvVvVvVvVvVvVvVvVvVvVvVv',
+      ),
+    ),
+    attack_tell: [
+      Array.from({ length: 24 }, () => 'WWWWWWWWWWWWWWWWWWWWWWWW'),
+      Array.from({ length: 24 }, () => 'VVVVVVVVVVVVVVVVVVVVVVVV'),
+      Array.from({ length: 24 }, () => 'WWWWWWWWWWWWWWWWWWWWWWWW'),
+    ],
+    death: burst(24, 8, 'V'),
   },
   player_shot: {
     idle: [

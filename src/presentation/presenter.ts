@@ -38,7 +38,7 @@ function source(manifest: AssetManifest, key: string): SpriteSource {
  * with data-driven SFX and a basic flash (ARCHITECTURE §3). Never mutates the simulation.
  */
 export class Presenter {
-  private readonly grunts: SpriteLayer;
+  private readonly grunts: Map<string, SpriteLayer>;
   private readonly shots: SpriteLayer;
   private readonly bullets: SpriteLayer;
   private readonly player: Phaser.GameObjects.Sprite;
@@ -67,11 +67,16 @@ export class Presenter {
     this.starfield = new Starfield(scene);
     this.visual = new VisualFx(scene);
     const g = content.gameplay;
-    this.grunts = new SpriteLayer(
-      scene,
-      source(manifest, g.grunt.sprite),
-      animationKey(g.grunt.sprite, 'idle'),
-      DEPTH.enemy,
+    this.grunts = new Map(
+      Object.values(content.enemies).map((enemy) => [
+        enemy.key,
+        new SpriteLayer(
+          scene,
+          source(manifest, enemy.sprite),
+          animationKey(enemy.sprite, 'idle'),
+          DEPTH.enemy,
+        ),
+      ]),
     );
     this.shots = new SpriteLayer(
       scene,
@@ -115,9 +120,20 @@ export class Presenter {
       this.playerAnim = anim;
     }
 
-    this.grunts.begin();
-    for (const g of view.grunts) this.grunts.place(g.id, Math.round(g.x), Math.round(g.y));
-    this.grunts.end();
+    for (const layer of this.grunts.values()) layer.begin();
+    for (const g of view.grunts) {
+      const layer = this.grunts.get(g.kind);
+      const sprite = layer?.place(g.id, Math.round(g.x), Math.round(g.y));
+      if (sprite)
+        sprite.play(
+          animationKey(
+            this.content.enemies[g.kind]?.sprite ?? 'enemy_grunt',
+            g.telling ? 'attack_tell' : 'idle',
+          ),
+          true,
+        );
+    }
+    for (const layer of this.grunts.values()) layer.end();
     this.shots.begin();
     for (const s of view.shots)
       this.shots.place(s.id, smooth(s.prevX, s.x, alpha), smooth(s.prevY, s.y, alpha));
@@ -164,7 +180,11 @@ export class Presenter {
       slowMotionMs = Math.max(slowMotionMs, entry.slowMotionMs ?? 0);
       slowScale = Math.min(slowScale, entry.slowScale ?? 1);
       if (entry.explosion === true && event.type === 'EnemyKilled')
-        this.playDeath(g.grunt.sprite, event.x, event.y);
+        this.playDeath(
+          this.content.enemies[event.kind]?.sprite ?? g.grunt.sprite,
+          event.x,
+          event.y,
+        );
       if (entry.explosion === true && event.type === 'PlayerHit') {
         this.playDeath(g.player.sprite, event.x, event.y);
         this.playerAnim = '';

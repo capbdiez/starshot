@@ -81,6 +81,35 @@ describe('content loader', () => {
     expect(issuesOf(input).join()).toMatch(/duplicate sprite key "enemy_dup"/);
   });
 
+  it('rejects a wave that refers to a missing enemy', () => {
+    const bad = structuredClone(real) as Record<string, unknown>;
+    bad['waves/stage-1.json'] = {
+      waves: [
+        {
+          key: 'opening',
+          formation: { columns: 1, spacingX: 20, spacingY: 20, y: 80, sway: 0, swayTicks: 60 },
+          entries: [
+            {
+              enemy: 'ghost',
+              count: 1,
+              path: [
+                { x: 0, y: 0 },
+                { x: 0, y: 0 },
+                { x: 0, y: 0 },
+                { x: 0, y: 0 },
+              ],
+              delayTicks: 0,
+            },
+          ],
+          dive: { minIntervalTicks: 60, maxIntervalTicks: 120, durationTicks: 60 },
+        },
+      ],
+    };
+    expect(issuesOf(bad)).toContain(
+      'waves/opening.json: entries.enemy: enemy "ghost" is not defined',
+    );
+  });
+
   it('rejects files with no registered schema', () => {
     expect(issuesOf({ 'mystery/thing.json': {} }).join()).toMatch(/no schema is registered/);
   });

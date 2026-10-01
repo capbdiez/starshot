@@ -8,20 +8,19 @@ const deadly = contentWith((g) => {
 });
 
 describe('waves', () => {
-  it('a cleared row respawns after respawnTicks', () => {
-    const one = contentWith((g) => {
-      g['grunt'] = { ...g['grunt'], row: { count: 1, y: 80, spacing: 28 } };
-      g['enemyFire'] = { minIntervalTicks: 36_000, maxIntervalTicks: 36_000, aimChance: 0 };
-    });
-    const sim = createSim(one, 1);
-    const events = run(sim, 120 + one.gameplay.grunt.respawnTicks, F);
-    expect(ofType(events, 'WaveStarted').map((e) => e.wave)).toContain(2);
+  it('starts the first data-defined stage', () => {
+    const sim = createSim(
+      contentWith(() => undefined),
+      1,
+    );
+    expect(ofType(run(sim, 1), 'WaveStarted').map((event) => event.wave)).toContain(1);
+    expect(sim.snapshot().grunts).toHaveLength(10);
   });
 });
 
 describe('lives, respawn and game over', () => {
   it('loses one life per hit and respawns', () => {
-    const events = run(createSim(deadly, 1), 600);
+    const events = run(createSim(deadly, 1), 1200);
     expect(ofType(events, 'PlayerRespawned').length).toBeGreaterThan(0);
     expect(
       ofType(events, 'PlayerHit')

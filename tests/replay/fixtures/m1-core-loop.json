@@ -20,12 +20,12 @@
     [5, 300]
   ],
   "expected": {
-    "hash": "fef79327",
+    "hash": "bb583568",
     "tick": 4145,
-    "lives": 2,
+    "lives": 1,
     "wave": 1,
-    "kills": 9,
+    "kills": 11,
     "gameOvers": 4
   },
-  "reason": "Initial M1 fixture."
+  "reason": "M3 stage-1 entry paths, formation, attack tells, dives and data-defined bullet patterns."
 }

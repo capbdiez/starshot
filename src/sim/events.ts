@@ -5,6 +5,12 @@
 export type SimEvent =
   | { readonly type: 'PlayerFired'; readonly id: number; readonly x: number; readonly y: number }
   | { readonly type: 'EnemyFired'; readonly id: number; readonly x: number; readonly y: number }
+  | {
+      readonly type: 'EnemyAttackTold';
+      readonly id: number;
+      readonly x: number;
+      readonly y: number;
+    }
   | { readonly type: 'EnemyHit'; readonly id: number; readonly x: number; readonly y: number }
   | {
       readonly type: 'EnemyKilled';

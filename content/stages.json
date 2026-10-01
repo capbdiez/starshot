@@ -1,0 +1,8 @@
+{
+  "stages": [
+    { "key": "stage-1", "wave": "opening" },
+    { "key": "stage-2", "wave": "swoop" },
+    { "key": "stage-3", "wave": "armored" },
+    { "key": "stage-4", "wave": "elite" }
+  ]
+}

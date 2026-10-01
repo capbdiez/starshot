@@ -1,0 +1,8 @@
+{
+  "patterns": {
+    "aimed": { "type": "aimed", "speed": 3, "count": 1 },
+    "spread": { "type": "spread", "speed": 2.8, "count": 3, "angle": 36 },
+    "ring": { "type": "ring", "speed": 2.4, "count": 6 },
+    "burst": { "type": "burst", "speed": 3, "count": 3, "intervalTicks": 4 }
+  }
+}

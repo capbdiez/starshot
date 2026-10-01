@@ -8,7 +8,7 @@ Items deliberately left out of the current milestone (AGENTS §1). Each has a ta
 | Scoring, score in `EnemyKilled` events, HUD (lives display) | Scoring UI is out of M1 scope | M4 |
 | Grunt `dive` clip and dive behaviour; formations | Out of M1 scope | M3 |
 | Bombs, weapon levels, extra lives | Out of M1 scope | M4 |
-| Artist pass on code-authored M1 sprites/SFX (ADR 0003) | Final-quality originals exist; an artist may re-author them in Aseprite as a pure asset swap | M7 |
+| Code-authored final-art pass for the remaining roster, boss, pickups, FX, UI/font and background details | Replace simple interim code-art (for example Tank/Elite blocks) with palette-grid/procedural final graphics through `tools/art/`; no external sprite-production workflow is required | M7 |
 | Pause on tab hidden / focus loss (FR-11) | Scene flow + platform visibility arrive with menus | M5 |
 | Shared trig lookup tables for `sim` | Raw trig is already lint-banned in `sim`; helpers arrive when first needed | M3 (paths) |
 | Visual screenshot baselines | Nothing stable to baseline in M0 | M2 |

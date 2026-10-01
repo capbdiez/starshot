@@ -96,7 +96,13 @@ All effects are triggered by **simulation events** (see ARCHITECTURE.md), never 
 
 ## 9. Pipeline & Quality Gates
 
-**Pipeline:** Aseprite source (`art-src/`) → Aseprite CLI export → texture packer → `assets/atlas/*.png + *.json` (Phaser atlas format) → typed asset manifest.
+**Pipeline:** Code-authored pixel grids/procedural graphics in `tools/art/` → generated Aseprite-compatible export in `art-src/export/` → texture packer → `assets/atlas/*.png + *.json` (Phaser atlas format) → typed asset manifest. The optional Aseprite-source route remains compatible, but it is not required.
+
+**Code-authored asset policy:**
+- All MVP visual assets can be created and maintained in the repository: player, enemy and boss sprites; bullets; pickups; explosions and other FX; backgrounds/parallax; UI/HUD art; bitmap font; and store/screenshot source art where applicable.
+- New raster sprite frames use palette-letter grids or deterministic procedural generators under `tools/art/`; generated PNG/JSON exports and atlases remain committed and are checked by CI.
+- Backgrounds that do not need atlas frames may be deterministic Phaser geometry/procedural rendering, but must use the master palette and preserve the fixed-resolution pixel-art rules.
+- No contributor is expected to create, import, or manually place external image files to complete the game.
 
 **Placeholder policy (critical):**
 - A placeholder must match the final asset's **size, anchor, frame count, atlas key and animation names**.

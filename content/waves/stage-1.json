@@ -1,0 +1,29 @@
+{
+  "waves": [
+    {
+      "key": "opening",
+      "formation": {
+        "columns": 5,
+        "spacingX": 32,
+        "spacingY": 28,
+        "y": 82,
+        "sway": 5,
+        "swayTicks": 120
+      },
+      "entries": [
+        {
+          "enemy": "grunt",
+          "count": 10,
+          "path": [
+            { "x": -20, "y": 30 },
+            { "x": 35, "y": 60 },
+            { "x": 220, "y": 20 },
+            { "x": 135, "y": 82 }
+          ],
+          "delayTicks": 0
+        }
+      ],
+      "dive": { "minIntervalTicks": 90, "maxIntervalTicks": 180, "durationTicks": 120 }
+    }
+  ]
+}

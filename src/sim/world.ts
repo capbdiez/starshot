@@ -25,6 +25,14 @@ export interface Grunt {
   hp: number;
   x: number;
   y: number;
+  prevX: number;
+  prevY: number;
+  kind: string;
+  slot: number;
+  tellTimer: number;
+  fireTimer: number;
+  diving: number;
+  entryTimer: number;
 }
 
 export interface Player {
@@ -44,6 +52,7 @@ export type Phase = 'playing' | 'gameOver';
 /** Private mutable simulation state. Never handed out; `snapshot()` copies from it. */
 export interface World {
   readonly rules: Gameplay;
+  readonly content: Content;
   readonly rng: Rng;
   readonly seed: number;
   tick: number;
@@ -53,6 +62,7 @@ export interface World {
   wave: number;
   waveTimer: number;
   enemyFireTimer: number;
+  diveTimer: number;
   gameOverTimer: number;
   readonly player: Player;
   readonly grunts: Grunt[];
@@ -71,6 +81,7 @@ export function createWorld(content: Content, seed: number): World {
   const rules = content.gameplay;
   const world: World = {
     rules,
+    content,
     rng: createRng(seed),
     seed: seed >>> 0,
     tick: 0,
@@ -80,6 +91,7 @@ export function createWorld(content: Content, seed: number): World {
     wave: 0,
     waveTimer: 0,
     enemyFireTimer: 0,
+    diveTimer: 0,
     gameOverTimer: 0,
     player: {
       alive: true,
@@ -91,13 +103,30 @@ export function createWorld(content: Content, seed: number): World {
       invulnerable: 0,
       respawnTimer: 0,
     },
-    grunts: Array.from({ length: rules.grunt.row.count }, () => ({
-      id: 0,
-      alive: false,
-      hp: 0,
-      x: 0,
-      y: 0,
-    })),
+    grunts: Array.from(
+      {
+        length: Math.max(
+          ...Object.values(content.waves).map((wave) =>
+            wave.entries.reduce((n, entry) => n + entry.count, 0),
+          ),
+        ),
+      },
+      () => ({
+        id: 0,
+        alive: false,
+        hp: 0,
+        x: 0,
+        y: 0,
+        prevX: 0,
+        prevY: 0,
+        kind: 'grunt',
+        slot: 0,
+        tellTimer: 0,
+        fireTimer: 0,
+        diving: 0,
+        entryTimer: 0,
+      }),
+    ),
     shots: Array.from({ length: rules.player.maxShots }, mover),
     bullets: Array.from({ length: ENEMY_BULLET_POOL }, mover),
     events: [],
@@ -124,23 +153,42 @@ export function placePlayer(world: World): void {
   p.respawnTimer = 0;
 }
 
-/** Spawns the next static grunt row and announces the wave. */
+/** Spawns the configured stage formation and announces the wave. */
 export function spawnWave(world: World): void {
-  const { row, hp } = world.rules.grunt;
-  const left = GAME_WIDTH / 2 - ((row.count - 1) * row.spacing) / 2;
-  world.grunts.forEach((grunt, i) => {
-    grunt.id = newId(world);
-    grunt.alive = true;
-    grunt.hp = hp;
-    grunt.x = left + i * row.spacing;
-    grunt.y = row.y;
+  const stageSpec = world.content.stages[world.wave % world.content.stages.length];
+  if (!stageSpec) return;
+  const wave = world.content.waves[stageSpec.wave];
+  if (!wave) return;
+  const roster = wave.entries.flatMap((entry) =>
+    Array.from({ length: entry.count }, () => entry.enemy),
+  );
+  if (roster.length > world.grunts.length) throw new Error('wave exceeds the enemy pool capacity');
+  for (let i = roster.length; i < world.grunts.length; i += 1) {
+    const enemy = world.grunts[i];
+    if (enemy) enemy.alive = false;
+  }
+  const left = GAME_WIDTH / 2 - ((wave.formation.columns - 1) * wave.formation.spacingX) / 2;
+  world.grunts.forEach((enemy, i) => {
+    const kind = roster[i];
+    const spec = kind === undefined ? undefined : world.content.enemies[kind];
+    if (!spec) return;
+    enemy.id = newId(world);
+    enemy.alive = true;
+    enemy.hp = spec.hp;
+    enemy.kind = spec.key;
+    enemy.slot = i;
+    enemy.x = left + (i % wave.formation.columns) * wave.formation.spacingX;
+    enemy.y = wave.formation.y + Math.floor(i / wave.formation.columns) * wave.formation.spacingY;
+    enemy.prevX = enemy.x;
+    enemy.prevY = enemy.y;
+    enemy.tellTimer = 0;
+    enemy.fireTimer = spec.fireIntervalTicks;
+    enemy.diving = 0;
+    enemy.entryTimer = 60;
   });
   world.wave += 1;
   world.waveTimer = 0;
-  world.enemyFireTimer = world.rng.int(
-    world.rules.enemyFire.minIntervalTicks,
-    world.rules.enemyFire.maxIntervalTicks,
-  );
+  world.diveTimer = wave.dive.maxIntervalTicks;
   world.events.push({ type: 'WaveStarted', wave: world.wave });
 }
 

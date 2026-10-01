@@ -1,0 +1,40 @@
+{
+  "enemies": [
+    {
+      "key": "grunt",
+      "sprite": "enemy_grunt",
+      "hp": 1,
+      "hitbox": { "w": 12, "h": 12 },
+      "pattern": "aimed",
+      "tellTicks": 15,
+      "fireIntervalTicks": 120
+    },
+    {
+      "key": "swooper",
+      "sprite": "enemy_swooper",
+      "hp": 1,
+      "hitbox": { "w": 14, "h": 14 },
+      "pattern": "aimed",
+      "tellTicks": 18,
+      "fireIntervalTicks": 105
+    },
+    {
+      "key": "tank",
+      "sprite": "enemy_tank",
+      "hp": 2,
+      "hitbox": { "w": 18, "h": 18 },
+      "pattern": "spread",
+      "tellTicks": 20,
+      "fireIntervalTicks": 135
+    },
+    {
+      "key": "elite",
+      "sprite": "enemy_elite",
+      "hp": 3,
+      "hitbox": { "w": 20, "h": 20 },
+      "pattern": "ring",
+      "tellTicks": 24,
+      "fireIntervalTicks": 150
+    }
+  ]
+}
