@@ -1,5 +1,4 @@
 import type Phaser from 'phaser';
-import { WORLD_HEIGHT, WORLD_WIDTH } from '../../shared/index.ts';
 
 interface Particle {
   readonly shape: Phaser.GameObjects.Rectangle;
@@ -58,59 +57,6 @@ export class VisualFx {
         .setPosition(Math.round(particle.x), Math.round(particle.y))
         .setAlpha(particle.life / 240)
         .setVisible(particle.life > 0);
-    }
-  }
-}
-
-interface StarLayerSpec {
-  readonly colour: number;
-  readonly alpha: number;
-  readonly count: number;
-  readonly size: number;
-  readonly speed: number;
-}
-
-const STAR_LAYERS: readonly StarLayerSpec[] = [
-  { colour: 0x1c1f47, alpha: 1, count: 62, size: 1, speed: 0.012 },
-  { colour: 0x2a2d63, alpha: 1, count: 46, size: 1, speed: 0.024 },
-  { colour: 0x52579e, alpha: 0.8, count: 28, size: 2, speed: 0.042 },
-];
-
-/** Stable integer hash used to scatter stars without visible rows or diagonals. */
-export function starHash(value: number): number {
-  let hash = value >>> 0;
-  hash = Math.imul(hash ^ (hash >>> 16), 0x45d9f3b);
-  hash = Math.imul(hash ^ (hash >>> 16), 0x45d9f3b);
-  return (hash ^ (hash >>> 16)) >>> 0;
-}
-
-/** Low-contrast three-layer parallax starfield, behind all gameplay sprites. */
-export class Starfield {
-  private readonly layers: readonly Phaser.GameObjects.Graphics[];
-  private offsets = [0, 0, 0];
-
-  constructor(scene: Phaser.Scene) {
-    this.layers = STAR_LAYERS.map((spec, layer) => {
-      const graphics = scene.add.graphics().setDepth(-10 + layer);
-      graphics.fillStyle(spec.colour, spec.alpha);
-      for (let i = 0; i < spec.count; i += 1) {
-        const x = starHash(i * 2 + layer * 1_001) % WORLD_WIDTH;
-        const y = starHash(i * 2 + layer * 1_001 + 1) % WORLD_HEIGHT;
-        graphics.fillRect(x, y, spec.size, spec.size);
-        // A second copy makes the scroll wrap continuously instead of leaving a blank strip.
-        graphics.fillRect(x, y - WORLD_HEIGHT, spec.size, spec.size);
-      }
-      return graphics;
-    });
-  }
-
-  update(deltaMs: number): void {
-    for (let i = 0; i < this.layers.length; i += 1) {
-      const layer = this.layers[i];
-      const spec = STAR_LAYERS[i];
-      if (!layer || !spec) continue;
-      this.offsets[i] = ((this.offsets[i] ?? 0) + deltaMs * spec.speed) % WORLD_HEIGHT;
-      layer.setY(Math.round(this.offsets[i] ?? 0));
     }
   }
 }

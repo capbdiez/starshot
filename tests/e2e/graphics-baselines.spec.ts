@@ -53,7 +53,7 @@ async function open(
   await expect(page.locator('#game')).toHaveAttribute('data-state', 'ready');
 }
 
-test.describe('G2 presentation-resolution visual baselines', () => {
+test.describe('G6 seeded stage-background visual baselines', () => {
   test.skip(
     ({ browserName }) => browserName !== 'chromium',
     'Baselines are approved for Chromium only.',

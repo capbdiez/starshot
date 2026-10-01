@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { starHash } from '../../src/presentation/fx/visual-fx.ts';
+import { backgroundHash } from '../../src/presentation/background/layout.ts';
 
-describe('starfield distribution', () => {
+describe('stage background distribution', () => {
   it('is deterministic and scatters consecutive seeds', () => {
-    expect(starHash(42)).toBe(starHash(42));
-    expect(starHash(42)).not.toBe(starHash(43));
+    expect(backgroundHash(42)).toBe(backgroundHash(42));
+    expect(backgroundHash(42)).not.toBe(backgroundHash(43));
   });
 });

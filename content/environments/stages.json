@@ -1,0 +1,44 @@
+{
+  "environments": [
+    {
+      "stage": 1,
+      "theme": "indigo-reach",
+      "seed": 103211,
+      "paletteRole": "indigo",
+      "layers": { "nebulae": 2, "distantStars": 96, "largeObjects": 1, "foreground": 8 },
+      "motion": { "distantStars": 4, "largeObjects": 7, "foreground": 12 }
+    },
+    {
+      "stage": 2,
+      "theme": "violet-veil",
+      "seed": 203219,
+      "paletteRole": "violet",
+      "layers": { "nebulae": 3, "distantStars": 104, "largeObjects": 2, "foreground": 10 },
+      "motion": { "distantStars": 5, "largeObjects": 8, "foreground": 14 }
+    },
+    {
+      "stage": 3,
+      "theme": "teal-drift",
+      "seed": 303227,
+      "paletteRole": "teal",
+      "layers": { "nebulae": 2, "distantStars": 112, "largeObjects": 2, "foreground": 12 },
+      "motion": { "distantStars": 6, "largeObjects": 9, "foreground": 16 }
+    },
+    {
+      "stage": 4,
+      "theme": "amber-ruins",
+      "seed": 403235,
+      "paletteRole": "amber",
+      "layers": { "nebulae": 3, "distantStars": 120, "largeObjects": 3, "foreground": 14 },
+      "motion": { "distantStars": 7, "largeObjects": 10, "foreground": 18 }
+    },
+    {
+      "stage": 5,
+      "theme": "crimson-citadel",
+      "seed": 503243,
+      "paletteRole": "crimson",
+      "layers": { "nebulae": 4, "distantStars": 128, "largeObjects": 4, "foreground": 16 },
+      "motion": { "distantStars": 8, "largeObjects": 11, "foreground": 20 }
+    }
+  ]
+}

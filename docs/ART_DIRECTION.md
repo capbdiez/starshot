@@ -43,7 +43,7 @@ Gameplay roles must be distinguishable by both outline and value before hue is c
 - Raster materials use dark structural edges, local body colour, and selective highlights. Highlights describe form; they are not full-surface noise.
 - Emissive pixels are reserved for player energy, bullets, pickups, weapon muzzles, weak points, and explicit tells. Glow supports a readable silhouette; it never replaces one.
 - Do not introduce gradients, anti-aliased raster edges, arbitrary alpha haze, or off-palette colours in generated art.
-- Background stays deep/desaturated and **at or below 30% perceived luminance**. Motion stays slow and never resembles an attack tell.
+- Background stays deep/desaturated and **at or below 30% perceived luminance**. Motion stays slow and never resembles an attack tell. G6 stage environments are seeded, bounded 540×960 presentation layouts with cached layers; they never affect simulation state or gameplay coordinates.
 - Effects are short, bounded, event/content-driven, pooled reactions. With flash reduction enabled, no content flashes more than three times per second.
 - Quality tiers may remove cosmetic stars, debris, or secondary particles, but never bullets, tells, pickups, silhouettes, outlines, or accessibility cues.
 

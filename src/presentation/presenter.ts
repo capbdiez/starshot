@@ -3,10 +3,11 @@ import type { AssetManifest, Content } from '../content/index.ts';
 import { PRESENTATION_SCALE, WORLD_HEIGHT, WORLD_WIDTH } from '../shared/index.ts';
 import type { SimEvent, SimView } from '../sim/index.ts';
 import { animationKey } from './anim/register-animations.ts';
+import { StageBackground } from './background/stage-background.ts';
 import type { AudioDirector } from './audio/audio-director.ts';
 import { reactionsFor, smooth } from './fx/event-fx.ts';
 import { Trauma } from './fx/trauma.ts';
-import { Starfield, VisualFx } from './fx/visual-fx.ts';
+import { VisualFx } from './fx/visual-fx.ts';
 import { SpriteLayer, type SpriteSource } from './renderer/sprite-layer.ts';
 
 /** Time effects requested by the event map for the loop driver. */
@@ -83,7 +84,7 @@ export class Presenter {
   private readonly audio: AudioDirector;
   private readonly trauma = new Trauma();
   private readonly visual: VisualFx;
-  private readonly starfield: Starfield;
+  private readonly background: StageBackground;
   private settings: PresentationSettings = {
     shake: 1,
     flashReduction: false,
@@ -97,6 +98,7 @@ export class Presenter {
     content: Content,
     manifest: AssetManifest,
     audio: AudioDirector,
+    runSeed: number,
   ) {
     this.scene = scene;
     // The scene continues to use simulation/world coordinates. This camera is the single
@@ -105,7 +107,7 @@ export class Presenter {
     this.content = content;
     this.manifest = manifest;
     this.audio = audio;
-    this.starfield = new Starfield(scene);
+    this.background = new StageBackground(scene, content.environments, runSeed);
     this.visual = new VisualFx(scene);
     const g = content.gameplay;
     this.grunts = new Map(
@@ -193,6 +195,7 @@ export class Presenter {
 
   /** Positions every sprite from `view`, interpolating by `alpha` between the last two ticks. */
   sync(view: Readonly<SimView>, alpha: number): void {
+    this.background.setStage(view.wave);
     const p = view.player;
     const shipKey = this.content.gameplay.player.sprite;
     this.player.setVisible(
@@ -274,7 +277,7 @@ export class Presenter {
   /** Advances render-only effects, parallax and trauma shake. */
   update(deltaMs: number): void {
     this.elapsedMs += deltaMs;
-    this.starfield.update(deltaMs);
+    this.background.update(deltaMs);
     this.visual.update(deltaMs);
     if (this.subtitleMs > 0) {
       this.subtitleMs = Math.max(0, this.subtitleMs - deltaMs);

@@ -337,7 +337,7 @@ The MVP milestones above remain the historical release plan. This is a separate,
 - Replace the simple starfield with deterministic 540×960 multi-layer presentation: deep-space field, low-contrast nebulae, distant stars, sparse large objects, and optional foreground detail.
 - Add presentation-only stage environment schema/data for theme, seed, palette role, layer density, and motion speed.
 - Derive layouts from stable stage/run seeds; backgrounds never affect simulation determinism.
-- Pre-render/cache static layers and pool moving elements rather than rebuilding geometry each frame.
+- Pre-render/cache static layers and pool moving elements rather than rebuilding geometry each frame. The shipped implementation caches bounded Phaser graphics layers and rebuilds them only on stage transitions.
 
 **Out of scope:** scrolling gameplay, mechanics changes, decorative objects resembling bullets, unbounded generation.
 

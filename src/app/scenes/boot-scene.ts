@@ -26,6 +26,8 @@ export interface BootSceneDeps {
   readonly atlasUrl: (fileName: string) => string;
   /** Resolves an `assets/audio/` file name to a bundled URL. */
   readonly audioUrl: (fileName: string) => string;
+  /** Stable run seed shared with presentation-only seeded layouts. */
+  readonly runSeed: number;
   /** Receives game status as `data-*` attributes (used by the E2E tests). */
   readonly statusElement: HTMLElement;
   /** Optional dev hook: may take over stepping (frame-step debug view). */
@@ -119,7 +121,7 @@ export class BootScene extends Phaser.Scene {
         return sound;
       },
     });
-    const presenter = new Presenter(this, content, manifest, audio);
+    const presenter = new Presenter(this, content, manifest, audio, this.deps.runSeed);
     this.presenter = presenter;
     this.audio = audio;
     this.applySettings(this.deps.saves.settings());

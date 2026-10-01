@@ -62,6 +62,7 @@ function boot(): void {
       content,
       manifest,
       createSim: () => createSim(content, seed),
+      runSeed: seed,
       input,
       saves,
       atlasUrl: atlasFileUrl,
