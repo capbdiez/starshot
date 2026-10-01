@@ -1,0 +1,73 @@
+name: Release (MVP)
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build, deploy, smoke-test, and package
+    runs-on: ubuntu-latest
+    env:
+      ITCHIO_API_KEY: ${{ secrets.ITCHIO_API_KEY }}
+      ITCHIO_GAME: ${{ vars.ITCHIO_GAME }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run lint:deps
+      - run: npm test
+      - run: npm run check:assets
+      - run: npm run build
+      - name: Measure compressed distribution
+        run: |
+          bytes=$(find dist -type f -print0 | xargs -0 gzip -9 -c | wc -c)
+          echo "gzip_total_bytes=$bytes" >> "$GITHUB_STEP_SUMMARY"
+          test "$bytes" -le 5242880
+      - name: Deploy production to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: >-
+            pages deploy dist
+            --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+            --branch=main
+            --commit-hash=${{ github.sha }}
+      - name: Smoke-test the deployed production URL
+        env:
+          STARSHOT_PRODUCTION_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url || steps.deploy.outputs.deployment-url }}
+        run: npm run test:e2e:production
+      - name: Create itch.io HTML5 archive
+        run: npm run release:archive
+      - name: Upload release archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: starshot-${{ github.ref_name }}-itchio
+          path: starshot-${{ github.ref_name }}-itchio.zip
+          if-no-files-found: error
+      - name: Install butler
+        if: env.ITCHIO_API_KEY != '' && env.ITCHIO_GAME != ''
+        run: |
+          curl --fail --location --retry 3 https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default \
+            --output butler.zip
+          unzip -q butler.zip -d butler
+          chmod +x butler/butler
+      - name: Upload HTML5 archive to itch.io
+        if: env.ITCHIO_API_KEY != '' && env.ITCHIO_GAME != ''
+        env:
+          BUTLER_API_KEY: ${{ env.ITCHIO_API_KEY }}
+        run: ./butler/butler push "starshot-${{ github.ref_name }}-itchio.zip" "$ITCHIO_GAME:html5" --userversion "${{ github.ref_name }}"

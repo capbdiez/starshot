@@ -1,7 +1,7 @@
 {
   "name": "starshot",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Neo-arcade fixed shooter for the web.",
   "type": "module",
   "engines": {
@@ -18,6 +18,8 @@
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:production": "playwright test",
+    "release:archive": "npm run build && node tools/package-itch.ts",
     "check:assets": "node tools/check-assets.ts",
     "assets:export": "node tools/export-aseprite.ts",
     "assets:atlas": "node tools/build-atlas.ts",

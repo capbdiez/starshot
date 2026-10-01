@@ -2,10 +2,11 @@
 
 A neo-arcade **fixed shooter** (Galaga / Space Invaders lineage) for the web, built art-first.
 
-> Status: **M6 — Boss & full run content** complete. A five-stage run ends with the three-phase Overlord: destroy
-> its wings and cannon, read each phase tell, then finish the core. Results retain the run score/stage; settings and
-> top-10 local scores persist. Boss music ducks for its intro and player death. `?seed=N` fixes the run seed.
-> Dev builds: `P` pauses, `.` steps one tick (frame-step latency check).
+> Status: **v1.0.0 MVP release**. A five-stage run ends with the three-phase Overlord: destroy its wings and cannon,
+> read each phase tell, then finish the core. Results retain the run score/stage; settings and top-10 local scores
+> persist. Boss music ducks for its intro and player death. `?seed=N` fixes the run seed. Dev builds: `P` pauses,
+> `.` steps one tick (frame-step latency check). See [release notes](./CHANGELOG.md),
+> [known issues](./docs/known-issues.md), and the [release checklist](./docs/release-checklist.md).
 
 ## Development
 
@@ -16,12 +17,15 @@ npm ci
 npm run dev            # http://localhost:5173 — 270×480 integer-scaled canvas + placeholder ship
 npm run typecheck && npm run lint && npm run lint:deps && npm test && npm run check:assets
 npm run test:e2e       # Playwright smoke (Chromium + WebKit); first run: npx playwright install
+npm run release:archive # Produces the itch.io-ready starshot-v1.0.0-itchio.zip archive
 npm run assets:build   # Aseprite + code-art export → atlas → generated audio/music (ffmpeg) → asset gates
 ```
 
 CI (`.github/workflows/`) runs every check above plus E2E, and deploys each PR to a Cloudflare
-Pages preview URL (commented on the PR). Setup: secrets `CLOUDFLARE_API_TOKEN`,
-`CLOUDFLARE_ACCOUNT_ID`; variable `CLOUDFLARE_PAGES_PROJECT`.
+Pages preview URL (commented on the PR). Pushing a `v*` tag runs the M8 release workflow: Cloudflare production
+deploy, production-url E2E smoke, itch.io-ready archive, and optional itch.io upload. Setup: secrets
+`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, optional `ITCHIO_API_KEY`; variables
+`CLOUDFLARE_PAGES_PROJECT`, optional `ITCHIO_GAME` (the `user/game` slug).
 
 ## Document Index
 

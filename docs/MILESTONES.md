@@ -181,6 +181,10 @@ Art, audio and effects run through every milestone as tracks, not at the end.
 
 ## M8 — Release (MVP)
 
+**Release artifacts:** `CHANGELOG.md`, `docs/known-issues.md`, `release/store-page.md`,
+`release/capture-guide.md`, and `.github/workflows/release.yml`. The checklist retains hosted/manual evidence until it
+is actually recorded; no local change can substitute for a public deployment or device/browser validation.
+
 **Scope**
 - Production deploy to Cloudflare Pages and an itch.io HTML5 upload; store page art, screenshots, GIF trailer.
 - Version tag `v1.0.0`, changelog, and a known-issues list.

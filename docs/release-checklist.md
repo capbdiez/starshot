@@ -1,6 +1,6 @@
-# M7 Release Checklist
+# M8 Release Checklist — v1.0.0
 
-Evidence recorded for M7 acceptance criterion: every GAME_SPEC §6 non-functional requirement has an automated check or a defined release sign-off.
+Evidence for the MVP release. Mark a manual/deployment item only after its linked evidence is recorded; this document must not be signed off solely from local checks.
 
 | NFR | Requirement | Evidence / sign-off |
 | --- | --- | --- |
@@ -13,10 +13,30 @@ Evidence recorded for M7 acceptance criterion: every GAME_SPEC §6 non-functiona
 | NFR-07 | Architecture enforced; sim coverage ≥ 80% | **Automated:** `npm run lint:deps && npm test` (Vitest coverage threshold/report). |
 | NFR-08 | ART_DIRECTION §9 asset gates | **Automated:** `npm run check:assets`; it validates content references, atlas frames/sizes, palette and rejects every `placeholder: true` manifest entry. |
 
-## M7 asset and accessibility sign-off
+## Automated release gates
 
 - [x] Final manifest has no placeholder sprites (`tests/assets/atlas-gates.test.ts`, `npm run check:assets`).
 - [x] `assets/CREDITS.md` lists every runtime visual and audio asset source and license.
 - [x] Optional CRT scanlines, high-contrast enemy bullets, reduced flashes and boss subtitles are persisted settings.
+- [x] `v1.0.0` package metadata, `CHANGELOG.md`, `docs/known-issues.md`, store-page copy, and capture directions are committed.
+- [x] Tag-triggered release workflow builds, checks the ≤ 5 MB gzipped budget, deploys Cloudflare Pages, runs production smoke E2E, packages itch.io HTML5 output, and uploads to itch.io when its credentials are configured.
+
+## Required human and hosted-release sign-off
+
 - [ ] Final audio loudness/mix pass recorded after listening on reference headphones and speakers.
-- [ ] Peak-performance, cold-load, cross-browser, visual colour-blind, and n ≥ 10 feel-playtest results recorded before M8 release.
+- [ ] Cloudflare Pages production URL deployed from the `v1.0.0` tag; record URL and deployment timestamp here.
+- [ ] itch.io HTML5 archive uploaded from `starshot-v1.0.0-itchio.zip`; record public page URL and upload timestamp here.
+- [ ] Production smoke E2E passes against the public Cloudflare URL with no console errors.
+- [ ] Latest two Chrome, Firefox, Safari, and Edge versions manually pass; record browser versions, OS, and date.
+- [ ] Reference-device final pass records sustained performance, input latency, and cold-load time.
+- [ ] Colour-blind screenshots, required store screenshots, cover art, and trailer GIF are captured and uploaded; see `release/capture-guide.md`.
+- [ ] n ≥ 10 feel-playtest result is recorded against the GAME_SPEC §10 success criteria.
+- [ ] `v1.0.0` git tag is created from the signed-off release commit.
+
+## Sign-off
+
+| Role | Name | Date | Evidence / URL |
+| --- | --- | --- | --- |
+| Release owner |  |  |  |
+| QA / browser pass |  |  |  |
+| Audio / accessibility pass |  |  |  |
