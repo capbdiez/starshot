@@ -1,5 +1,5 @@
 import type { Grid } from '../lib/pixel-art.ts';
-import { partBurst } from './fx-recipes.ts';
+import { materialDebris } from './fx-recipes.ts';
 import type { SpriteArt } from './recipe-types.ts';
 
 const coreFrame = (lit: boolean, tell = false): Grid =>
@@ -43,13 +43,23 @@ const cannonFrame = (lit: boolean): Grid =>
     }).join(''),
   );
 
-/** Boss-part recipes retain the existing presentation and animation contracts. */
+const coreIdle: readonly [Grid, Grid] = [coreFrame(false), coreFrame(true)];
+const wingIdle: readonly [Grid, Grid] = [wingFrame(false), wingFrame(true)];
+const cannonIdle: readonly [Grid, Grid] = [cannonFrame(false), cannonFrame(true)];
+
+/** G5 modular-machine art keeps the core, wings, cannon, and every animation contract intact. */
 export const BOSS_ART: SpriteArt = {
   boss_core: {
-    idle: [coreFrame(false), coreFrame(true)],
-    attack_tell: [coreFrame(true, true), coreFrame(false), coreFrame(true, true)],
-    death: partBurst(40, 28, 8, 'V'),
+    idle: coreIdle,
+    attack_tell: [coreFrame(true, true), coreIdle[0], coreFrame(true, true)],
+    death: materialDebris(coreIdle[0], 8, 0xb055, ['V', 'v', 'M', 'P', 'Y']),
   },
-  boss_wing: { idle: [wingFrame(false), wingFrame(true)], death: partBurst(24, 20, 6, 'm') },
-  boss_cannon: { idle: [cannonFrame(false), cannonFrame(true)], death: partBurst(18, 18, 6, 'o') },
+  boss_wing: {
+    idle: wingIdle,
+    death: materialDebris(wingIdle[0], 6, 0xb056, ['V', 'v', 'm', 'M', 'P']),
+  },
+  boss_cannon: {
+    idle: cannonIdle,
+    death: materialDebris(cannonIdle[0], 6, 0xb057, ['O', 'o', 'y', 'Y', 'M']),
+  },
 };

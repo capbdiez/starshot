@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { findPaletteViolations, parsePalette } from '../../tools/lib/palette.ts';
 import { readFileSync } from 'node:fs';
 import { PATHS } from '../../tools/lib/repo.ts';
+import { BOSS_ART } from '../../tools/art/boss-recipes.ts';
+import { ENEMY_ART } from '../../tools/art/enemy-recipes.ts';
 import { PLAYER_ART } from '../../tools/art/player-recipes.ts';
 import { PROJECTILE_ART } from '../../tools/art/projectile-recipes.ts';
 import { RECIPE_METADATA } from '../../tools/art/sprites.ts';
@@ -96,5 +98,40 @@ describe('G3 raster-art toolkit', () => {
       };
     });
     expect(pickupBounds).toEqual(Array.from({ length: 4 }, () => pickupBounds[0]));
+  });
+
+  it('uses distinct G5 enemy material families, visible tells, and seeded debris', () => {
+    const roster = ['enemy_grunt', 'enemy_swooper', 'enemy_tank', 'enemy_elite'] as const;
+    const recipe = RECIPE_METADATA.find((entry) => entry.id === 'enemy_roster');
+    if (!recipe) throw new Error('G5 enemy recipe is missing');
+    const idleFrames = roster.map((key) => ENEMY_ART[key]?.idle?.[0]?.join('') ?? '');
+    expect(new Set(idleFrames).size).toBe(roster.length);
+    expect(recipe.version).toBe(2);
+    for (const key of roster) {
+      const art = ENEMY_ART[key];
+      const idle = art?.idle;
+      const tell = art?.attack_tell;
+      const death = art?.death;
+      if (!idle || !tell || !death) throw new Error(`${key} G5 clips are missing`);
+      expect(tell[0]).not.toEqual(idle[0]);
+      expect(death[0]).not.toEqual(death[death.length - 1]);
+      expect(death.flat().join('')).toMatch(/[WY]/);
+    }
+  });
+
+  it('keeps the G5 boss modular while using part-specific destruction debris', () => {
+    const recipe = RECIPE_METADATA.find((entry) => entry.id === 'boss_parts');
+    const core = BOSS_ART.boss_core;
+    const wing = BOSS_ART.boss_wing;
+    const cannon = BOSS_ART.boss_cannon;
+    if (!recipe || !core || !wing || !cannon) throw new Error('G5 boss recipes are missing');
+    expect(recipe.version).toBe(2);
+    expect(core.attack_tell?.[0]).not.toEqual(core.idle?.[0]);
+    expect(core.death).toHaveLength(8);
+    expect(wing.death).toHaveLength(6);
+    expect(cannon.death).toHaveLength(6);
+    expect(wing.death?.[0]).not.toEqual(cannon.death?.[0]);
+    expect(core.death?.[0]?.join('')).toMatch(/[VvMP]/);
+    expect(cannon.death?.[0]?.join('')).toMatch(/[OoyYM]/);
   });
 });

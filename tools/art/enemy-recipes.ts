@@ -1,108 +1,144 @@
 import { recolour, type Grid } from '../lib/pixel-art.ts';
-import { burst } from './fx-recipes.ts';
+import { materialDebris } from './fx-recipes.ts';
 import type { SpriteArt } from './recipe-types.ts';
 
-const legsA: Grid = ['..M..........M..', '...m........m...', '...mm......mm...'];
-const legsB: Grid = ['................', '..M..........M..', '...mmm....mmm...'];
-const gruntBody: Grid = [
-  '....mmmmmmmm....',
-  '..MmmPmmmmPmmM..',
-  '.MmmPWPmmPWPmmM.',
-  'MmmmmPmmmmPmmmmM',
-  'MmoommmmmmmmoomM',
-  'Mm.oOmmmmmmOo.mM',
-  'M...mmmmmmmm...M',
-  '....mMmmmmMm....',
-  '....m.mOOm.m....',
-  '...M..mOOm..M...',
-  '......MooM......',
-  '.......oo.......',
-  '................',
-];
-const grunt = (legs: Grid): Grid => [...legs, ...gruntBody];
+const gruntFrame = (lit: boolean): Grid =>
+  [
+    '......MM........',
+    '....MMmmMM......',
+    '...MmmbbmmM.....',
+    '..MmmCCCCmmM....',
+    '.MmmCbWWbCmmM...',
+    'MmmCbCccCbCmmM..',
+    'MmmCCbbbbCCmmM..',
+    '.MmmCbbbbCmmM...',
+    '..MmmCbbCmmM....',
+    '...MmmCCmmM.....',
+    '....MmmMMmM.....',
+    '...Mmm..mmM.....',
+    '..MmM....MmM....',
+    '.mM........Mm...',
+    '..m..........m..',
+    '................',
+  ].map((row) => (lit ? row.replace(/W/g, 'Y').replace(/C/g, 'c') : row));
+
+const swooperFrame = (lit: boolean): Grid =>
+  [
+    '.......M........',
+    '.....MMmMM......',
+    '...MMmvvmmMM....',
+    '.MMmvVVVVvmMM...',
+    'MmvVV..VVVvmM...',
+    'mvVV..PP..VVvm..',
+    'vVV..PWWP..VVv..',
+    'mVVv.PWWP.vVVm..',
+    '.mVVv.PP.vVVm...',
+    '..mVVvvvvVVm....',
+    '...mVVVVVVm.....',
+    '....mVVVVm......',
+    '.....mVVmm......',
+    '....mM..MMm.....',
+    '...mM....Mm.....',
+    '................',
+  ].map((row) => (lit ? row.replace(/P/g, 'W').replace(/v/g, 'V') : row));
+
 const tankFrame = (lit: boolean, tell = false): Grid =>
   [
+    '.......MM...........',
+    '.....MMOOmm.........',
+    '...MMOooooOMM.......',
+    '..MOooOOOOooOM......',
+    '.MOoOO....OOoOM.....',
+    'MOoOO.MMMM.OOoM.....',
+    'MoOO.MWYYWM.OOm.....',
+    'MoOO.MWYYWM.OOm.....',
+    'MOoOO.MMMM.OOoM.....',
+    '.MOoOO....OOoOM.....',
+    '..MOooOOOOooOM......',
+    '...MMOooooOMM.......',
+    '.....MMOOOOmm.......',
+    '....M..OMMO..M......',
+    '...M...OMMO...M.....',
+    '..m....oooo....m....',
+    '.m......OO......m...',
+    '........oo..........',
     '....................',
-    '.......OOOOOO.......',
-    '.....ooOOOOOOoo.....',
-    '....oOO......OOo....',
-    '...oO..oooooo..Oo...',
-    '..oO..oOOOOOOo..Oo..',
-    '.oO..oOO....OOo..Oo.',
-    '.oO.oOO..WW..OOo.Oo.',
-    'oOOoOO..WYYW..OOoOOo',
-    'oOOoOO..WYYW..OOoOOo',
-    '.oO.oOO..WW..OOo.Oo.',
-    '.oO..oOO....OOo..Oo.',
-    '..oO..oOOOOOOo..Oo..',
-    '...oO..oooooo..Oo...',
-    '....oOO......OOo....',
-    '.....ooOOOOOOoo.....',
-    '.......O.OO.O.......',
-    '......o..OO..o......',
-    '.....o...oo...o.....',
     '....................',
-  ].map((row) => (tell ? row.replace(/[oO]/g, 'W') : lit ? row.replace(/Y/g, 'W') : row));
+  ].map((row) =>
+    tell ? row.replace(/[oO]/g, 'Y').replace(/Y/g, 'W') : lit ? row.replace(/Y/g, 'W') : row,
+  );
+
 const eliteFrame = (phase: number, tell = false): Grid => {
-  const reactor = phase % 2 === 0 ? 'P' : 'W';
+  const reactor = phase & 1 ? 'W' : 'P';
   return [
+    '...........MM...........',
+    '.........MMvvMM.........',
+    '.......MMvVVVVvMM.......',
+    '.....MMvVV....VVvMM.....',
+    '...MMvVV..MMMM..VVvMM...',
+    '.MMvVV..MM....MM..VVvMM.',
+    'MvVV..MM..PP..MM..VVvM.',
+    'mVV..MM..PWWP..MM..VVm.',
+    'VV..MM..PWYYWP..MM..VV.',
+    'vV..MM..PWWP..MM..VvV.',
+    'VV..MM...PPPP...MM..VV.',
+    'mVV..MM..vvvv..MM..VVm.',
+    'MvVV..MM........MM..VVvM',
+    '.MMvVV..MM....MM..VVvMM.',
+    '...MMvVV..MMMM..VVvMM...',
+    '.....MMvVV....VVvMM.....',
+    '.......MMvVVVVvMM.......',
+    '.........MMvvvvMM.........',
+    '...........MM...........',
     '........................',
-    '...........VV...........',
-    '.........vVVVVv.........',
-    '.......vvVVVVVVvv.......',
-    '.....vvVVV....VVVvv.....',
-    '....vVVV........VVVv....',
-    '...vVV....vVVv....VVv...',
-    '..vVV...vV....Vv...VVv..',
-    '.vVV...vV..PP..Vv...VVv.',
-    'vVV...vV..PWWP..Vv...VVv',
-    'VV...vV..PWYYWP..Vv...VV',
-    'V...vV...PWWP...Vv...VVV',
-    'VV...vV....PP....Vv...VV',
-    'vVV...vV..vVVVv..Vv...VV',
-    '.vVV...vVV....VVv...VVv.',
-    '..vVV...VV......VV...v..',
-    '...vVV..VV..VV..VV..v...',
-    '....vVV..V..VV..V..v....',
-    '.....vVV....VV....v.....',
-    '......vVV...VV...v......',
-    '.......vV...vv...V......',
-    '........VV......VV......',
-    '.........vV....Vv.......',
+    '........................',
+    '........................',
+    '........................',
     '........................',
   ]
+    .map((row) => row.padEnd(24, '.').slice(0, 24))
     .map((row) => row.replace(/Y/g, reactor))
     .map((row) => (tell ? row.replace(/[vV]/g, 'W') : row));
 };
 
-/** Enemy recipes retain every established animation clip and frame count. */
+const gruntIdle: readonly [Grid, Grid] = [gruntFrame(false), gruntFrame(true)];
+const swooperIdle: readonly [Grid, Grid] = [swooperFrame(false), swooperFrame(true)];
+const tankIdle: readonly [Grid, Grid] = [tankFrame(false), tankFrame(true)];
+const eliteIdle: readonly [Grid, Grid, Grid, Grid] = [
+  eliteFrame(0),
+  eliteFrame(1),
+  eliteFrame(2),
+  eliteFrame(3),
+];
+
+/** G5 enemy material families retain every established animation and gameplay contract. */
 export const ENEMY_ART: SpriteArt = {
   enemy_grunt: {
-    idle: [grunt(legsA), grunt(legsB)],
+    idle: gruntIdle,
     attack_tell: [
-      recolour(grunt(legsA), 0, 16, { m: 'W' }),
-      grunt(legsA),
-      recolour(grunt(legsB), 0, 16, { m: 'W' }),
+      recolour(gruntIdle[0], 0, 16, { W: 'Y', C: 'c' }),
+      gruntIdle[0],
+      recolour(gruntIdle[1], 0, 16, { W: 'Y', C: 'c' }),
     ],
-    death: burst(16, 6, 'm'),
+    death: materialDebris(gruntIdle[0], 6, 0x101, ['B', 'b', 'C', 'Y']),
   },
   enemy_swooper: {
-    idle: [grunt(legsA), recolour(grunt(legsB), 0, 16, { m: 'P' })],
+    idle: swooperIdle,
     attack_tell: [
-      recolour(grunt(legsA), 0, 16, { m: 'W' }),
-      grunt(legsA),
-      recolour(grunt(legsA), 0, 16, { m: 'W' }),
+      recolour(swooperIdle[0], 0, 16, { P: 'W', V: 'P' }),
+      swooperIdle[0],
+      recolour(swooperIdle[1], 0, 16, { P: 'W', V: 'P' }),
     ],
-    death: burst(16, 6, 'P'),
+    death: materialDebris(swooperIdle[0], 6, 0x202, ['M', 'm', 'V', 'P']),
   },
   enemy_tank: {
-    idle: [tankFrame(false), tankFrame(true)],
-    attack_tell: [tankFrame(false, true), tankFrame(false), tankFrame(true, true)],
-    death: burst(20, 6, 'o'),
+    idle: tankIdle,
+    attack_tell: [tankFrame(false, true), tankIdle[0], tankFrame(true, true)],
+    death: materialDebris(tankIdle[0], 6, 0x303, ['O', 'o', 'M', 'Y']),
   },
   enemy_elite: {
-    idle: [eliteFrame(0), eliteFrame(1), eliteFrame(2), eliteFrame(3)],
-    attack_tell: [eliteFrame(0, true), eliteFrame(1), eliteFrame(2, true)],
-    death: burst(24, 8, 'V'),
+    idle: eliteIdle,
+    attack_tell: [eliteFrame(0, true), eliteIdle[1], eliteFrame(2, true)],
+    death: materialDebris(eliteIdle[0], 8, 0x404, ['V', 'v', 'M', 'P']),
   },
 };

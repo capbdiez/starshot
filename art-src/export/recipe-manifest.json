@@ -9,13 +9,13 @@
     },
     {
       "id": "enemy_roster",
-      "version": 1,
-      "seed": 58113,
+      "version": 2,
+      "seed": 58117,
       "detailScale": 2
     },
     {
       "id": "boss_parts",
-      "version": 1,
+      "version": 2,
       "seed": 45141,
       "detailScale": 2
     },
