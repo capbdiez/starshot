@@ -9,7 +9,7 @@ const FIXED_SEED = 20_260_110;
 const LIVE_CANVAS_TOLERANCE = { maxDiffPixelRatio: 0.03 };
 
 async function expectCanvasBaseline(page: Page, name: string): Promise<void> {
-  // Let the G8 180 ms palette shutter finish before sampling the live canvas.
+  // Let the 180 ms palette shutter finish before sampling the live canvas.
   await page.waitForTimeout(250);
   // Locator screenshot avoids toHaveScreenshot's two-identical-frames requirement: Phaser's canvas
   // advances independently of CSS animation suppression. The image matcher still rejects visual diffs.
@@ -55,7 +55,7 @@ async function open(
   await expect(page.locator('#game')).toHaveAttribute('data-state', 'ready');
 }
 
-test.describe('G8 HUD, menu, and transition visual baselines', () => {
+test.describe('G9 release-candidate visual baselines', () => {
   test.skip(
     ({ browserName }) => browserName !== 'chromium',
     'Baselines are approved for Chromium only.',
@@ -63,11 +63,11 @@ test.describe('G8 HUD, menu, and transition visual baselines', () => {
 
   test('captures fixed-seed title and representative gameplay', async ({ page }) => {
     await open(page);
-    await expectCanvasBaseline(page, 'g8-title.png');
+    await expectCanvasBaseline(page, 'g9-title.png');
 
     await page.keyboard.press('KeyZ');
     await expect(page.locator('#game')).toHaveAttribute('data-flow', 'play');
-    await expectCanvasBaseline(page, 'g8-gameplay.png');
+    await expectCanvasBaseline(page, 'g9-gameplay.png');
   });
 
   test('keeps every settings action inside its panel', async ({ page }) => {
@@ -75,7 +75,7 @@ test.describe('G8 HUD, menu, and transition visual baselines', () => {
     // The title Settings action is centered at world y=15 (presentation y=510).
     await page.mouse.click(270, 510);
     await expect(page.locator('#game')).toHaveAttribute('data-flow', 'settings');
-    await expectCanvasBaseline(page, 'g8-settings.png');
+    await expectCanvasBaseline(page, 'g9-settings.png');
   });
 
   test('captures the pause panel over the compact gameplay HUD', async ({ page }) => {
@@ -84,18 +84,18 @@ test.describe('G8 HUD, menu, and transition visual baselines', () => {
     await expect(page.locator('#game')).toHaveAttribute('data-flow', 'play');
     await page.keyboard.press('Escape');
     await expect(page.locator('#game')).toHaveAttribute('data-flow', 'pause');
-    await expectCanvasBaseline(page, 'g8-pause.png');
+    await expectCanvasBaseline(page, 'g9-pause.png');
   });
 
   test('captures full high-score title layout', async ({ page }) => {
     await open(page, {}, SEEDED_SCORES);
-    await expectCanvasBaseline(page, 'g8-title-high-scores.png');
+    await expectCanvasBaseline(page, 'g9-title-high-scores.png');
   });
 
   test('captures reduced-flash and high-contrast accessibility baselines', async ({ page }) => {
     await open(page, { flashReduction: true, highContrastBullets: true });
     await page.keyboard.press('KeyZ');
     await expect(page.locator('#game')).toHaveAttribute('data-flow', 'play');
-    await expectCanvasBaseline(page, 'g8-flash-reduction-high-contrast.png');
+    await expectCanvasBaseline(page, 'g9-flash-reduction-high-contrast.png');
   });
 });

@@ -128,6 +128,8 @@ All effects are triggered by **simulation events** (see ARCHITECTURE.md), never 
 - Peak-density test scene (300 bullets): the player can still find their ship and the incoming threats.
 - Stays at 60 FPS on the reference low-end device (see TECH_STACK.md).
 
+**G9 release-candidate audit:** `npm run release:check` verifies the production gzip budget, required release documentation, and absence of manifest placeholders after building. Approved fixed-seed Chromium captures live in `tests/e2e/graphics-baselines.spec.ts-snapshots/` under the `g9-` prefix. The reference-device, target-browser, greyscale/colour-blind, flash-safety, fullscreen, and cold-load results must be recorded in `docs/release-checklist.md`; automated checks do not stand in for that evidence.
+
 ## 10. Accessibility (Visual/Audio)
 
 - Settings: screen shake 0–100 %, flash reduction, CRT filter on/off, high-contrast bullets, separate volume buses, subtitles for boss callouts.

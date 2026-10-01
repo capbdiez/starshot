@@ -19,3 +19,4 @@ The post-MVP graphics program needs a premium neo-arcade presentation while pres
 - G1 establishes baselines and contracts only; it does not replace art, alter the palette, add shaders, change simulation, or implement the presentation-resolution migration.
 - Future graphics milestones can improve visuals incrementally while preserving deterministic replays and existing asset gates.
 - Generated visual outputs must remain reproducible from the repository and satisfy the palette, manifest, and frame-size checks.
+- G9 adds a release-candidate audit for the built gzip budget, mandatory release documentation, and final non-placeholder manifest. Device/browser performance and accessibility evidence remain recorded human checks rather than inferred from CI.

@@ -226,7 +226,7 @@ The MVP milestones above remain the historical release plan. This is a separate,
 | G6 | Stage backgrounds & scene composition | 1–1.5 wk | Seeded multi-layer 540×960 environments |
 | G7 | Modern FX compositor & quality tiers | 1.5–2 wk | Pooled layered effects and accessible quality modes |
 | G8 | HUD, menu & transition art pass | 1–1.5 wk | Cohesive title, UI, typography, and transitions |
-| G9 | Visual QA, optimization & release candidate | 1 wk | Final regression, device validation, documentation |
+| G9 | Visual QA, optimization & release candidate | 1 wk | Final regression, device validation, documentation — release-candidate audit, approved Chromium visual baselines, and evidence checklist |
 
 ---
 

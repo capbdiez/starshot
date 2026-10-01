@@ -20,6 +20,7 @@
     "test:e2e": "playwright test",
     "test:e2e:production": "playwright test",
     "release:archive": "npm run build && node tools/package-itch.ts",
+    "release:check": "npm run build && node tools/release-check.ts",
     "check:assets": "node tools/check-assets.ts",
     "assets:export": "node tools/export-aseprite.ts",
     "assets:atlas": "node tools/build-atlas.ts",

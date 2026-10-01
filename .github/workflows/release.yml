@@ -30,12 +30,11 @@ jobs:
       - run: npm run lint:deps
       - run: npm test
       - run: npm run check:assets
-      - run: npm run build
-      - name: Measure compressed distribution
+      - run: npm run release:check
+      - name: Record compressed distribution
         run: |
           bytes=$(find dist -type f -print0 | xargs -0 gzip -9 -c | wc -c)
           echo "gzip_total_bytes=$bytes" >> "$GITHUB_STEP_SUMMARY"
-          test "$bytes" -le 5242880
       - name: Deploy production to Cloudflare Pages
         id: deploy
         uses: cloudflare/wrangler-action@v4

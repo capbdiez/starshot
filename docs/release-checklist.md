@@ -1,6 +1,6 @@
-# M8 Release Checklist — v1.0.0
+# G9 Graphics Release-Candidate Checklist — v1.0.0
 
-Evidence for the MVP release. Mark a manual/deployment item only after its linked evidence is recorded; this document must not be signed off solely from local checks.
+Evidence for the post-MVP graphics release candidate. Mark a manual/deployment item only after its linked evidence is recorded; this document must not be signed off solely from local checks. The G9 automated gate is `npm run release:check`: it builds the production bundle, verifies required release documentation and a final (non-placeholder) manifest, then enforces the 5 MiB gzip budget.
 
 | NFR | Requirement | Evidence / sign-off |
 | --- | --- | --- |
@@ -13,20 +13,31 @@ Evidence for the MVP release. Mark a manual/deployment item only after its linke
 | NFR-07 | Architecture enforced; sim coverage ≥ 80% | **Automated:** `npm run lint:deps && npm test` (Vitest coverage threshold/report). |
 | NFR-08 | ART_DIRECTION §9 asset gates | **Automated:** `npm run check:assets`; it validates content references, atlas frames/sizes, palette and rejects every `placeholder: true` manifest entry. |
 
-## G1 Graphics Baseline Record (before G2's 540×960 migration)
+## G9 Automated Release-Candidate Record
 
-Captured from the current MVP production build on 2026-01-10. These values are a regression reference, not a final release sign-off.
+The following local evidence was reproduced on 2026-01-10 with Node 26.10.0. It establishes deterministic build and visual-regression gates; it is not a substitute for the human/device evidence below.
 
-| Measure | Baseline | Reproduction |
+| Measure | Result | Reproduction |
 | --- | --- | --- |
-| Simulation/world baseline | 270×480 logical/world px | `src/shared/constants.ts`; replay and simulation tests |
-| G2 presentation buffer | 540×960 presentation px, with a main-camera 2× world compatibility transform | `src/shared/constants.ts`, `src/presentation/presenter.ts`, and current Phaser canvas test |
-| Main atlas | 1024×128 px; 36,820 bytes | `identify -format '%w x %h %b\\n' assets/atlas/main.png` |
-| Fresh production `dist/` gzip stream | 1,135,033 bytes (≈1.08 MiB) | `npm run build && find dist -type f -print0 | xargs -0 gzip -c | wc -c` |
-| Largest production payload | JavaScript bundle: 1,527,187 bytes raw; 401.45 kB gzip | `npm run build` output |
-| Automated visual captures | Chromium fixed seed `20260110`: title, representative gameplay, reduced-flash + high-contrast bullets | `npm run test:e2e -- --project=chromium tests/e2e/graphics-baselines.spec.ts` |
-| Peak bullet density and boss play captures | Pending manual fixed-seed capture: the current public flow exposes no stable non-gameplay jump to those states, and G1 forbids simulation/debug-harness changes | Record approved captures and reference-device evidence before G2 visual implementation |
-| Stress-scene performance | Pending reference-device measurement | Run the 300-bullet/400-particle scene, record device/browser/OS, sustained FPS, and frame-time evidence here; do not infer device performance from CI. |
+| Simulation/world contract | 270×480 logical/world px; replay regression remains covered | `npm test`; `src/shared/constants.ts` |
+| Presentation buffer | 540×960 px with the centralized 2× main-camera transform | `npm run test:e2e -- --project=chromium tests/e2e/smoke.spec.ts` |
+| Final generated assets | No manifest placeholder entries; palette, clip, frame-size, and content-reference gates pass | `npm run check:assets` |
+| Generated-output reproducibility | Art, atlas, SFX, and music are regenerated and must leave `assets/` unchanged in CI | CI “Committed atlas is up to date” step |
+| Fresh production gzip stream | 1,155,473 bytes (≈1.10 MiB), below the 5,242,880-byte (5 MiB) budget | `npm run release:check` |
+| Largest production payload | JavaScript bundle: 1,538,738 bytes raw | `npm run build` output |
+| Approved visual baselines | Chromium fixed seed `20260110`: title, gameplay, settings, pause, high-score title, reduced-flash + high-contrast gameplay | `npm run test:e2e -- --project=chromium tests/e2e/graphics-baselines.spec.ts` |
+| Automated compatibility smoke | Chromium and WebKit boot/flow suite | `npm run test:e2e` |
+
+## G9 Required Human / Hosted Evidence
+
+| Review | Required record |
+| --- | --- |
+| Reference-device peak visual load | Device model, OS, browser/version, date, 300-bullet/400-particle scene, sustained FPS/frame-time evidence at high and low quality; confirm stable 60 FPS. |
+| Target-browser pass | Latest two Chrome, Firefox, Safari, and Edge versions, OS, date, production URL, and no-console-error result. CI Chromium/WebKit coverage does not replace this pass. |
+| Accessibility visual review | Greyscale and colour-blind screenshots showing player, hostile bullets, tells, and pickups remain distinguishable; attach URLs/files and reviewer/date. |
+| Settings/fallback review | On the reference device and a browser fallback path, record flash-reduction (≤3 Hz), high-contrast bullets, low/high quality, background motion, FX intensity, and fullscreen results. |
+| Cold-load review | Typical broadband method, device/browser, cache state, measured first-playable time (≤3 s), URL, and date. |
+| Hosted production smoke | Production URL, deployment timestamp, `STARSHOT_PRODUCTION_URL=<url> npm run test:e2e:production` result, and no-console-error evidence. |
 
 ## Automated release gates
 
