@@ -1,6 +1,6 @@
 import type Phaser from 'phaser';
 import type { AssetManifest, Content } from '../content/index.ts';
-import { PRESENTATION_SCALE, WORLD_HEIGHT, WORLD_WIDTH } from '../shared/index.ts';
+import { displayGlyph, PRESENTATION_SCALE, WORLD_HEIGHT, WORLD_WIDTH } from '../shared/index.ts';
 import type { SimEvent, SimView } from '../sim/index.ts';
 import { animationKey } from './anim/register-animations.ts';
 import { StageBackground } from './background/stage-background.ts';
@@ -71,7 +71,7 @@ export class Presenter {
   private readonly pickups: SpriteLayer;
   private readonly bossSprites: Map<string, SpriteLayer>;
   private readonly player: Phaser.GameObjects.Sprite;
-  private readonly hud: Phaser.GameObjects.Text;
+  private readonly hud: Phaser.GameObjects.Graphics;
   private readonly deaths: Phaser.GameObjects.Sprite[] = [];
   private readonly flash: Phaser.GameObjects.Rectangle;
   private readonly scanlines: Phaser.GameObjects.Graphics;
@@ -162,16 +162,7 @@ export class Presenter {
     const ship = source(manifest, g.player.sprite);
     this.player = scene.add.sprite(WORLD_WIDTH / 2, g.player.y, ship.atlas, ship.frame);
     this.player.setDepth(DEPTH.player);
-    this.hud = scene.add
-      .text(4, 2, '', {
-        fontFamily: 'monospace',
-        fontSize: '8px',
-        color: '#ffffff',
-        stroke: '#0b0b1a',
-        strokeThickness: 1,
-      })
-      .setDepth(DEPTH.hud)
-      .setResolution(1);
+    this.hud = scene.add.graphics().setDepth(DEPTH.hud);
     this.subtitle = scene.add
       .text(WORLD_WIDTH / 2, WORLD_HEIGHT - 42, '', {
         align: 'center',
@@ -263,13 +254,52 @@ export class Presenter {
         smooth(pickup.prevY, pickup.y, alpha),
       );
     this.pickups.end();
-    this.hud.setText(
-      `SCORE ${String(view.score).padStart(6, '0')}  x${String(view.multiplier)}  STG ${String(view.wave)}${view.boss ? ` P${String(view.boss.phase)}` : ''}\nW${String(view.weaponLevel)}                 L${String(view.lives)} B${String(view.bombs)}`,
-    );
+    this.drawHud(view);
 
     if (this.flashFrames > 0) {
       this.flashFrames -= 1;
       this.flash.setAlpha(this.flashFrames / FLASH_FRAMES).setVisible(this.flashFrames > 0);
+    }
+  }
+
+  /** Renders the compact top-strip HUD and bottom-corner status with the shared display glyph grid. */
+  private drawHud(view: Readonly<SimView>): void {
+    const g = this.hud;
+    g.clear();
+    g.fillStyle(0x0b0b1a, 0.9).fillRect(2, 2, WORLD_WIDTH - 4, 18);
+    g.lineStyle(1, 0x2a2d63, 1).strokeRect(2, 2, WORLD_WIDTH - 4, 18);
+    g.fillStyle(0x3ee0ff, 1)
+      .fillRect(5, 5, 18, 1)
+      .fillRect(WORLD_WIDTH - 23, 5, 18, 1);
+    this.drawHudText(`SCORE ${String(view.score).padStart(6, '0')}`, 8, 9, 0xffffff);
+    this.drawHudText(`X${String(view.multiplier)}`, 110, 9, 0xffd08a);
+    this.drawHudText(
+      `STG ${String(view.wave)}${view.boss ? ` P${String(view.boss.phase)}` : ''}`,
+      160,
+      9,
+      0xa6f6ff,
+    );
+    g.fillStyle(0x0b0b1a, 0.85).fillRect(3, WORLD_HEIGHT - 14, 58, 11);
+    g.fillStyle(0x0b0b1a, 0.85).fillRect(WORLD_WIDTH - 61, WORLD_HEIGHT - 14, 58, 11);
+    this.drawHudText(
+      `W${String(view.weaponLevel)} L${String(view.lives)}`,
+      6,
+      WORLD_HEIGHT - 11,
+      0xffffff,
+    );
+    this.drawHudText(`B${String(view.bombs)}`, WORLD_WIDTH - 23, WORLD_HEIGHT - 11, 0xc4ff5c);
+  }
+
+  private drawHudText(text: string, x: number, y: number, colour: number): void {
+    let cursor = x;
+    this.hud.fillStyle(colour, 1);
+    for (const character of text) {
+      const glyph = displayGlyph(character);
+      glyph.forEach((row, rowIndex) => {
+        for (let column = 0; column < row.length; column += 1)
+          if (row.charAt(column) === '1') this.hud.fillRect(cursor + column, y + rowIndex, 1, 1);
+      });
+      cursor += 6;
     }
   }
 

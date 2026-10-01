@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import type { Content } from '../content/index.ts';
+import { addButton, drawDisplayText, drawPanelFrame, UI_COLOUR } from './ui-art.ts';
 
 /** Commands emitted by the UI; app maps them to its scene-flow state machine. */
 export type UiCommand = 'start' | 'pause' | 'resume' | 'title' | 'settings' | 'back';
@@ -59,11 +60,11 @@ export class MenuOverlay {
   ): void {
     this.panel.removeAll(true);
     this.panel.setVisible(true);
-    this.panel.add(
-      this.scene.add
-        .rectangle(0, 0, PANEL_WIDTH, PANEL_HEIGHT, 0x0b0b1a, 0.94)
-        .setStrokeStyle(2, 0xa6f6ff),
-    );
+    const frame = this.scene.add.graphics();
+    drawPanelFrame(frame, 0, 0, PANEL_WIDTH, PANEL_HEIGHT);
+    frame.lineStyle(1, UI_COLOUR.panelEdge, 1).lineBetween(-102, -158, 102, -158);
+    frame.fillStyle(UI_COLOUR.cyanGlow, 1).fillRect(-100, -159, 24, 2).fillRect(76, -159, 24, 2);
+    this.panel.add(frame);
     if (state === 'title') this.title(scores);
     if (state === 'pause') this.pause();
     if (state === 'results') this.results(scores);
@@ -74,40 +75,19 @@ export class MenuOverlay {
     this.panel.setVisible(false);
   }
 
-  private label(text: string, y: number, size = '12px'): Phaser.GameObjects.Text {
-    const label = this.scene.add
-      .text(0, y, text, {
-        color: '#f4f7ff',
-        fontFamily: 'monospace',
-        fontSize: size,
-        align: 'center',
-      })
-      .setOrigin(0.5);
+  private label(text: string, y: number, scale = 1, colour: number = UI_COLOUR.white): void {
+    const label = this.scene.add.graphics();
+    drawDisplayText(label, text, 0, y, scale, colour, true);
     this.panel.add(label);
-    return label;
   }
 
-  private button(text: string, y: number, action: () => void): void {
-    const button = this.scene.add
-      .text(0, y, text, {
-        color: '#a6f6ff',
-        fontFamily: 'monospace',
-        fontSize: '11px',
-        align: 'center',
-        backgroundColor: '#1c1f47',
-        padding: { x: 8, y: 4 },
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-    button.on('pointerdown', action);
-    button.on('pointerover', () => button.setColor('#ffffff'));
-    button.on('pointerout', () => button.setColor('#a6f6ff'));
-    this.panel.add(button);
+  private button(text: string, y: number, action: () => void, compact = false): void {
+    addButton(this.scene, this.panel, text, y, action, compact);
   }
 
   private title(scores: readonly UiHighScore[]): void {
-    this.label(this.strings['title'] ?? 'STARSHOT', -130, '28px');
-    this.label(this.strings['start'] ?? 'PRESS FIRE TO START', -75);
+    this.label(this.strings['title'] ?? 'STARSHOT', -137, 3, UI_COLOUR.cyan);
+    this.label(this.strings['start'] ?? 'PRESS FIRE TO START', -96, 1, UI_COLOUR.amber);
     this.button('PLAY', -25, () => {
       this.events.command('start');
     });
@@ -118,7 +98,7 @@ export class MenuOverlay {
   }
 
   private pause(): void {
-    this.label('PAUSED', -80, '22px');
+    this.label('PAUSED', -80, 2, UI_COLOUR.amber);
     this.button(this.strings['resume'] ?? 'RESUME', -20, () => {
       this.events.command('resume');
     });
@@ -131,7 +111,7 @@ export class MenuOverlay {
   }
 
   private results(scores: readonly UiHighScore[]): void {
-    this.label(this.strings['results'] ?? 'GAME OVER', -125, '22px');
+    this.label(this.strings['results'] ?? 'GAME OVER', -125, 2, UI_COLOUR.amber);
     this.scoreLines(scores, -55);
     this.button(this.strings['retry'] ?? 'PLAY AGAIN', 100, () => {
       this.events.command('start');
@@ -143,7 +123,7 @@ export class MenuOverlay {
 
   private settings(settings: UiSettings): void {
     // Thirteen controls fit inside the panel's ±215 world-pixel bounds at this compact rhythm.
-    this.label(this.strings['settings'] ?? 'SETTINGS', -185, '20px');
+    this.label(this.strings['settings'] ?? 'SETTINGS', -185, 2, UI_COLOUR.cyan);
     this.button(`MUSIC ${String(Math.round(settings.music * 100))}%`, -150, () => {
       this.events.settings({ music: settings.music >= 1 ? 0 : settings.music + 0.1 });
     });
@@ -207,8 +187,8 @@ export class MenuOverlay {
             (entry, index) =>
               `${String(index + 1).padStart(2, '0')}  ${String(entry.score).padStart(6, '0')}  STG ${String(entry.stage)}`,
           );
-    entries
-      .slice(0, 10)
-      .forEach((entry, index) => this.label(entry, startY + index * rowStep, '10px'));
+    entries.slice(0, 10).forEach((entry, index) => {
+      this.label(entry, startY + index * rowStep);
+    });
   }
 }

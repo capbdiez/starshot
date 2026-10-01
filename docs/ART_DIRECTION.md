@@ -91,7 +91,7 @@ All effects are triggered by **simulation events** (see ARCHITECTURE.md), never 
 ## 7. UI / HUD
 
 - The HUD is a **top strip only** (score, hi-score, stage). Lives and bombs sit in the bottom corners. The play area stays clear.
-- Menus use the same bitmap font and palette. Screen transitions use 150–250 ms wipes or dissolves.
+- Menus use the same generated 5×7 bitmap/display glyphs, beveled panel frames, cyan emissive rails, and palette as the HUD and gameplay. Screen transitions use restrained 150–250 ms palette-safe wipes or dissolves.
 - Every UI string goes through a string table, so the game can be localized later.
 
 ## 8. Audio Direction
