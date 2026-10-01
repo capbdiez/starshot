@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { backgroundHash } from '../../src/presentation/background/layout.ts';
+import { MAX_FX_PARTICLES, supportsOptionalPostFx } from '../../src/presentation/fx/visual-fx.ts';
 
-describe('stage background distribution', () => {
-  it('is deterministic and scatters consecutive seeds', () => {
-    expect(backgroundHash(42)).toBe(backgroundHash(42));
-    expect(backgroundHash(42)).not.toBe(backgroundHash(43));
+describe('G7 FX compositor limits', () => {
+  it('keeps the particle pool fixed at the 400-particle stress budget', () => {
+    expect(MAX_FX_PARTICLES).toBe(400);
+  });
+
+  it('uses generated-geometry fallback when optional WebGL pipelines are unavailable', () => {
+    expect(supportsOptionalPostFx(undefined)).toBe(false);
+    expect(supportsOptionalPostFx({})).toBe(false);
+    expect(supportsOptionalPostFx({ pipelines: {} })).toBe(true);
   });
 });

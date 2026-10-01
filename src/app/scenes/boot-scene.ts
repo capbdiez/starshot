@@ -296,6 +296,9 @@ export class BootScene extends Phaser.Scene {
       crt: settings.crt,
       highContrastBullets: settings.highContrastBullets,
       subtitles: settings.subtitles,
+      visualQuality: settings.visualQuality,
+      backgroundMotion: settings.backgroundMotion,
+      effectsIntensity: settings.effectsIntensity,
     });
   }
 

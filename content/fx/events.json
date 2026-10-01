@@ -4,23 +4,37 @@
       "sfx": "sfx_shot",
       "voiceLimit": 4,
       "pitchVariance": 0.05,
-      "muzzle": true
+      "muzzle": true,
+      "effect": "muzzle",
+      "particles": 3
     },
-    "EnemyHit": { "sfx": "sfx_hit", "voiceLimit": 6, "particles": 4 },
+    "EnemyFired": { "effect": "trail", "particles": 2 },
+    "EnemyAttackTold": { "effect": "tell", "particles": 4 },
+    "BossAttackTold": { "effect": "tell", "particles": 8 },
+    "EnemyHit": { "sfx": "sfx_hit", "voiceLimit": 6, "effect": "hit", "particles": 6 },
     "EnemyKilled": {
       "sfx": "sfx_explode_s",
       "voiceLimit": 4,
       "explosion": true,
-      "particles": 12,
+      "effect": "debris",
+      "particles": 16,
       "trauma": 0.1,
       "popup": true
     },
-    "PickupCollected": { "sfx": "sfx_pickup", "voiceLimit": 2, "particles": 10, "popup": true },
+    "PickupSpawned": { "effect": "pickup", "particles": 6 },
+    "PickupCollected": {
+      "sfx": "sfx_pickup",
+      "voiceLimit": 2,
+      "effect": "pickup",
+      "particles": 12,
+      "popup": true
+    },
     "BombUsed": {
       "sfx": "sfx_bomb",
       "voiceLimit": 1,
       "flash": true,
-      "particles": 30,
+      "effect": "bomb",
+      "particles": 36,
       "trauma": 0.4
     },
     "PlayerHit": {
@@ -28,7 +42,8 @@
       "voiceLimit": 1,
       "flash": true,
       "explosion": true,
-      "particles": 20,
+      "effect": "explosion",
+      "particles": 28,
       "trauma": 0.7,
       "slowMotionMs": 300,
       "slowScale": 0.35
@@ -36,21 +51,24 @@
     "BossPartDestroyed": {
       "sfx": "sfx_explode_s",
       "voiceLimit": 2,
-      "particles": 24,
+      "effect": "boss",
+      "particles": 32,
       "trauma": 0.25
     },
     "BossPhaseChanged": {
       "sfx": "sfx_boss_phase",
       "voiceLimit": 1,
       "flash": true,
-      "particles": 36,
+      "effect": "boss",
+      "particles": 44,
       "trauma": 0.45
     },
     "BossDefeated": {
       "sfx": "sfx_explode_s",
       "voiceLimit": 1,
       "flash": true,
-      "particles": 80,
+      "effect": "boss",
+      "particles": 96,
       "trauma": 0.8
     }
   }

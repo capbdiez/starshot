@@ -5,7 +5,7 @@ import type { SimEvent, SimView } from '../sim/index.ts';
 import { animationKey } from './anim/register-animations.ts';
 import { StageBackground } from './background/stage-background.ts';
 import type { AudioDirector } from './audio/audio-director.ts';
-import { reactionsFor, smooth } from './fx/event-fx.ts';
+import { planFxBatch, reactionsFor, smooth, type VisualQuality } from './fx/event-fx.ts';
 import { Trauma } from './fx/trauma.ts';
 import { VisualFx } from './fx/visual-fx.ts';
 import { SpriteLayer, type SpriteSource } from './renderer/sprite-layer.ts';
@@ -24,6 +24,9 @@ export interface PresentationSettings {
   readonly crt: boolean;
   readonly highContrastBullets: boolean;
   readonly subtitles: boolean;
+  readonly visualQuality: VisualQuality;
+  readonly backgroundMotion: boolean;
+  readonly effectsIntensity: number;
 }
 
 /** Flash colour (palette white) and length in render frames. */
@@ -91,6 +94,9 @@ export class Presenter {
     crt: false,
     highContrastBullets: false,
     subtitles: true,
+    visualQuality: 'high',
+    backgroundMotion: true,
+    effectsIntensity: 1,
   };
 
   constructor(
@@ -270,6 +276,7 @@ export class Presenter {
   /** Applies the user-controlled visual accessibility preferences. */
   setSettings(settings: Partial<PresentationSettings>): void {
     this.settings = { ...this.settings, ...settings };
+    this.background.setMotionEnabled(this.settings.backgroundMotion);
     this.scanlines.setVisible(this.settings.crt);
     this.subtitle.setVisible(this.subtitleMs > 0 && this.settings.subtitles);
   }
@@ -304,12 +311,14 @@ export class Presenter {
       if (this.settings.flashReduction) this.lastReducedFlashMs = this.elapsedMs;
     }
     const g = this.content.gameplay;
+    const plannedFx = planFxBatch(reactions.reactions, this.settings);
+    for (const plan of plannedFx) {
+      if ('x' in plan.event)
+        this.visual.emit(plan.effect, plan.event.x, plan.event.y, plan.particles);
+    }
     for (const { event, entry } of reactions.reactions) {
       if (entry.sfx !== undefined)
         this.audio.play(entry.sfx, entry.voiceLimit, entry.pitchVariance);
-      if (entry.muzzle === true && 'x' in event) this.visual.muzzleFlash(event.x, event.y);
-      if (entry.particles !== undefined && 'x' in event)
-        this.visual.sparks(event.x, event.y, entry.particles);
       if (entry.trauma !== undefined) this.trauma.add(entry.trauma);
       hitStopMs = Math.max(hitStopMs, entry.hitStopMs ?? 0);
       slowMotionMs = Math.max(slowMotionMs, entry.slowMotionMs ?? 0);

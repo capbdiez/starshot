@@ -68,6 +68,14 @@ test.describe('G6 seeded stage-background visual baselines', () => {
     await expectCanvasBaseline(page, 'g2-gameplay.png');
   });
 
+  test('keeps every settings action inside its panel', async ({ page }) => {
+    await open(page);
+    // The title Settings action is centered at world y=15 (presentation y=510).
+    await page.mouse.click(270, 510);
+    await expect(page.locator('#game')).toHaveAttribute('data-flow', 'settings');
+    await expectCanvasBaseline(page, 'g7-settings.png');
+  });
+
   test('captures full high-score title layout', async ({ page }) => {
     await open(page, {}, SEEDED_SCORES);
     await expectCanvasBaseline(page, 'g2-title-high-scores.png');

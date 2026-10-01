@@ -26,6 +26,7 @@ interface MovingLayer {
 export class StageBackground {
   private moving: readonly MovingLayer[] = [];
   private objects: Phaser.GameObjects.GameObject[] = [];
+  private motionScale = 1;
   private stage = 0;
   private readonly scene: Phaser.Scene;
   private readonly environments: readonly StageEnvironment[];
@@ -77,10 +78,16 @@ export class StageBackground {
     ];
   }
 
+  /** Applies the presentation-only background-motion setting without rebuilding layers. */
+  setMotionEnabled(enabled: boolean): void {
+    this.motionScale = enabled ? 1 : 0;
+  }
+
   /** Moves only cached layers; layout geometry is created once in the constructor. */
   update(deltaMs: number): void {
     for (const layer of this.moving) {
-      layer.offset = (layer.offset + (deltaMs * layer.speed) / 1000) % PRESENTATION_HEIGHT;
+      layer.offset =
+        (layer.offset + (deltaMs * layer.speed * this.motionScale) / 1000) % PRESENTATION_HEIGHT;
       layer.graphics.setY(Math.round(layer.offset / PRESENTATION_SCALE));
     }
   }

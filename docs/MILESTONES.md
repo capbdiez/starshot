@@ -355,7 +355,7 @@ The MVP milestones above remain the historical release plan. This is a separate,
 **Scope**
 - Replace rectangle-only sparks with pooled layered 540×960 FX for thrusters, muzzle flashes, trails, hits, debris, explosions, bomb waves, tells, pickups, and boss destruction chains.
 - Drive effect selection/budgets from `content/fx/` where appropriate and preserve the event-driven presentation boundary.
-- Add visual-quality, background-motion, and effects-intensity settings while retaining shake, flash reduction, CRT, subtitles, and high-contrast bullets.
+- Add visual-quality, background-motion, and effects-intensity settings while retaining shake, flash reduction, CRT, subtitles, and high-contrast bullets. The shipped implementation uses a fixed 400-instance generated-geometry pool and an always-tested non-WebGL fallback; custom post-processing remains optional.
 - Evaluate Phaser 4 WebGL post-processing only behind a tested optional path with generated-sprite fallback.
 
 **Out of scope:** mandatory custom shaders, FX triggered directly from `sim/`, unbounded particles, gameplay/hitbox changes.

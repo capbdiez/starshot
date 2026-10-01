@@ -26,7 +26,7 @@ describe('SaveStore', () => {
     expect(store.settings()).toMatchObject({ music: 0.2, sfx: 0.8 });
     store.updateSettings({ shake: 0.3, crt: true });
     expect(JSON.parse(storage.value ?? '{}')).toMatchObject({
-      version: 2,
+      version: 3,
       settings: { shake: 0.3, crt: true },
     });
   });
@@ -45,11 +45,14 @@ describe('SaveStore', () => {
       crt: true,
       highContrastBullets: false,
       subtitles: true,
+      visualQuality: 'high',
+      backgroundMotion: true,
+      effectsIntensity: 1,
     });
-    store.updateSettings({ highContrastBullets: true, subtitles: false });
+    store.updateSettings({ highContrastBullets: true, subtitles: false, visualQuality: 'low' });
     expect(JSON.parse(storage.value ?? '{}')).toMatchObject({
-      version: 2,
-      settings: { highContrastBullets: true, subtitles: false },
+      version: 3,
+      settings: { highContrastBullets: true, subtitles: false, visualQuality: 'low' },
     });
   });
 
