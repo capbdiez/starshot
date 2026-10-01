@@ -1,4 +1,5 @@
 import { deepFreeze, type DeepReadonly } from '../shared/index.ts';
+import { bossFileSchema, type BossSpec } from './schemas/bosses.ts';
 import { fxFileSchema, type FxEntry } from './schemas/fx.ts';
 import {
   enemyFileSchema,
@@ -22,6 +23,7 @@ export type Content = DeepReadonly<{
   sprites: Record<string, SpriteSpec>;
   gameplay: Gameplay;
   enemies: Record<string, EnemySpec>;
+  bosses: Record<string, BossSpec>;
   patterns: Record<string, BulletPattern>;
   waves: Record<string, WaveSpec>;
   stages: readonly StageSpec[];
@@ -63,6 +65,7 @@ interface MutableContent {
   fx: Record<string, FxEntry>;
   gameplay?: Gameplay;
   enemies: Record<string, EnemySpec>;
+  bosses: Record<string, BossSpec>;
   patterns: Record<string, BulletPattern>;
   waves: Record<string, WaveSpec>;
   stages?: readonly StageSpec[];
@@ -118,6 +121,15 @@ const CONTENT_KINDS: readonly ContentKind[] = [
       const parsed = enemyFileSchema.safeParse(data);
       if (!parsed.success) return schemaIssues(file, parsed.error);
       for (const enemy of parsed.data.enemies) into.enemies[enemy.key] = enemy;
+      return [];
+    },
+  },
+  {
+    pattern: /^bosses\.json$/,
+    apply: (data, file, into) => {
+      const parsed = bossFileSchema.safeParse(data);
+      if (!parsed.success) return schemaIssues(file, parsed.error);
+      for (const boss of parsed.data.bosses) into.bosses[boss.key] = boss;
       return [];
     },
   },
@@ -196,7 +208,14 @@ function gameplaySpriteIssues(gameplay: Gameplay, sprites: Record<string, Sprite
 
 /** Validates raw content files against their schemas and cross-file rules without throwing. */
 export function validateContent(files: RawContentFiles): ContentValidationResult {
-  const into: MutableContent = { sprites: {}, fx: {}, enemies: {}, patterns: {}, waves: {} };
+  const into: MutableContent = {
+    sprites: {},
+    fx: {},
+    enemies: {},
+    bosses: {},
+    patterns: {},
+    waves: {},
+  };
   const issues: ContentIssue[] = [];
 
   for (const file of Object.keys(files).sort()) {
@@ -211,12 +230,13 @@ export function validateContent(files: RawContentFiles): ContentValidationResult
   if (issues.length > 0) {
     return { ok: false, issues };
   }
-  const { gameplay, sprites, fx, enemies, patterns, waves, stages, strings } = into;
+  const { gameplay, sprites, fx, enemies, bosses, patterns, waves, stages, strings } = into;
   if (
     !gameplay ||
     !stages ||
     !strings ||
     Object.keys(enemies).length === 0 ||
+    Object.keys(bosses).length === 0 ||
     Object.keys(patterns).length === 0
   ) {
     const missing = !gameplay
@@ -227,7 +247,9 @@ export function validateContent(files: RawContentFiles): ContentValidationResult
           ? 'stages.json'
           : Object.keys(enemies).length === 0
             ? 'enemies.json'
-            : 'patterns.json';
+            : Object.keys(bosses).length === 0
+              ? 'bosses.json'
+              : 'patterns.json';
     return { ok: false, issues: [{ file: missing, message: 'required file is missing' }] };
   }
   const refIssues = gameplaySpriteIssues(gameplay, sprites);
@@ -243,11 +265,25 @@ export function validateContent(files: RawContentFiles): ContentValidationResult
         message: `${enemy.key}.pattern: pattern "${enemy.pattern}" is not defined`,
       });
   }
+  for (const boss of Object.values(bosses)) {
+    for (const sprite of [boss.sprite, ...boss.parts.map((part) => part.sprite)]) {
+      if (!(sprite in sprites))
+        refIssues.push({
+          file: 'bosses.json',
+          message: `${boss.key}.sprite: sprite "${sprite}" is not defined`,
+        });
+    }
+  }
   for (const stage of stages) {
-    if (!(stage.wave in waves))
+    if (stage.type === 'wave' && !(stage.wave in waves))
       refIssues.push({
         file: 'stages.json',
         message: `${stage.key}.wave: wave "${stage.wave}" is not defined`,
+      });
+    if (stage.type === 'boss' && !(stage.boss in bosses))
+      refIssues.push({
+        file: 'stages.json',
+        message: `${stage.key}.boss: boss "${stage.boss}" is not defined`,
       });
   }
   for (const wave of Object.values(waves))
@@ -261,7 +297,17 @@ export function validateContent(files: RawContentFiles): ContentValidationResult
   if (refIssues.length > 0) return { ok: false, issues: refIssues };
   return {
     ok: true,
-    content: deepFreeze({ sprites, gameplay, enemies, patterns, waves, stages, fx, strings }),
+    content: deepFreeze({
+      sprites,
+      gameplay,
+      enemies,
+      bosses,
+      patterns,
+      waves,
+      stages,
+      fx,
+      strings,
+    }),
   };
 }
 

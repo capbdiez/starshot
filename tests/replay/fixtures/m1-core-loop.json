@@ -20,12 +20,12 @@
     [5, 300]
   ],
   "expected": {
-    "hash": "8b5790a9",
+    "hash": "52c97309",
     "tick": 4145,
     "lives": 1,
     "wave": 1,
     "kills": 11,
     "gameOvers": 4
   },
-  "reason": "M4 scoring state and the dive boundary cull: enemies retain their downward attack path but no longer remain alive below the play field."
+  "reason": "M6 adds boss/part state to the deterministic simulation hash; this pre-boss replay retains the same tick, lives, wave, kills and game-over count."
 }

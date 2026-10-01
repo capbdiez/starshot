@@ -52,6 +52,15 @@ const GRUNT_BODY: Grid = [
 const burst = (size: number, count: number, tint: string): Grid[] =>
   Array.from({ length: count }, (_, i) => burstFrame(size, i, count, tint));
 
+const rectangularBurst = (w: number, h: number, count: number, tint: string): Grid[] =>
+  Array.from({ length: count }, (_, frame) =>
+    Array.from({ length: h }, (_, y) =>
+      Array.from({ length: w }, (_, x) =>
+        Math.abs(x - (w - 1) / 2) + Math.abs(y - (h - 1) / 2) < (frame + 1) * 3 ? tint : '.',
+      ).join(''),
+    ),
+  );
+
 /** Sprite key → clip → frames. Clip names and counts must match `content/animations`. */
 export const SPRITE_ART: Readonly<Record<string, Readonly<Record<string, readonly Grid[]>>>> = {
   player_ship: {
@@ -174,6 +183,44 @@ export const SPRITE_ART: Readonly<Record<string, Readonly<Record<string, readonl
         '............',
       ],
     ],
+  },
+  boss_core: {
+    idle: [
+      Array.from({ length: 28 }, (_, y) =>
+        y < 4 || y > 23 ? '.'.repeat(40) : `..${'V'.repeat(36)}..`,
+      ),
+      Array.from({ length: 28 }, (_, y) =>
+        y < 4 || y > 23 ? '.'.repeat(40) : `..${'Vv'.repeat(18)}..`,
+      ),
+    ],
+    attack_tell: [
+      Array.from({ length: 28 }, () => `..${'W'.repeat(36)}..`),
+      Array.from({ length: 28 }, () => `..${'V'.repeat(36)}..`),
+      Array.from({ length: 28 }, () => `..${'W'.repeat(36)}..`),
+    ],
+    death: rectangularBurst(40, 28, 8, 'V'),
+  },
+  boss_wing: {
+    idle: [
+      Array.from({ length: 20 }, (_, y) =>
+        y < 3 || y > 16 ? '........................' : '...mmmmmmmmmmmmmmmmmm...',
+      ),
+      Array.from({ length: 20 }, (_, y) =>
+        y < 3 || y > 16 ? '........................' : '...mMmMmMmMmMmMmMmMmM...',
+      ),
+    ],
+    death: rectangularBurst(24, 20, 6, 'm'),
+  },
+  boss_cannon: {
+    idle: [
+      Array.from({ length: 18 }, (_, y) =>
+        y < 2 || y > 15 ? '.'.repeat(18) : `...${'o'.repeat(12)}...`,
+      ),
+      Array.from({ length: 18 }, (_, y) =>
+        y < 2 || y > 15 ? '.'.repeat(18) : `...${'oO'.repeat(6)}...`,
+      ),
+    ],
+    death: rectangularBurst(18, 18, 6, 'o'),
   },
   enemy_bullet: {
     idle: [

@@ -10,7 +10,15 @@ import { overlaps } from './collision.ts';
 import { diveInterval } from './dive-scheduler.ts';
 import { easeInOut, sampleCubic } from './path.ts';
 import { patternVelocities } from './patterns.ts';
-import { newId, placePlayer, resetGame, spawnWave, type Mover, type World } from './world.ts';
+import {
+  newId,
+  placePlayer,
+  resetGame,
+  spawnBoss,
+  spawnWave,
+  type Mover,
+  type World,
+} from './world.ts';
 
 /** Off-screen margin after which shots and bullets are recycled. */
 const CULL_MARGIN = 16;
@@ -87,6 +95,12 @@ function useBomb(world: World): void {
     if (enemy.hp <= 0) killEnemy(world, enemy);
     else world.events.push({ type: 'EnemyHit', id: enemy.id, x: enemy.x, y: enemy.y });
   }
+  if (world.boss.active) {
+    enemiesHit += 1;
+    damageBoss(world, world.rules.bomb.damage);
+    for (const part of world.boss.parts)
+      if (part.alive) damageBossPart(world, part, world.rules.bomb.damage);
+  }
   world.events.push({ type: 'BombUsed', x: p.x, y: p.y, enemiesHit });
 }
 
@@ -139,8 +153,12 @@ export function moveMovers(pool: readonly Mover[]): void {
 /** Advances attack tells, data-defined patterns, formation sway and the thinning-aware dive scheduler. */
 export function updateEnemyFire(world: World): void {
   if (!world.player.alive) return;
-  const stage = world.content.stages[(world.wave - 1) % world.content.stages.length];
-  const wave = stage === undefined ? undefined : world.content.waves[stage.wave];
+  if (world.boss.active) {
+    updateBoss(world);
+    return;
+  }
+  const stage = world.content.stages[world.wave - 1];
+  const wave = stage?.type === 'wave' ? world.content.waves[stage.wave] : undefined;
   if (!wave) return;
   for (const enemy of world.grunts) {
     if (!enemy.alive) continue;
@@ -220,6 +238,66 @@ export function updateEnemyFire(world: World): void {
   }
 }
 
+function damageBossPart(world: World, part: World['boss']['parts'][number], amount: number): void {
+  part.hp -= amount;
+  if (part.hp > 0) return;
+  part.alive = false;
+  world.events.push({ type: 'BossPartDestroyed', id: part.id, x: part.x, y: part.y });
+}
+
+function damageBoss(world: World, amount: number): void {
+  const boss = world.boss;
+  if (!boss.active || boss.parts.some((part) => part.alive)) return;
+  boss.hp -= amount;
+  if (boss.hp > 0) return;
+  const spec = world.content.bosses[boss.key];
+  if (!spec) return;
+  if (boss.phase < spec.phases.length - 1) {
+    boss.phase += 1;
+    boss.hp = spec.phases[boss.phase]?.hp ?? 0;
+    boss.tellTimer = 0;
+    boss.fireTimer = spec.phases[boss.phase]?.fireIntervalTicks ?? 0;
+    world.events.push({ type: 'BossPhaseChanged', phase: boss.phase + 1, x: boss.x, y: boss.y });
+    return;
+  }
+  boss.active = false;
+  for (const bullet of world.bullets) bullet.active = false;
+  world.phase = 'completed';
+  world.events.push({ type: 'BossDefeated', x: boss.x, y: boss.y });
+  world.events.push({ type: 'RunCompleted', score: world.score, stage: world.wave });
+}
+
+/** Fires the active boss's current data-defined phase after a readable tell. */
+export function updateBoss(world: World): void {
+  const boss = world.boss;
+  const spec = world.content.bosses[boss.key];
+  const phase = spec?.phases[boss.phase];
+  if (!phase) return;
+  if (boss.tellTimer > 0) {
+    boss.tellTimer -= 1;
+    if (boss.tellTimer !== 0) return;
+    for (const velocity of patternVelocities(
+      phase.pattern,
+      boss.x,
+      boss.y,
+      world.player.x,
+      world.player.y,
+    )) {
+      const bullet = findFree(world.bullets);
+      if (!bullet) break;
+      launch(world, bullet, boss.x, boss.y, velocity.vx, velocity.vy);
+      world.events.push({ type: 'EnemyFired', id: bullet.id, x: bullet.x, y: bullet.y });
+    }
+    boss.fireTimer = phase.fireIntervalTicks;
+    return;
+  }
+  boss.fireTimer -= 1;
+  if (boss.fireTimer <= 0) {
+    boss.tellTimer = phase.tellTicks;
+    world.events.push({ type: 'BossAttackTold', id: boss.id, x: boss.x, y: boss.y });
+  }
+}
+
 function killPlayer(world: World): void {
   const p = world.player;
   p.alive = false;
@@ -249,12 +327,37 @@ export function resolveCollisions(world: World): void {
       const spec = world.content.enemies[g.kind];
       return g.alive && spec !== undefined && overlaps(shotBox, { x: g.x, y: g.y, ...spec.hitbox });
     });
-    if (!target) continue;
-    shot.active = false;
-    target.hp -= 1;
-    if (target.hp > 0) {
-      world.events.push({ type: 'EnemyHit', id: target.id, x: target.x, y: target.y });
-    } else killEnemy(world, target);
+    if (target) {
+      shot.active = false;
+      target.hp -= 1;
+      if (target.hp > 0)
+        world.events.push({ type: 'EnemyHit', id: target.id, x: target.x, y: target.y });
+      else killEnemy(world, target);
+      continue;
+    }
+    const boss = world.boss;
+    const spec = world.content.bosses[boss.key];
+    const part = boss.parts.find((candidate, index) => {
+      const partSpec = spec?.parts[index];
+      return (
+        candidate.alive &&
+        partSpec !== undefined &&
+        overlaps(shotBox, { x: candidate.x, y: candidate.y, ...partSpec.hitbox })
+      );
+    });
+    if (part) {
+      shot.active = false;
+      damageBossPart(world, part, 1);
+      continue;
+    }
+    if (
+      boss.active &&
+      spec !== undefined &&
+      overlaps(shotBox, { x: boss.x, y: boss.y, ...spec.hitbox })
+    ) {
+      shot.active = false;
+      damageBoss(world, 1);
+    }
   }
 
   const p = world.player;
@@ -282,18 +385,34 @@ export function resolveCollisions(world: World): void {
   const bulletHit = world.bullets.some(
     (b) => b.active && overlaps(playerBox, { x: b.x, y: b.y, ...enemyBullet.hitbox }),
   );
-  const bodyHit = world.grunts.some((g) => {
-    const spec = world.content.enemies[g.kind];
-    return g.alive && spec !== undefined && overlaps(playerBox, { x: g.x, y: g.y, ...spec.hitbox });
-  });
+  const bodyHit =
+    world.grunts.some((g) => {
+      const spec = world.content.enemies[g.kind];
+      return (
+        g.alive && spec !== undefined && overlaps(playerBox, { x: g.x, y: g.y, ...spec.hitbox })
+      );
+    }) ||
+    (() => {
+      const boss = world.boss;
+      const spec = world.content.bosses[boss.key];
+      return (
+        boss.active &&
+        spec !== undefined &&
+        overlaps(playerBox, { x: boss.x, y: boss.y, ...spec.hitbox })
+      );
+    })();
   if (bulletHit || bodyHit) killPlayer(world);
 }
 
 /** Respawns the grunt row a fixed delay after it is cleared. */
 export function updateWave(world: World): void {
-  if (world.grunts.some((g) => g.alive)) return;
+  if (world.boss.active || world.grunts.some((g) => g.alive)) return;
+  const next = world.content.stages[world.wave];
+  if (!next) return;
   world.waveTimer += 1;
-  if (world.waveTimer >= world.rules.grunt.respawnTicks) spawnWave(world);
+  if (world.waveTimer < world.rules.grunt.respawnTicks) return;
+  if (next.type === 'boss') spawnBoss(world);
+  else spawnWave(world);
 }
 
 /** Counts down from game over to an automatic restart. Returns true while game over. */

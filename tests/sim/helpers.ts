@@ -20,6 +20,13 @@ export function contentWith(patch: (g: Record<string, Record<string, unknown>>) 
   return loadContent({ ...files, 'gameplay.json': gameplay });
 }
 
+/** Real content, with arbitrary files patched and then schema-validated. */
+export function filesWith(patch: (content: Record<string, unknown>) => void): Content {
+  const content = structuredClone(files) as Record<string, unknown>;
+  patch(content);
+  return loadContent(content);
+}
+
 export const realContent = loadContent(files);
 
 /** Content where enemies never shoot within a test (huge fire interval). */

@@ -57,6 +57,7 @@ export class Presenter {
   private readonly shots: SpriteLayer;
   private readonly bullets: SpriteLayer;
   private readonly pickups: SpriteLayer;
+  private readonly bossSprites: Map<string, SpriteLayer>;
   private readonly player: Phaser.GameObjects.Sprite;
   private readonly hud: Phaser.GameObjects.Text;
   private readonly deaths: Phaser.GameObjects.Sprite[] = [];
@@ -114,6 +115,20 @@ export class Presenter {
       animationKey(g.pickups.sprite, 'idle'),
       DEPTH.pickup,
     );
+    this.bossSprites = new Map(
+      Object.values(content.bosses)
+        .flatMap((boss) => [boss.sprite, ...boss.parts.map((part) => part.sprite)])
+        .filter((sprite, index, all) => all.indexOf(sprite) === index)
+        .map((sprite) => [
+          sprite,
+          new SpriteLayer(
+            scene,
+            source(manifest, sprite),
+            animationKey(sprite, 'idle'),
+            DEPTH.enemy,
+          ),
+        ]),
+    );
     const ship = source(manifest, g.player.sprite);
     this.player = scene.add.sprite(GAME_WIDTH / 2, g.player.y, ship.atlas, ship.frame);
     this.player.setDepth(DEPTH.player);
@@ -168,6 +183,17 @@ export class Presenter {
         );
     }
     for (const layer of this.grunts.values()) layer.end();
+    for (const layer of this.bossSprites.values()) layer.begin();
+    if (view.boss) {
+      const core = this.bossSprites
+        .get(view.boss.sprite)
+        ?.place(view.boss.id, view.boss.x, view.boss.y);
+      if (core)
+        core.play(animationKey(view.boss.sprite, view.boss.telling ? 'attack_tell' : 'idle'), true);
+      for (const part of view.boss.parts)
+        this.bossSprites.get(part.sprite)?.place(part.id, part.x, part.y);
+    }
+    for (const layer of this.bossSprites.values()) layer.end();
     this.shots.begin();
     for (const s of view.shots)
       this.shots.place(s.id, smooth(s.prevX, s.x, alpha), smooth(s.prevY, s.y, alpha));
@@ -185,7 +211,7 @@ export class Presenter {
       );
     this.pickups.end();
     this.hud.setText(
-      `SCORE ${String(view.score).padStart(6, '0')}  x${String(view.multiplier)}\nW${String(view.weaponLevel)}                 L${String(view.lives)} B${String(view.bombs)}`,
+      `SCORE ${String(view.score).padStart(6, '0')}  x${String(view.multiplier)}  STG ${String(view.wave)}${view.boss ? ` P${String(view.boss.phase)}` : ''}\nW${String(view.weaponLevel)}                 L${String(view.lives)} B${String(view.bombs)}`,
     );
 
     if (this.flashFrames > 0) {

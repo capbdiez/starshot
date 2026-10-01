@@ -32,6 +32,26 @@
       "trauma": 0.7,
       "slowMotionMs": 300,
       "slowScale": 0.35
+    },
+    "BossPartDestroyed": {
+      "sfx": "sfx_explode_s",
+      "voiceLimit": 2,
+      "particles": 24,
+      "trauma": 0.25
+    },
+    "BossPhaseChanged": {
+      "sfx": "sfx_boss_phase",
+      "voiceLimit": 1,
+      "flash": true,
+      "particles": 36,
+      "trauma": 0.45
+    },
+    "BossDefeated": {
+      "sfx": "sfx_explode_s",
+      "voiceLimit": 1,
+      "flash": true,
+      "particles": 80,
+      "trauma": 0.8
     }
   }
 }

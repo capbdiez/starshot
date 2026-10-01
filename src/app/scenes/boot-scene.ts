@@ -47,7 +47,7 @@ const MAX_FRAME_MS = 250;
 /** Audio sprite key and its generated files (`npm run assets:sfx`). */
 const SFX_KEY = 'sfx';
 const SFX_FILES = ['sfx.ogg', 'sfx.m4a'];
-const MUSIC_FILES = ['music_title', 'music_stage'] as const;
+const MUSIC_FILES = ['music_title', 'music_stage', 'music_boss'] as const;
 type MusicKey = (typeof MUSIC_FILES)[number];
 
 /**
@@ -132,11 +132,14 @@ export class BootScene extends Phaser.Scene {
       if (!activeSim) return;
       activeSim.step(input.poll());
       const events = activeSim.drainEvents();
-      if (events.some((event) => event.type === 'GameOver')) {
+      if (events.some((event) => event.type === 'GameOver' || event.type === 'RunCompleted')) {
         const view = activeSim.snapshot();
         this.deps.saves.recordScore({ score: view.score, stage: view.wave });
         this.command('results');
       }
+      if (events.some((event) => event.type === 'BossStarted')) this.setMusic('music_boss');
+      if (events.some((event) => event.type === 'BossStarted' || event.type === 'PlayerHit'))
+        this.duckMusic();
       const timing = presenter.handle(events);
       this.hitStopMs = Math.max(this.hitStopMs, timing.hitStopMs);
       this.slowMotionMs = Math.max(this.slowMotionMs, timing.slowMotionMs);
@@ -222,7 +225,9 @@ export class BootScene extends Phaser.Scene {
   private showFlow(): void {
     if (this.flow === 'play') this.menus?.hide();
     else this.menus?.show(this.flow, this.deps.saves.scores(), this.deps.saves.settings());
-    this.setMusic(this.flow === 'play' || this.flow === 'pause' ? 'music_stage' : 'music_title');
+    if (this.flow !== 'play' && this.flow !== 'pause') this.setMusic('music_title');
+    else if (this.sim?.snapshot().boss) this.setMusic('music_boss');
+    else this.setMusic('music_stage');
     this.deps.statusElement.dataset['flow'] = this.flow;
   }
 
@@ -233,6 +238,18 @@ export class BootScene extends Phaser.Scene {
     if (!this.cache.audio.exists(key)) return;
     this.music = this.sound.add(key, { loop: true, volume: this.musicVolume });
     this.music.play();
+  }
+
+  /** Briefly lowers music during high-priority boss and death events (ART_DIRECTION §8). */
+  private duckMusic(): void {
+    if (!this.music) return;
+    this.tweens.add({
+      targets: this.music,
+      volume: this.musicVolume * 0.5,
+      duration: 120,
+      yoyo: true,
+      hold: 600,
+    });
   }
 
   private applySettings(settings: Settings): void {

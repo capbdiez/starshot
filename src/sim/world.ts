@@ -52,7 +52,33 @@ export interface Player {
   bombHeld: boolean;
 }
 
-export type Phase = 'playing' | 'gameOver';
+export type Phase = 'playing' | 'gameOver' | 'completed';
+
+/** Mutable boss part, owned by the pure simulation. */
+export interface BossPart {
+  id: number;
+  alive: boolean;
+  hp: number;
+  x: number;
+  y: number;
+  key: string;
+  sprite: string;
+}
+
+/** One active boss and its deterministic three-phase attack state. */
+export interface Boss {
+  active: boolean;
+  id: number;
+  key: string;
+  sprite: string;
+  x: number;
+  y: number;
+  hp: number;
+  phase: number;
+  tellTimer: number;
+  fireTimer: number;
+  readonly parts: BossPart[];
+}
 
 /** Private mutable simulation state. Never handed out; `snapshot()` copies from it. */
 export interface World {
@@ -75,6 +101,7 @@ export interface World {
   kills: number;
   nextExtraLifeScore: number;
   readonly player: Player;
+  readonly boss: Boss;
   readonly grunts: Grunt[];
   readonly shots: Mover[];
   readonly bullets: Mover[];
@@ -121,6 +148,19 @@ export function createWorld(content: Content, seed: number): World {
       weaponLevel: 1,
       bombs: rules.player.bombsPerLife,
       bombHeld: false,
+    },
+    boss: {
+      active: false,
+      id: 0,
+      key: '',
+      sprite: '',
+      x: 0,
+      y: 0,
+      hp: 0,
+      phase: 0,
+      tellTimer: 0,
+      fireTimer: 0,
+      parts: [],
     },
     grunts: Array.from(
       {
@@ -177,8 +217,8 @@ export function placePlayer(world: World): void {
 
 /** Spawns the configured stage formation and announces the wave. */
 export function spawnWave(world: World): void {
-  const stageSpec = world.content.stages[world.wave % world.content.stages.length];
-  if (!stageSpec) return;
+  const stageSpec = world.content.stages[world.wave];
+  if (stageSpec?.type !== 'wave') return;
   const wave = world.content.waves[stageSpec.wave];
   if (!wave) return;
   const roster = wave.entries.flatMap((entry) =>
@@ -214,6 +254,40 @@ export function spawnWave(world: World): void {
   world.events.push({ type: 'WaveStarted', wave: world.wave });
 }
 
+/** Spawns the fifth-stage boss and its independently destructible parts. */
+export function spawnBoss(world: World): void {
+  const stage = world.content.stages[world.wave];
+  if (stage?.type !== 'boss') return;
+  const spec = world.content.bosses[stage.boss];
+  if (!spec) return;
+  const boss = world.boss;
+  boss.active = true;
+  boss.id = newId(world);
+  boss.key = spec.key;
+  boss.sprite = spec.sprite;
+  boss.x = spec.x;
+  boss.y = spec.y;
+  boss.phase = 0;
+  boss.hp = spec.phases[0]?.hp ?? 0;
+  boss.tellTimer = 0;
+  boss.fireTimer = spec.phases[0]?.fireIntervalTicks ?? 0;
+  boss.parts.length = 0;
+  for (const part of spec.parts) {
+    boss.parts.push({
+      id: newId(world),
+      alive: true,
+      hp: part.hp,
+      x: boss.x + part.offset.x,
+      y: boss.y + part.offset.y,
+      key: part.key,
+      sprite: part.sprite,
+    });
+  }
+  world.wave += 1;
+  world.waveTimer = 0;
+  world.events.push({ type: 'BossStarted', boss: spec.key, stage: world.wave });
+}
+
 /** Starts a fresh game (lives, wave 1, empty pools). The RNG keeps running: no reseed. */
 export function resetGame(world: World): void {
   world.phase = 'playing';
@@ -224,6 +298,8 @@ export function resetGame(world: World): void {
   world.chain = 0;
   world.chainTimer = 0;
   world.kills = 0;
+  world.boss.active = false;
+  world.boss.parts.length = 0;
   world.nextExtraLifeScore = world.rules.scoring.extraLifeFirstScore;
   for (const m of world.shots) m.active = false;
   for (const m of world.bullets) m.active = false;

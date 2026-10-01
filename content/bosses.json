@@ -1,0 +1,54 @@
+{
+  "bosses": [
+    {
+      "key": "overlord",
+      "sprite": "boss_core",
+      "x": 135,
+      "y": 100,
+      "hitbox": { "w": 36, "h": 24 },
+      "parts": [
+        {
+          "key": "left-wing",
+          "sprite": "boss_wing",
+          "hp": 8,
+          "hitbox": { "w": 24, "h": 20 },
+          "offset": { "x": -34, "y": 4 }
+        },
+        {
+          "key": "right-wing",
+          "sprite": "boss_wing",
+          "hp": 8,
+          "hitbox": { "w": 24, "h": 20 },
+          "offset": { "x": 34, "y": 4 }
+        },
+        {
+          "key": "cannon",
+          "sprite": "boss_cannon",
+          "hp": 10,
+          "hitbox": { "w": 18, "h": 18 },
+          "offset": { "x": 0, "y": 24 }
+        }
+      ],
+      "phases": [
+        {
+          "hp": 18,
+          "pattern": { "type": "aimed", "speed": 2.5, "count": 1 },
+          "tellTicks": 24,
+          "fireIntervalTicks": 105
+        },
+        {
+          "hp": 24,
+          "pattern": { "type": "spread", "speed": 2.7, "count": 3, "angle": 32 },
+          "tellTicks": 20,
+          "fireIntervalTicks": 90
+        },
+        {
+          "hp": 30,
+          "pattern": { "type": "ring", "speed": 2.4, "count": 6 },
+          "tellTicks": 16,
+          "fireIntervalTicks": 75
+        }
+      ]
+    }
+  ]
+}

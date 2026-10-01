@@ -40,6 +40,20 @@ export interface SimView {
     readonly dir: number;
     readonly invulnerable: boolean;
   };
+  readonly boss?: {
+    readonly id: number;
+    readonly x: number;
+    readonly y: number;
+    readonly sprite: string;
+    readonly phase: number;
+    readonly telling: boolean;
+    readonly parts: readonly {
+      readonly id: number;
+      readonly x: number;
+      readonly y: number;
+      readonly sprite: string;
+    }[];
+  };
   readonly grunts: readonly {
     readonly id: number;
     readonly x: number;
@@ -77,6 +91,23 @@ function view(world: World): Readonly<SimView> {
       dir: p.dir,
       invulnerable: p.invulnerable > 0,
     }),
+    boss: world.boss.active
+      ? Object.freeze({
+          id: world.boss.id,
+          x: world.boss.x,
+          y: world.boss.y,
+          sprite: world.boss.sprite,
+          phase: world.boss.phase + 1,
+          telling: world.boss.tellTimer > 0,
+          parts: Object.freeze(
+            world.boss.parts
+              .filter((part) => part.alive)
+              .map((part) =>
+                Object.freeze({ id: part.id, x: part.x, y: part.y, sprite: part.sprite }),
+              ),
+          ),
+        })
+      : undefined,
     grunts: Object.freeze(
       world.grunts
         .filter((g) => g.alive)
@@ -109,6 +140,12 @@ function stateWords(world: World): number[] {
     world.chainTimer,
     world.kills,
     world.nextExtraLifeScore,
+    world.boss.active ? 1 : 0,
+    world.boss.id,
+    world.boss.hp,
+    world.boss.phase,
+    world.boss.tellTimer,
+    world.boss.fireTimer,
     p.alive ? 1 : 0,
     p.dir & 0xff,
     p.fireCooldown,
@@ -119,6 +156,13 @@ function stateWords(world: World): number[] {
     p.bombHeld ? 1 : 0,
   ];
   pushFloat(words, p.x);
+  pushFloat(words, world.boss.x);
+  pushFloat(words, world.boss.y);
+  for (const part of world.boss.parts) {
+    words.push(part.id, part.alive ? 1 : 0, part.hp);
+    pushFloat(words, part.x);
+    pushFloat(words, part.y);
+  }
   for (const g of world.grunts) {
     words.push(
       g.id,

@@ -8,6 +8,67 @@
     }
   ],
   "sprites": {
+    "boss_cannon": {
+      "atlas": "main",
+      "placeholder": false,
+      "clips": {
+        "idle": [
+          "boss_cannon/idle/0",
+          "boss_cannon/idle/1"
+        ],
+        "death": [
+          "boss_cannon/death/0",
+          "boss_cannon/death/1",
+          "boss_cannon/death/2",
+          "boss_cannon/death/3",
+          "boss_cannon/death/4",
+          "boss_cannon/death/5"
+        ]
+      }
+    },
+    "boss_core": {
+      "atlas": "main",
+      "placeholder": false,
+      "clips": {
+        "idle": [
+          "boss_core/idle/0",
+          "boss_core/idle/1"
+        ],
+        "attack_tell": [
+          "boss_core/attack_tell/0",
+          "boss_core/attack_tell/1",
+          "boss_core/attack_tell/2"
+        ],
+        "death": [
+          "boss_core/death/0",
+          "boss_core/death/1",
+          "boss_core/death/2",
+          "boss_core/death/3",
+          "boss_core/death/4",
+          "boss_core/death/5",
+          "boss_core/death/6",
+          "boss_core/death/7"
+        ]
+      }
+    },
+    "boss_wing": {
+      "atlas": "main",
+      "placeholder": false,
+      "clips": {
+        "idle": [
+          "boss_wing/idle/0",
+          "boss_wing/idle/1"
+        ],
+        "death": [
+          "boss_wing/death/0",
+          "boss_wing/death/1",
+          "boss_wing/death/2",
+          "boss_wing/death/3",
+          "boss_wing/death/4",
+          "boss_wing/death/5"
+        ]
+      }
+    },
     "enemy_bullet": {
       "atlas": "main",
       "placeholder": false,

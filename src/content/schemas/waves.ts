@@ -39,7 +39,14 @@ export const waveSchema = z.strictObject({
 });
 export const waveFileSchema = z.strictObject({ waves: z.array(waveSchema).min(1) });
 export const stagesSchema = z.strictObject({
-  stages: z.array(z.strictObject({ key, wave: key })).length(4),
+  stages: z
+    .array(
+      z.discriminatedUnion('type', [
+        z.strictObject({ key, type: z.literal('wave'), wave: key }),
+        z.strictObject({ key, type: z.literal('boss'), boss: key }),
+      ]),
+    )
+    .length(5),
 });
 export type WaveSpec = z.infer<typeof waveSchema>;
 export type StageSpec = z.infer<typeof stagesSchema>['stages'][number];

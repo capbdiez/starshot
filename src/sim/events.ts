@@ -49,6 +49,22 @@ export type SimEvent =
       readonly multiplier: number;
     }
   | { readonly type: 'ExtraLifeAwarded'; readonly lives: number; readonly score: number }
+  | { readonly type: 'BossStarted'; readonly boss: string; readonly stage: number }
+  | { readonly type: 'BossAttackTold'; readonly id: number; readonly x: number; readonly y: number }
+  | {
+      readonly type: 'BossPartDestroyed';
+      readonly id: number;
+      readonly x: number;
+      readonly y: number;
+    }
+  | {
+      readonly type: 'BossPhaseChanged';
+      readonly phase: number;
+      readonly x: number;
+      readonly y: number;
+    }
+  | { readonly type: 'BossDefeated'; readonly x: number; readonly y: number }
+  | { readonly type: 'RunCompleted'; readonly score: number; readonly stage: number }
   | { readonly type: 'GameRestarted' };
 
 /** Every event kind, e.g. for exhaustive event → effect maps. */

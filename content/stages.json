@@ -1,8 +1,9 @@
 {
   "stages": [
-    { "key": "stage-1", "wave": "opening" },
-    { "key": "stage-2", "wave": "swoop" },
-    { "key": "stage-3", "wave": "armored" },
-    { "key": "stage-4", "wave": "elite" }
+    { "key": "stage-1", "type": "wave", "wave": "opening" },
+    { "key": "stage-2", "type": "wave", "wave": "swoop" },
+    { "key": "stage-3", "type": "wave", "wave": "armored" },
+    { "key": "stage-4", "type": "wave", "wave": "elite" },
+    { "key": "stage-5", "type": "boss", "boss": "overlord" }
   ]
 }

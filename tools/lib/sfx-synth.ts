@@ -69,6 +69,15 @@ export const SFX_RECIPES: Readonly<Record<string, SfxRecipe>> = {
     decayMs: 360,
     volume: 0.65,
   },
+  sfx_boss_phase: {
+    wave: 'square',
+    freqStart: 180,
+    freqEnd: 680,
+    attackMs: 12,
+    decayMs: 260,
+    volume: 0.6,
+    duty: 0.35,
+  },
 };
 
 /** Renders a recipe to mono float samples in [-1, 1]. Deterministic (own LCG for noise). */

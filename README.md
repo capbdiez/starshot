@@ -2,10 +2,9 @@
 
 A neo-arcade **fixed shooter** (Galaga / Space Invaders lineage) for the web, built art-first.
 
-> Status: **M5 — Game flow, UI & persistence** complete. Start from the title with Z/Space, pause with Esc,
-> then retry from Results after a game over. Settings persist locally (music/SFX/UI buses, shake, flash reduction,
-> CRT preference and fullscreen); local high scores retain the best 10 runs. Four data-defined stages field Grunts,
-> Swoopers, Tanks and Elites with formation sway, dives and visible attack tells. `?seed=N` fixes the run seed.
+> Status: **M6 — Boss & full run content** complete. A five-stage run ends with the three-phase Overlord: destroy
+> its wings and cannon, read each phase tell, then finish the core. Results retain the run score/stage; settings and
+> top-10 local scores persist. Boss music ducks for its intro and player death. `?seed=N` fixes the run seed.
 > Dev builds: `P` pauses, `.` steps one tick (frame-step latency check).
 
 ## Development

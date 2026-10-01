@@ -33,6 +33,12 @@ const EVENT_TYPES: Record<SimEventType, true> = {
   BombUsed: true,
   ScoreAwarded: true,
   ExtraLifeAwarded: true,
+  BossStarted: true,
+  BossAttackTold: true,
+  BossPartDestroyed: true,
+  BossPhaseChanged: true,
+  BossDefeated: true,
+  RunCompleted: true,
   GameRestarted: true,
 };
 

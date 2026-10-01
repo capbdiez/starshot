@@ -1,0 +1,35 @@
+{
+  "sprites": [
+    {
+      "key": "boss_core",
+      "role": "enemy",
+      "size": { "w": 40, "h": 28 },
+      "anchor": { "x": 0.5, "y": 0.5 },
+      "clips": {
+        "idle": { "frames": 2, "fps": 6, "repeat": -1 },
+        "attack_tell": { "frames": 3, "fps": 12, "repeat": 0 },
+        "death": { "frames": 8, "fps": 12, "repeat": 0 }
+      }
+    },
+    {
+      "key": "boss_wing",
+      "role": "enemy",
+      "size": { "w": 24, "h": 20 },
+      "anchor": { "x": 0.5, "y": 0.5 },
+      "clips": {
+        "idle": { "frames": 2, "fps": 6, "repeat": -1 },
+        "death": { "frames": 6, "fps": 12, "repeat": 0 }
+      }
+    },
+    {
+      "key": "boss_cannon",
+      "role": "enemy",
+      "size": { "w": 18, "h": 18 },
+      "anchor": { "x": 0.5, "y": 0.5 },
+      "clips": {
+        "idle": { "frames": 2, "fps": 8, "repeat": -1 },
+        "death": { "frames": 6, "fps": 12, "repeat": 0 }
+      }
+    }
+  ]
+}

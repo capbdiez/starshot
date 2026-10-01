@@ -4,7 +4,8 @@
     "start": "PRESS FIRE TO START",
     "settings": "SETTINGS",
     "resume": "RESUME",
-    "results": "GAME OVER",
+    "results": "RUN RESULTS",
+    "victory": "MISSION COMPLETE",
     "retry": "PLAY AGAIN",
     "titleButton": "TITLE",
     "fullscreen": "FULLSCREEN"
