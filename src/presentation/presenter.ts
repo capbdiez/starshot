@@ -20,11 +20,17 @@ export interface FxTiming {
 export interface PresentationSettings {
   readonly shake: number;
   readonly flashReduction: boolean;
+  readonly crt: boolean;
+  readonly highContrastBullets: boolean;
+  readonly subtitles: boolean;
 }
 
 /** Flash colour (palette white) and length in render frames. */
 const FLASH_COLOUR = 0xffffff;
 const FLASH_FRAMES = 6;
+/** Flash-reduction mode is capped at the WCAG-compatible 3 Hz maximum. */
+const REDUCED_FLASH_INTERVAL_MS = 1_000 / 3;
+const SUBTITLE_DURATION_MS = 2_000;
 /** Respawn invulnerability blink period in sim ticks (FR-07). */
 const BLINK_TICKS = 8;
 /** Ceiling on simultaneous death animations (one-shot pool). */
@@ -38,6 +44,8 @@ const DEPTH = {
   pickup: 45,
   death: 50,
   hud: 90,
+  subtitle: 95,
+  scanlines: 99,
   flash: 100,
 } as const;
 
@@ -62,7 +70,12 @@ export class Presenter {
   private readonly hud: Phaser.GameObjects.Text;
   private readonly deaths: Phaser.GameObjects.Sprite[] = [];
   private readonly flash: Phaser.GameObjects.Rectangle;
+  private readonly scanlines: Phaser.GameObjects.Graphics;
+  private readonly subtitle: Phaser.GameObjects.Text;
   private flashFrames = 0;
+  private elapsedMs = 0;
+  private lastReducedFlashMs = -REDUCED_FLASH_INTERVAL_MS;
+  private subtitleMs = 0;
   private playerAnim = '';
   private readonly scene: Phaser.Scene;
   private readonly content: Content;
@@ -71,7 +84,13 @@ export class Presenter {
   private readonly trauma = new Trauma();
   private readonly visual: VisualFx;
   private readonly starfield: Starfield;
-  private settings: PresentationSettings = { shake: 1, flashReduction: false };
+  private settings: PresentationSettings = {
+    shake: 1,
+    flashReduction: false,
+    crt: false,
+    highContrastBullets: false,
+    subtitles: true,
+  };
 
   constructor(
     scene: Phaser.Scene,
@@ -142,6 +161,21 @@ export class Presenter {
       })
       .setDepth(DEPTH.hud)
       .setResolution(1);
+    this.subtitle = scene.add
+      .text(GAME_WIDTH / 2, GAME_HEIGHT - 42, '', {
+        align: 'center',
+        color: '#ffffff',
+        fontFamily: 'monospace',
+        fontSize: '9px',
+        stroke: '#0b0b1a',
+        strokeThickness: 2,
+      })
+      .setOrigin(0.5)
+      .setDepth(DEPTH.subtitle)
+      .setVisible(false);
+    this.scanlines = scene.add.graphics().setDepth(DEPTH.scanlines).setVisible(false);
+    this.scanlines.lineStyle(1, 0x0b0b1a, 0.28);
+    for (let y = 0; y < GAME_HEIGHT; y += 2) this.scanlines.lineBetween(0, y, GAME_WIDTH, y);
     this.flash = scene.add
       .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, FLASH_COLOUR)
       .setOrigin(0, 0)
@@ -199,8 +233,15 @@ export class Presenter {
       this.shots.place(s.id, smooth(s.prevX, s.x, alpha), smooth(s.prevY, s.y, alpha));
     this.shots.end();
     this.bullets.begin();
-    for (const b of view.enemyBullets)
-      this.bullets.place(b.id, smooth(b.prevX, b.x, alpha), smooth(b.prevY, b.y, alpha));
+    for (const b of view.enemyBullets) {
+      const bullet = this.bullets.place(
+        b.id,
+        smooth(b.prevX, b.x, alpha),
+        smooth(b.prevY, b.y, alpha),
+      );
+      if (this.settings.highContrastBullets) bullet.setTint(0xffffff).setScale(1.5);
+      else bullet.clearTint().setScale(1);
+    }
     this.bullets.end();
     this.pickups.begin();
     for (const pickup of view.pickups)
@@ -223,12 +264,19 @@ export class Presenter {
   /** Applies the user-controlled visual accessibility preferences. */
   setSettings(settings: Partial<PresentationSettings>): void {
     this.settings = { ...this.settings, ...settings };
+    this.scanlines.setVisible(this.settings.crt);
+    this.subtitle.setVisible(this.subtitleMs > 0 && this.settings.subtitles);
   }
 
   /** Advances render-only effects, parallax and trauma shake. */
   update(deltaMs: number): void {
+    this.elapsedMs += deltaMs;
     this.starfield.update(deltaMs);
     this.visual.update(deltaMs);
+    if (this.subtitleMs > 0) {
+      this.subtitleMs = Math.max(0, this.subtitleMs - deltaMs);
+      this.subtitle.setVisible(this.subtitleMs > 0 && this.settings.subtitles);
+    }
     const intensity = this.trauma.advance(deltaMs);
     this.scene.cameras.main.shake(0, 0);
     if (intensity > 0 && this.settings.shake > 0)
@@ -241,9 +289,13 @@ export class Presenter {
     let hitStopMs = 0;
     let slowMotionMs = 0;
     let slowScale = 1;
-    if (reactions.flash && !this.settings.flashReduction) {
+    const mayFlash =
+      !this.settings.flashReduction ||
+      this.elapsedMs - this.lastReducedFlashMs >= REDUCED_FLASH_INTERVAL_MS;
+    if (reactions.flash && mayFlash) {
       this.flashFrames = FLASH_FRAMES;
       this.flash.setAlpha(1).setVisible(true);
+      if (this.settings.flashReduction) this.lastReducedFlashMs = this.elapsedMs;
     }
     const g = this.content.gameplay;
     for (const { event, entry } of reactions.reactions) {
@@ -267,8 +319,20 @@ export class Presenter {
         this.playerAnim = '';
       }
     }
-    for (const event of events) if (event.type === 'GameRestarted') this.clearDeaths();
+    for (const event of events) {
+      if (event.type === 'GameRestarted') this.clearDeaths();
+      if (!this.settings.subtitles) continue;
+      if (event.type === 'BossStarted') this.showSubtitle('bossIncoming');
+      if (event.type === 'BossPhaseChanged')
+        this.showSubtitle(event.phase === 2 ? 'bossPhaseTwo' : 'bossPhaseThree');
+    }
     return { hitStopMs, slowMotionMs, slowScale };
+  }
+
+  private showSubtitle(key: string): void {
+    this.subtitle.setText(this.content.strings[key] ?? '');
+    this.subtitleMs = SUBTITLE_DURATION_MS;
+    this.subtitle.setVisible(true);
   }
 
   private playDeath(spriteKey: string, x: number, y: number): void {

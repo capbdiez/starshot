@@ -25,7 +25,7 @@ export const gameplaySchema = z
       invulnerableTicks: ticks,
       /** Autofire period while fire is held. */
       fireIntervalTicks: ticks,
-      /** Most player shots on screen at once (weapon level 1). */
+      /** Legacy level-1 cap; shot-pool capacity also covers every weapon-level cap. */
       maxShots: z.int().min(1).max(32),
       weaponLevels: z
         .array(

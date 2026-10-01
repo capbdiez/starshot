@@ -49,6 +49,24 @@ describe('autofire', () => {
     expect(sim.snapshot().shots).toHaveLength(fast.gameplay.player.maxShots);
   });
 
+  it('fires complete triple volleys while fire is held', () => {
+    const triple = contentWith((g) => {
+      g['player'] = {
+        ...g['player'],
+        fireIntervalTicks: 1,
+        weaponLevels: [
+          { shots: 3, spread: 1.5, maxShots: 7 },
+          { shots: 3, spread: 1.5, maxShots: 7 },
+          { shots: 3, spread: 1.5, maxShots: 7 },
+        ],
+      };
+    });
+    const sim = createSim(triple, 1);
+    const fired = ofType(run(sim, 2, F), 'PlayerFired');
+    expect(fired).toHaveLength(6);
+    expect(sim.snapshot().shots.map((shot) => shot.x)).toHaveLength(6);
+  });
+
   it('does not fire without the fire bit', () => {
     expect(ofType(run(createSim(peaceful, 1), 60), 'PlayerFired')).toHaveLength(0);
   });

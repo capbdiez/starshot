@@ -12,6 +12,8 @@ export interface UiSettings {
   readonly shake: number;
   readonly flashReduction: boolean;
   readonly crt: boolean;
+  readonly highContrastBullets: boolean;
+  readonly subtitles: boolean;
 }
 
 /** One high-score row displayed by the UI. */
@@ -131,29 +133,43 @@ export class MenuOverlay {
   }
 
   private settings(settings: UiSettings): void {
-    this.label(this.strings['settings'] ?? 'SETTINGS', -130, '20px');
-    this.button(`MUSIC ${String(Math.round(settings.music * 100))}%`, -80, () => {
+    this.label(this.strings['settings'] ?? 'SETTINGS', -150, '20px');
+    this.button(`MUSIC ${String(Math.round(settings.music * 100))}%`, -115, () => {
       this.events.settings({ music: settings.music >= 1 ? 0 : settings.music + 0.1 });
     });
-    this.button(`SFX ${String(Math.round(settings.sfx * 100))}%`, -45, () => {
+    this.button(`SFX ${String(Math.round(settings.sfx * 100))}%`, -85, () => {
       this.events.settings({ sfx: settings.sfx >= 1 ? 0 : settings.sfx + 0.1 });
     });
-    this.button(`UI ${String(Math.round(settings.ui * 100))}%`, -10, () => {
+    this.button(`UI ${String(Math.round(settings.ui * 100))}%`, -55, () => {
       this.events.settings({ ui: settings.ui >= 1 ? 0 : settings.ui + 0.1 });
     });
-    this.button(`SHAKE ${String(Math.round(settings.shake * 100))}%`, 25, () => {
+    this.button(`SHAKE ${String(Math.round(settings.shake * 100))}%`, -25, () => {
       this.events.settings({ shake: settings.shake >= 1 ? 0 : settings.shake + 0.1 });
     });
-    this.button(`FLASH ${settings.flashReduction ? 'REDUCED' : 'FULL'}`, 60, () => {
+    this.button(`FLASH ${settings.flashReduction ? 'REDUCED' : 'FULL'}`, 5, () => {
       this.events.settings({ flashReduction: !settings.flashReduction });
     });
-    this.button(`CRT ${settings.crt ? 'ON' : 'OFF'}`, 95, () => {
+    this.button(`CRT ${settings.crt ? 'ON' : 'OFF'}`, 35, () => {
       this.events.settings({ crt: !settings.crt });
     });
-    this.button(this.strings['fullscreen'] ?? 'FULLSCREEN', 130, () => {
+    this.button(
+      `${this.strings['highContrastBullets'] ?? 'HIGH-CONTRAST BULLETS'} ${settings.highContrastBullets ? 'ON' : 'OFF'}`,
+      65,
+      () => {
+        this.events.settings({ highContrastBullets: !settings.highContrastBullets });
+      },
+    );
+    this.button(
+      `${this.strings['subtitles'] ?? 'BOSS SUBTITLES'} ${settings.subtitles ? 'ON' : 'OFF'}`,
+      95,
+      () => {
+        this.events.settings({ subtitles: !settings.subtitles });
+      },
+    );
+    this.button(this.strings['fullscreen'] ?? 'FULLSCREEN', 125, () => {
       this.events.fullscreen();
     });
-    this.button('BACK', 165, () => {
+    this.button('BACK', 155, () => {
       this.events.command('back');
     });
   }

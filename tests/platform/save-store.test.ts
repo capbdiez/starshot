@@ -26,8 +26,30 @@ describe('SaveStore', () => {
     expect(store.settings()).toMatchObject({ music: 0.2, sfx: 0.8 });
     store.updateSettings({ shake: 0.3, crt: true });
     expect(JSON.parse(storage.value ?? '{}')).toMatchObject({
-      version: 1,
+      version: 2,
       settings: { shake: 0.3, crt: true },
+    });
+  });
+
+  it('migrates v1 settings with M7 accessibility defaults', () => {
+    const storage = memory(
+      JSON.stringify({
+        version: 1,
+        settings: { music: 0.3, sfx: 0.4, ui: 0.5, shake: 0.6, flashReduction: true, crt: true },
+        scores: [],
+      }),
+    );
+    const store = createSaveStore(storage);
+    expect(store.settings()).toMatchObject({
+      music: 0.3,
+      crt: true,
+      highContrastBullets: false,
+      subtitles: true,
+    });
+    store.updateSettings({ highContrastBullets: true, subtitles: false });
+    expect(JSON.parse(storage.value ?? '{}')).toMatchObject({
+      version: 2,
+      settings: { highContrastBullets: true, subtitles: false },
     });
   });
 

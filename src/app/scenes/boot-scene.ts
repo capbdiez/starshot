@@ -47,8 +47,16 @@ const MAX_FRAME_MS = 250;
 /** Audio sprite key and its generated files (`npm run assets:sfx`). */
 const SFX_KEY = 'sfx';
 const SFX_FILES = ['sfx.ogg', 'sfx.m4a'];
-const MUSIC_FILES = ['music_title', 'music_stage', 'music_boss'] as const;
+const MUSIC_LOOP_FILES = ['music_title', 'music_stage', 'music_boss'] as const;
+type MusicLoopKey = (typeof MUSIC_LOOP_FILES)[number];
+const MUSIC_CUE_FILES = ['music_game_over', 'music_victory'] as const;
+type MusicCueKey = (typeof MUSIC_CUE_FILES)[number];
+const MUSIC_FILES = [...MUSIC_LOOP_FILES, ...MUSIC_CUE_FILES] as const;
 type MusicKey = (typeof MUSIC_FILES)[number];
+
+function isMusicLoopKey(key: MusicKey): key is MusicLoopKey {
+  return MUSIC_LOOP_FILES.includes(key as MusicLoopKey);
+}
 
 /**
  * M1 scene: loads atlases and the SFX sprite, then runs input → fixed-step sim → presenter.
@@ -120,7 +128,10 @@ export class BootScene extends Phaser.Scene {
         this.command(command);
       },
       settings: (settings) => {
-        this.applySettings(this.deps.saves.updateSettings(settings));
+        const updated = this.deps.saves.updateSettings(settings);
+        this.applySettings(updated);
+        if (this.flow === 'settings')
+          this.menus?.show('settings', this.deps.saves.scores(), updated);
       },
       fullscreen: () => {
         requestFullscreen(this.game.canvas);
@@ -132,10 +143,13 @@ export class BootScene extends Phaser.Scene {
       if (!activeSim) return;
       activeSim.step(input.poll());
       const events = activeSim.drainEvents();
-      if (events.some((event) => event.type === 'GameOver' || event.type === 'RunCompleted')) {
+      const completed = events.some((event) => event.type === 'RunCompleted');
+      const gameOver = events.some((event) => event.type === 'GameOver');
+      if (completed || gameOver) {
         const view = activeSim.snapshot();
         this.deps.saves.recordScore({ score: view.score, stage: view.wave });
         this.command('results');
+        this.playCue(completed ? 'music_victory' : 'music_game_over');
       }
       if (events.some((event) => event.type === 'BossStarted')) this.setMusic('music_boss');
       if (events.some((event) => event.type === 'BossStarted' || event.type === 'PlayerHit'))
@@ -231,13 +245,29 @@ export class BootScene extends Phaser.Scene {
     this.deps.statusElement.dataset['flow'] = this.flow;
   }
 
-  private setMusic(key: MusicKey, restart = false): void {
+  private setMusic(key: MusicLoopKey, restart = false): void {
     if (!restart && this.musicKey === key && this.music?.isPlaying) return;
     this.music?.stop();
     this.musicKey = key;
     if (!this.cache.audio.exists(key)) return;
     this.music = this.sound.add(key, { loop: true, volume: this.musicVolume });
     this.music.play();
+  }
+
+  /** Plays a generated end-of-run cue once, then resumes the title loop on the Results screen. */
+  private playCue(key: MusicCueKey): void {
+    this.music?.stop();
+    this.musicKey = key;
+    if (!this.cache.audio.exists(key)) {
+      this.setMusic('music_title');
+      return;
+    }
+    const cue = this.sound.add(key, { loop: false, volume: this.musicVolume });
+    this.music = cue;
+    cue.once('complete', () => {
+      if (this.music === cue && this.flow === 'results') this.setMusic('music_title');
+    });
+    cue.play();
   }
 
   /** Briefly lowers music during high-priority boss and death events (ART_DIRECTION §8). */
@@ -255,9 +285,16 @@ export class BootScene extends Phaser.Scene {
   private applySettings(settings: Settings): void {
     const changedMusicVolume = this.musicVolume !== settings.music;
     this.musicVolume = settings.music;
-    if (changedMusicVolume && this.musicKey) this.setMusic(this.musicKey, true);
+    if (changedMusicVolume && this.musicKey && isMusicLoopKey(this.musicKey))
+      this.setMusic(this.musicKey, true);
     this.audio?.setSettings({ music: settings.music, sfx: settings.sfx, ui: settings.ui });
-    this.presenter?.setSettings({ shake: settings.shake, flashReduction: settings.flashReduction });
+    this.presenter?.setSettings({
+      shake: settings.shake,
+      flashReduction: settings.flashReduction,
+      crt: settings.crt,
+      highContrastBullets: settings.highContrastBullets,
+      subtitles: settings.subtitles,
+    });
   }
 
   private render(alpha: number): void {

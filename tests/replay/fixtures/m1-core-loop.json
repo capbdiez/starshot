@@ -20,12 +20,12 @@
     [5, 300]
   ],
   "expected": {
-    "hash": "52c97309",
+    "hash": "226e9b89",
     "tick": 4145,
     "lives": 1,
     "wave": 1,
     "kills": 11,
     "gameOvers": 4
   },
-  "reason": "M6 adds boss/part state to the deterministic simulation hash; this pre-boss replay retains the same tick, lives, wave, kills and game-over count."
+  "reason": "M7 fixes the player-shot pool to allocate the maximum configured weapon-level cap, changing pooled inactive shot state in the deterministic hash; this replay retains the same tick, lives, wave, kills and game-over count."
 }

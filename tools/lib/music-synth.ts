@@ -27,9 +27,12 @@ const beat = (step: number, midi: number, wave: MusicNote['wave'], volume: numbe
 const arpeggio = (notes: readonly number[], wave: MusicNote['wave'], volume: number): MusicNote[] =>
   notes.flatMap((midi, step) => [beat(step, midi, wave, volume)]);
 
-/** M5 title and gameplay loops: 120 BPM × 16 beats = seamless eight-second tracks. */
+/** M5 loops are eight seconds; M7 end-of-run cues are two-second one-shots. */
 export const MUSIC_TRACKS: Readonly<
-  Record<'music_title' | 'music_stage' | 'music_boss', MusicTrack>
+  Record<
+    'music_title' | 'music_stage' | 'music_boss' | 'music_game_over' | 'music_victory',
+    MusicTrack
+  >
 > = {
   music_title: {
     bpm: 120,
@@ -63,6 +66,26 @@ export const MUSIC_TRACKS: Readonly<
       ...[31, 31, 29, 29, 34, 34, 27, 27].flatMap((midi, step) => [
         { beat: step * 2, length: 1.6, midi, wave: 'triangle' as const, volume: 0.18 },
       ]),
+    ],
+  },
+  music_game_over: {
+    bpm: 120,
+    beats: 4,
+    notes: [
+      { beat: 0, length: 0.8, midi: 57, wave: 'square', volume: 0.2 },
+      { beat: 1, length: 0.8, midi: 52, wave: 'square', volume: 0.18 },
+      { beat: 2, length: 1.6, midi: 45, wave: 'triangle', volume: 0.2 },
+      { beat: 2.5, length: 0.7, midi: 33, wave: 'square', volume: 0.1 },
+    ],
+  },
+  music_victory: {
+    bpm: 120,
+    beats: 4,
+    notes: [
+      ...arpeggio([72, 76, 79, 84], 'square', 0.2),
+      { beat: 0, length: 1.6, midi: 48, wave: 'triangle', volume: 0.13 },
+      { beat: 2, length: 1.8, midi: 60, wave: 'triangle', volume: 0.2 },
+      { beat: 2, length: 1.8, midi: 67, wave: 'square', volume: 0.14 },
     ],
   },
 };

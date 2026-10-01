@@ -186,7 +186,15 @@ export function createWorld(content: Content, seed: number): World {
         entryTimer: 0,
       }),
     ),
-    shots: Array.from({ length: rules.player.maxShots }, mover),
+    shots: Array.from(
+      {
+        length: Math.max(
+          rules.player.maxShots,
+          ...rules.player.weaponLevels.map((level) => level.maxShots),
+        ),
+      },
+      mover,
+    ),
     bullets: Array.from({ length: ENEMY_BULLET_POOL }, mover),
     pickups: Array.from({ length: PICKUP_POOL }, mover),
     events: [],

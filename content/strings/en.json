@@ -8,6 +8,11 @@
     "victory": "MISSION COMPLETE",
     "retry": "PLAY AGAIN",
     "titleButton": "TITLE",
-    "fullscreen": "FULLSCREEN"
+    "fullscreen": "FULLSCREEN",
+    "highContrastBullets": "HIGH-CONTRAST BULLETS",
+    "subtitles": "BOSS SUBTITLES",
+    "bossIncoming": "WARNING: OVERLORD INCOMING",
+    "bossPhaseTwo": "OVERLORD: DEFENSES BREACHED",
+    "bossPhaseThree": "OVERLORD: CORE EXPOSED"
   }
 }

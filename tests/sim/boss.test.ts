@@ -106,7 +106,7 @@ describe('M6 boss and full-run systems', () => {
     expect(ofType(events, 'BossDefeated')).toHaveLength(1);
     expect(ofType(events, 'RunCompleted')).toHaveLength(1);
     expect(sim.snapshot().phase).toBe('completed');
-    expect(sim.hash()).toBe('913bc1a8');
+    expect(sim.hash()).toBe('8b845fa8');
   });
 
   it('emits a readable tell before the boss fires its current phase pattern', () => {

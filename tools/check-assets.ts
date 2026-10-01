@@ -42,6 +42,10 @@ function run(): string[] {
     errors.push(...checkPalette(atlas, palette));
   }
   errors.push(...checkManifest(contentResult.content, manifestResult.data, atlases));
+  for (const [key, sprite] of Object.entries(manifestResult.data.sprites)) {
+    if (sprite.placeholder)
+      errors.push(`assets/manifest.json: sprite "${key}" is still a placeholder`);
+  }
   return errors;
 }
 

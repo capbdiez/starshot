@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { loadContent, type Content } from '../../src/content/index.ts';
+import { assetManifestSchema, loadContent, type Content } from '../../src/content/index.ts';
 import { buildAtlas, frameName, MAIN_ATLAS, type SpriteSource } from '../../tools/lib/atlas.ts';
 import { checkManifest, checkPalette, type LoadedAtlas } from '../../tools/lib/check.ts';
 import { createImage, setPixel } from '../../tools/lib/image.ts';
@@ -45,6 +45,11 @@ describe('atlas build + asset gates', () => {
     expect(checkManifest(content, built.manifest, atlases)).toEqual([]);
     // No sources passed in → every sprite is generated as a greybox placeholder.
     expect(built.manifest.sprites['player_ship']?.placeholder).toBe(true);
+  });
+
+  it('ships no placeholders in the final asset manifest', () => {
+    const manifest = assetManifestSchema.parse(JSON.parse(readFileSync(PATHS.manifest, 'utf8')));
+    expect(Object.values(manifest.sprites).every((sprite) => !sprite.placeholder)).toBe(true);
   });
 
   it('is deterministic (same input → byte-identical atlas)', () => {
