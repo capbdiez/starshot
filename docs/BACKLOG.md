@@ -15,3 +15,4 @@ Items deliberately left out of the current milestone (AGENTS §1). Each has a ta
 | `debug/` overlay | FR-12, not in M0 scope | M2 |
 | WebKit E2E on non-Debian dev machines | Playwright WebKit needs Debian/Ubuntu system libs; CI (ubuntu) runs it | — |
 | Upgrade to TypeScript 7 | Blocked on typescript-eslint support (ADR 0001) | When available |
+| Code-generated boss, game-over and victory music | Extend the M5 deterministic TypeScript recipe → WAV → ffmpeg (`.ogg`/`.m4a`) music pipeline with boss music, game-over and victory stingers; no external audio files or DAW workflow | M6–M7 |

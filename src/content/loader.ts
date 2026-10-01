@@ -1,4 +1,3 @@
-import type { z } from 'zod';
 import { deepFreeze, type DeepReadonly } from '../shared/index.ts';
 import { fxFileSchema, type FxEntry } from './schemas/fx.ts';
 import {
@@ -10,6 +9,10 @@ import {
 import { gameplaySchema, type Gameplay } from './schemas/gameplay.ts';
 import { spriteFileSchema, type SpriteSpec } from './schemas/sprites.ts';
 import { stagesSchema, waveFileSchema, type StageSpec, type WaveSpec } from './schemas/waves.ts';
+import { z } from 'zod';
+
+const stringsFileSchema = z.object({ strings: z.record(z.string(), z.string()) });
+type Strings = z.infer<typeof stringsFileSchema>['strings'];
 
 /** Parsed JSON files keyed by their path relative to `content/` (e.g. `animations/player.json`). */
 export type RawContentFiles = Readonly<Record<string, unknown>>;
@@ -24,6 +27,8 @@ export type Content = DeepReadonly<{
   stages: readonly StageSpec[];
   /** Sim event type → presentation reaction (merged from `fx/*.json`). */
   fx: Record<string, FxEntry>;
+  /** English UI strings; all displayed UI copy comes from this table. */
+  strings: Strings;
 }>;
 
 const GAMEPLAY_FILE = 'gameplay.json';
@@ -61,6 +66,7 @@ interface MutableContent {
   patterns: Record<string, BulletPattern>;
   waves: Record<string, WaveSpec>;
   stages?: readonly StageSpec[];
+  strings?: Strings;
 }
 
 interface ContentKind {
@@ -143,6 +149,15 @@ const CONTENT_KINDS: readonly ContentKind[] = [
     },
   },
   {
+    pattern: /^strings\/en\.json$/,
+    apply: (data, file, into) => {
+      const parsed = stringsFileSchema.safeParse(data);
+      if (!parsed.success) return schemaIssues(file, parsed.error);
+      into.strings = parsed.data.strings;
+      return [];
+    },
+  },
+  {
     pattern: /^fx\/[a-z0-9-]+\.json$/,
     apply: (data, file, into) => {
       const parsed = fxFileSchema.safeParse(data);
@@ -196,20 +211,23 @@ export function validateContent(files: RawContentFiles): ContentValidationResult
   if (issues.length > 0) {
     return { ok: false, issues };
   }
-  const { gameplay, sprites, fx, enemies, patterns, waves, stages } = into;
+  const { gameplay, sprites, fx, enemies, patterns, waves, stages, strings } = into;
   if (
     !gameplay ||
     !stages ||
+    !strings ||
     Object.keys(enemies).length === 0 ||
     Object.keys(patterns).length === 0
   ) {
     const missing = !gameplay
       ? GAMEPLAY_FILE
-      : !stages
-        ? 'stages.json'
-        : Object.keys(enemies).length === 0
-          ? 'enemies.json'
-          : 'patterns.json';
+      : !strings
+        ? 'strings/en.json'
+        : !stages
+          ? 'stages.json'
+          : Object.keys(enemies).length === 0
+            ? 'enemies.json'
+            : 'patterns.json';
     return { ok: false, issues: [{ file: missing, message: 'required file is missing' }] };
   }
   const refIssues = gameplaySpriteIssues(gameplay, sprites);
@@ -243,7 +261,7 @@ export function validateContent(files: RawContentFiles): ContentValidationResult
   if (refIssues.length > 0) return { ok: false, issues: refIssues };
   return {
     ok: true,
-    content: deepFreeze({ sprites, gameplay, enemies, patterns, waves, stages, fx }),
+    content: deepFreeze({ sprites, gameplay, enemies, patterns, waves, stages, fx, strings }),
   };
 }
 

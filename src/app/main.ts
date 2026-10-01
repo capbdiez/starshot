@@ -1,6 +1,11 @@
 import Phaser from 'phaser';
 import { loadContent } from '../content/index.ts';
-import { createInputSource, readViewport, watchViewport } from '../platform/index.ts';
+import {
+  createInputSource,
+  createSaveStore,
+  readViewport,
+  watchViewport,
+} from '../platform/index.ts';
 import { GAME_HEIGHT, GAME_WIDTH } from '../shared/index.ts';
 import { createSim } from '../sim/index.ts';
 import {
@@ -38,8 +43,8 @@ function boot(): void {
   const manifest = bundledManifest();
   const seed = runSeed();
   container.dataset['seed'] = String(seed);
-  const sim = createSim(content, seed);
   const input = createInputSource(window);
+  const saves = createSaveStore(window.localStorage);
 
   const zoomFor = (): number => displayZoom(readViewport(window), GAME_WIDTH, GAME_HEIGHT);
 
@@ -55,8 +60,9 @@ function boot(): void {
     scene: new BootScene({
       content,
       manifest,
-      sim,
+      createSim: () => createSim(content, seed),
       input,
+      saves,
       atlasUrl: atlasFileUrl,
       audioUrl: audioFileUrl,
       statusElement: container,

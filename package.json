@@ -22,8 +22,9 @@
     "assets:export": "node tools/export-aseprite.ts",
     "assets:atlas": "node tools/build-atlas.ts",
     "assets:sfx": "node tools/build-sfx.ts",
+    "assets:music": "node tools/build-music.ts",
     "assets:art": "node tools/build-art.ts",
-    "assets:build": "npm run assets:export && npm run assets:art && npm run assets:atlas && npm run assets:sfx && npm run check:assets"
+    "assets:build": "npm run assets:export && npm run assets:art && npm run assets:atlas && npm run assets:sfx && npm run assets:music && npm run check:assets"
   },
   "dependencies": {
     "phaser": "4.2.1",

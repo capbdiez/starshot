@@ -16,6 +16,12 @@ export interface FxTiming {
   readonly slowScale: number;
 }
 
+/** Accessibility presentation preferences controlled by M5 settings. */
+export interface PresentationSettings {
+  readonly shake: number;
+  readonly flashReduction: boolean;
+}
+
 /** Flash colour (palette white) and length in render frames. */
 const FLASH_COLOUR = 0xffffff;
 const FLASH_FRAMES = 6;
@@ -64,6 +70,7 @@ export class Presenter {
   private readonly trauma = new Trauma();
   private readonly visual: VisualFx;
   private readonly starfield: Starfield;
+  private settings: PresentationSettings = { shake: 1, flashReduction: false };
 
   constructor(
     scene: Phaser.Scene,
@@ -187,13 +194,19 @@ export class Presenter {
     }
   }
 
+  /** Applies the user-controlled visual accessibility preferences. */
+  setSettings(settings: Partial<PresentationSettings>): void {
+    this.settings = { ...this.settings, ...settings };
+  }
+
   /** Advances render-only effects, parallax and trauma shake. */
   update(deltaMs: number): void {
     this.starfield.update(deltaMs);
     this.visual.update(deltaMs);
     const intensity = this.trauma.advance(deltaMs);
     this.scene.cameras.main.shake(0, 0);
-    if (intensity > 0) this.scene.cameras.main.shake(16, intensity * 5);
+    if (intensity > 0 && this.settings.shake > 0)
+      this.scene.cameras.main.shake(16, intensity * 5 * this.settings.shake);
   }
 
   /** Reacts to sim events exclusively through their data-driven FX entries. */
@@ -202,7 +215,7 @@ export class Presenter {
     let hitStopMs = 0;
     let slowMotionMs = 0;
     let slowScale = 1;
-    if (reactions.flash) {
+    if (reactions.flash && !this.settings.flashReduction) {
       this.flashFrames = FLASH_FRAMES;
       this.flash.setAlpha(1).setVisible(true);
     }

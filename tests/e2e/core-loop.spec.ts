@@ -13,6 +13,9 @@ test('core loop: lose all 3 lives, then the game restarts on its own', async ({ 
   await page.goto('/?seed=1');
   const game = page.locator('#game');
   await expect(game).toHaveAttribute('data-state', 'ready');
+  await expect(game).toHaveAttribute('data-flow', 'title');
+  await page.keyboard.press('KeyZ');
+  await expect(game).toHaveAttribute('data-flow', 'play');
   await expect(game).toHaveAttribute('data-lives', '3');
 
   // Moving and firing works from the keyboard (FR-02).
@@ -24,10 +27,10 @@ test('core loop: lose all 3 lives, then the game restarts on its own', async ({ 
 
   await expect(game).toHaveAttribute('data-lives', '2', { timeout: 20_000 });
   await expect(game).toHaveAttribute('data-phase', 'gameOver', { timeout: 30_000 });
-  const overAt = Date.now();
-  await expect(game).toHaveAttribute('data-restarts', '1', { timeout: 5_000 });
-  // 1.5 s by design; generous margin for slow CI browsers.
-  expect(Date.now() - overAt).toBeLessThanOrEqual(2_500);
+  await expect(game).toHaveAttribute('data-flow', 'results', { timeout: 5_000 });
+  // M5 replaces M1's automatic restart with the Results → Play retry flow.
+  await page.keyboard.press('KeyZ');
+  await expect(game).toHaveAttribute('data-flow', 'play');
   await expect(game).toHaveAttribute('data-lives', '3');
   await expect(game).toHaveAttribute('data-phase', 'playing');
 

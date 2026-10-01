@@ -89,10 +89,11 @@ All effects are triggered by **simulation events** (see ARCHITECTURE.md), never 
 ## 8. Audio Direction
 
 - **Music:** synthwave and chiptune hybrid, 120–140 BPM, loops seamlessly. Tracks: title, stage (×2), boss, game over, victory stinger.
-- **SFX:** crisp and short (< 400 ms), made in sfxr/ChipTone and then layered and cleaned up in a DAW.
+- **SFX:** crisp and short (< 400 ms), synthesized from deterministic in-repo recipes.
 - **Mix buses:** `music`, `sfx`, `ui`, each with its own volume setting. The music is ducked by 6 dB during boss intros and player death.
 - **Voice limits:** each SFX has a cap on how many copies play at once (for example `sfx_shot` at most 4) and a priority, so dense scenes don't clip or sound muddy.
 - **Formats:** `.ogg` + `.m4a` fallback; SFX are packed into an **audio sprite**.
+- **Code-authored audio policy:** all runtime audio—including SFX, looping music and stingers—uses version-controlled TypeScript recipe/sequence data under `tools/`. The generator renders deterministic PCM/WAV, then ffmpeg encodes committed `.ogg` and `.m4a` outputs in `assets/audio/`. `npm run assets:build` runs every audio generator. No external audio files, DAW project files or manual audio edits are required.
 
 ## 9. Pipeline & Quality Gates
 

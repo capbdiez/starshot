@@ -32,6 +32,8 @@ jobs:
         run: |
           npm run assets:art
           npm run assets:atlas
+          npm run assets:sfx
+          npm run assets:music
           git diff --exit-code -- assets/ || {
             echo "::error::assets/ is stale. Run 'npm run assets:build' and commit the result."
             exit 1

@@ -2,12 +2,11 @@
 
 A neo-arcade **fixed shooter** (Galaga / Space Invaders lineage) for the web, built art-first.
 
-> Status: **M4 — Scoring, power-ups, bombs & lives** complete. Move (←/→ or A/D, gamepad stick/d-pad),
-> hold Z/Space (or a face button) to autofire, and press X (or gamepad shoulder button) to use a bomb.
-> Four data-defined stages field Grunts, Swoopers, Tanks and Elites with formation sway, dives and
-> visible attack tells. Chain scoring, dive bonuses, extra-life thresholds, weapon pickups (levels 1–3),
-> bombs, HUD and all tuning are data-defined. Events drive FX/SFX; game over restarts automatically after 1.5 s.
-> `?seed=N` fixes the run seed. Dev builds: `P` pauses, `.` steps one tick (frame-step latency check).
+> Status: **M5 — Game flow, UI & persistence** complete. Start from the title with Z/Space, pause with Esc,
+> then retry from Results after a game over. Settings persist locally (music/SFX/UI buses, shake, flash reduction,
+> CRT preference and fullscreen); local high scores retain the best 10 runs. Four data-defined stages field Grunts,
+> Swoopers, Tanks and Elites with formation sway, dives and visible attack tells. `?seed=N` fixes the run seed.
+> Dev builds: `P` pauses, `.` steps one tick (frame-step latency check).
 
 ## Development
 
@@ -18,7 +17,7 @@ npm ci
 npm run dev            # http://localhost:5173 — 270×480 integer-scaled canvas + placeholder ship
 npm run typecheck && npm run lint && npm run lint:deps && npm test && npm run check:assets
 npm run test:e2e       # Playwright smoke (Chromium + WebKit); first run: npx playwright install
-npm run assets:build   # Aseprite + code-art export → atlas → SFX sprite (ffmpeg) → asset gates
+npm run assets:build   # Aseprite + code-art export → atlas → generated audio/music (ffmpeg) → asset gates
 ```
 
 CI (`.github/workflows/`) runs every check above plus E2E, and deploys each PR to a Cloudflare

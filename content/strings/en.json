@@ -1,0 +1,12 @@
+{
+  "strings": {
+    "title": "STARSHOT",
+    "start": "PRESS FIRE TO START",
+    "settings": "SETTINGS",
+    "resume": "RESUME",
+    "results": "GAME OVER",
+    "retry": "PLAY AGAIN",
+    "titleButton": "TITLE",
+    "fullscreen": "FULLSCREEN"
+  }
+}
