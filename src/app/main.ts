@@ -43,7 +43,10 @@ function boot(): void {
   const manifest = bundledManifest();
   const seed = runSeed();
   container.dataset['seed'] = String(seed);
-  const input = createInputSource(window);
+  let unlockTouchAudio: (() => void) | undefined;
+  const input = createInputSource(window, container, () => {
+    unlockTouchAudio?.();
+  });
   const saves = createSaveStore(window.localStorage);
 
   const zoomFor = (): number => {
@@ -84,7 +87,11 @@ function boot(): void {
   });
 
   game.events.once(Phaser.Core.Events.READY, () => {
+    unlockTouchAudio = () => {
+      game.sound.unlock();
+    };
     watchViewport(window, () => {
+      input.clearTouchState();
       game.scale.setZoom(zoomFor());
     });
   });

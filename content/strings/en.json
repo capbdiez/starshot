@@ -2,6 +2,7 @@
   "strings": {
     "title": "STARSHOT",
     "start": "PRESS FIRE TO START",
+    "touchControls": "TOUCH: LEFT / RIGHT / FIRE / BOMB",
     "settings": "SETTINGS",
     "resume": "RESUME",
     "results": "RUN RESULTS",

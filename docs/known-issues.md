@@ -11,7 +11,7 @@ No known release-blocking defects are recorded for v1.0.0.
 
 ## Platform limitations
 
-- M9 provides viewport compatibility only. Gameplay touch input and visible touch controls arrive in M10 and M11 respectively. PWA/offline installation, configurable layouts, haptics, native desktop builds, and mobile-store builds remain separate post-MVP work (see `docs/MILESTONES.md`).
+- M10 maps captured Pointer Events from the lower 40% of the game surface into four equal left-to-right zones: left, right, held fire, and bomb. Touch pointers compose with keyboard/gamepad input and clear on release, cancellation, capture loss, blur, hidden visibility, and viewport interruption. The adapter intentionally has no visual controls; discoverable controls and touch-operable menu flow arrive in M11. PWA/offline installation, configurable layouts, haptics, native desktop builds, and mobile-store builds remain separate post-MVP work (see `docs/MILESTONES.md`).
 - Browser audio requires a player gesture before it can start; this is a browser security requirement, not a game error.
 - Older browser versions are not supported.
 

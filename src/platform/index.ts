@@ -1,9 +1,17 @@
 export {
   createInputSource,
+  composeInputBits,
   keyBit,
   padBits,
+  touchZoneBit,
+  createTouchInputAdapter,
   type InputSource,
   type PadState,
+  type TouchInputAdapter,
+  type TouchLifecycleDocument,
+  type TouchLifecycleWindow,
+  type TouchPoint,
+  type TouchSurface,
 } from './input/input-source.ts';
 export {
   readViewport,
