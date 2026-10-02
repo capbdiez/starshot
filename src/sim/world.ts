@@ -1,7 +1,13 @@
 import type { Content } from '../content/index.ts';
 import { WORLD_WIDTH } from '../shared/index.ts';
 import type { SimEvent } from './events.ts';
-import { scaledNormalEnemyHp, scaledNormalWaveInterval } from './difficulty.ts';
+import {
+  scaledBossFireInterval,
+  scaledBossPartHp,
+  scaledBossPhaseHp,
+  scaledNormalEnemyHp,
+  scaledNormalWaveInterval,
+} from './difficulty.ts';
 import { createRng, type Rng } from './rng.ts';
 
 /** Capacity of the enemy bullet pool (structural limit, not a tuning value). */
@@ -234,19 +240,6 @@ export function placePlayer(world: World): void {
   p.bombHeld = false;
 }
 
-/** Lowest readable fire interval for the recurring boss. */
-export const MIN_BOSS_INTERVAL_TICKS = 36;
-
-/** Existing recurring-boss durability transform. */
-export function scaledHp(base: number, difficulty: number): number {
-  return Math.ceil(base * (1 + (difficulty - 1) * 0.2));
-}
-
-/** Existing recurring-boss interval transform. */
-export function scaledInterval(base: number, difficulty: number, minimum: number): number {
-  return Math.max(minimum, Math.round(base / (1 + (difficulty - 1) * 0.08)));
-}
-
 /** Returns whether an absolute level schedules the recurring boss encounter. */
 export function isBossLevel(level: number): boolean {
   return level > 0 && level % 10 === 0;
@@ -314,19 +307,15 @@ export function spawnBoss(world: World): void {
   boss.x = spec.x;
   boss.y = spec.y;
   boss.phase = 0;
-  boss.hp = scaledHp(spec.phases[0]?.hp ?? 0, world.difficulty);
+  boss.hp = scaledBossPhaseHp(spec.phases[0]?.hp ?? 0, world.difficulty);
   boss.tellTimer = 0;
-  boss.fireTimer = scaledInterval(
-    spec.phases[0]?.fireIntervalTicks ?? 0,
-    world.difficulty,
-    MIN_BOSS_INTERVAL_TICKS,
-  );
+  boss.fireTimer = scaledBossFireInterval(spec.phases[0]?.fireIntervalTicks ?? 0, world.difficulty);
   boss.parts.length = 0;
   for (const part of spec.parts) {
     boss.parts.push({
       id: newId(world),
       alive: true,
-      hp: scaledHp(part.hp, world.difficulty),
+      hp: scaledBossPartHp(part.hp, world.difficulty),
       x: boss.x + part.offset.x,
       y: boss.y + part.offset.y,
       key: part.key,

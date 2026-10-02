@@ -9,6 +9,7 @@ All notable changes to Starshot are documented here.
 - P3 replaces the finite campaign with endless deterministic levels, recurring tenth-level Overlord encounters, and level-based local scores.
 - P3.3 scales normal-wave enemy durability, fire cadence, and dive cadence from difficulty at runtime, with readable timing floors and unchanged authored content.
 - P3.4 schedules the existing Overlord on every tenth absolute level, independently of RNG consumption, and includes level and difficulty in boss progression events.
+- P3.5 scales recurring Overlord weak-point and phase durability plus fire cadence from difficulty, with a 36-tick attack floor that preserves readable tells and fixed-pool projectile safety.
 
 
 ## [1.0.0] — 2026-01-10

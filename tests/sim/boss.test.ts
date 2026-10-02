@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
+import {
+  MIN_BOSS_INTERVAL_TICKS,
+  scaledBossFireInterval,
+  scaledBossPartHp,
+  scaledBossPhaseHp,
+} from '../../src/sim/difficulty.ts';
 import { createSim } from '../../src/sim/index.ts';
+import { moveMovers, updateEnemyFire } from '../../src/sim/systems.ts';
+import { createWorld, ENEMY_BULLET_POOL, spawnBoss } from '../../src/sim/world.ts';
 import { B, F, filesWith, ofType, run } from './helpers.ts';
 
 function bossTestContent() {
@@ -68,8 +76,8 @@ function bossTestContent() {
   });
 }
 
-function advanceToBoss() {
-  const sim = createSim(bossTestContent(), 7);
+function advanceToBoss(seed = 7) {
+  const sim = createSim(bossTestContent(), seed);
   const events = [];
   for (let tick = 0; tick < 2_000; tick += 1) {
     events.push(...run(sim, 1, F));
@@ -78,33 +86,51 @@ function advanceToBoss() {
   throw new Error('level-10 boss did not start');
 }
 
+function defeatBossAt(seed: number, difficulty: number): void {
+  const { sim, events: stageEvents } = advanceToBoss(seed);
+  expect(sim.snapshot().difficulty).toBe(difficulty);
+  const firstBomb = run(sim, 1, B);
+  expect(ofType(firstBomb, 'BossPartDestroyed')).toHaveLength(3);
+  const events = [
+    ...stageEvents,
+    ...firstBomb,
+    ...run(sim, 1),
+    ...run(sim, 1, B),
+    ...run(sim, 1),
+    ...run(sim, 1, B),
+    ...run(sim, 1),
+    ...run(sim, 1, B),
+  ];
+  expect(ofType(events, 'BossStarted')).toHaveLength(1);
+  expect(ofType(events, 'BossPartDestroyed')).toHaveLength(3);
+  const phaseChanges = ofType(events, 'BossPhaseChanged');
+  const defeats = ofType(events, 'BossDefeated');
+  expect(phaseChanges.map((event) => event.phase)).toEqual([2, 3]);
+  expect(phaseChanges.every((event) => event.level === 10 && event.difficulty === difficulty)).toBe(
+    true,
+  );
+  expect(defeats).toHaveLength(1);
+  expect(defeats[0]?.level).toBe(10);
+  expect(defeats[0]?.difficulty).toBe(difficulty);
+  expect(sim.snapshot().phase).toBe('playing');
+  expect(sim.snapshot().level).toBe(11);
+  expect(ofType(events, 'WaveStarted').map((event) => event.level)).toContain(11);
+}
+
 describe('P3 recurring boss systems', () => {
-  it('requires parts to be destroyed before progressing through all three phases', () => {
-    const { sim, events: stageEvents } = advanceToBoss();
-    const firstBomb = run(sim, 1, B);
-    expect(ofType(firstBomb, 'BossPartDestroyed')).toHaveLength(3);
-    const events = [
-      ...stageEvents,
-      ...firstBomb,
-      ...run(sim, 1),
-      ...run(sim, 1, B),
-      ...run(sim, 1),
-      ...run(sim, 1, B),
-      ...run(sim, 1),
-      ...run(sim, 1, B),
-    ];
-    expect(ofType(events, 'BossStarted')).toHaveLength(1);
-    expect(ofType(events, 'BossPartDestroyed')).toHaveLength(3);
-    const phaseChanges = ofType(events, 'BossPhaseChanged');
-    const defeats = ofType(events, 'BossDefeated');
-    expect(phaseChanges.map((event) => event.phase)).toEqual([2, 3]);
-    expect(phaseChanges.every((event) => event.level === 10 && event.difficulty > 0)).toBe(true);
-    expect(defeats).toHaveLength(1);
-    expect(defeats[0]?.level).toBe(10);
-    expect(defeats[0]?.difficulty).toBeGreaterThan(0);
-    expect(sim.snapshot().phase).toBe('playing');
-    expect(sim.snapshot().level).toBe(11);
-    expect(ofType(events, 'WaveStarted').map((event) => event.level)).toContain(11);
+  it('keeps all three phases defeatable at low and high difficulty with their existing events', () => {
+    defeatBossAt(11, 4);
+    defeatBossAt(2, 8);
+  });
+
+  it('derives boss weak-point and phase durability while clamping attack cadence', () => {
+    expect(scaledBossPartHp(8, 1)).toBe(8);
+    expect(scaledBossPhaseHp(18, 1)).toBe(18);
+    expect(scaledBossFireInterval(75, 1)).toBe(75);
+    expect(scaledBossPartHp(8, 8)).toBeGreaterThan(8);
+    expect(scaledBossPhaseHp(18, 8)).toBeGreaterThan(18);
+    expect(scaledBossFireInterval(75, 8)).toBeLessThan(75);
+    expect(scaledBossFireInterval(1, 999)).toBe(MIN_BOSS_INTERVAL_TICKS);
   });
 
   it('emits a readable tell before the boss fires its current phase pattern', () => {
@@ -112,5 +138,24 @@ describe('P3 recurring boss systems', () => {
     const events = run(sim, 40);
     expect(ofType(events, 'BossAttackTold')).toHaveLength(1);
     expect(ofType(events, 'EnemyFired').length).toBeGreaterThan(0);
+  });
+
+  it('keeps the fixed bullet pool bounded during extended high-difficulty boss fire', () => {
+    const world = createWorld(bossTestContent(), 42);
+    world.level = 10;
+    world.difficulty = 999;
+    spawnBoss(world);
+    let peakBullets = 0;
+
+    for (let tick = 0; tick < 10_000; tick += 1) {
+      world.tick += 1;
+      moveMovers(world.bullets);
+      updateEnemyFire(world);
+      peakBullets = Math.max(peakBullets, world.bullets.filter((bullet) => bullet.active).length);
+    }
+
+    expect(peakBullets).toBeGreaterThan(0);
+    expect(peakBullets).toBeLessThanOrEqual(ENEMY_BULLET_POOL);
+    expect(world.bullets).toHaveLength(ENEMY_BULLET_POOL);
   });
 });

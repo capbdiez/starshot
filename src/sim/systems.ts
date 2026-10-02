@@ -7,19 +7,20 @@ import {
   type InputFrame,
 } from '../shared/index.ts';
 import { overlaps } from './collision.ts';
-import { scaledNormalWaveInterval } from './difficulty.ts';
+import {
+  scaledBossFireInterval,
+  scaledBossPhaseHp,
+  scaledNormalWaveInterval,
+} from './difficulty.ts';
 import { diveInterval } from './dive-scheduler.ts';
 import { easeInOut, sampleCubic } from './path.ts';
 import { patternVelocities } from './patterns.ts';
 import {
   advanceLevel,
-  MIN_BOSS_INTERVAL_TICKS,
   isBossLevel,
   newId,
   placePlayer,
   resetGame,
-  scaledHp,
-  scaledInterval,
   spawnBoss,
   spawnWave,
   type Mover,
@@ -259,12 +260,11 @@ function damageBoss(world: World, amount: number): void {
   if (!spec) return;
   if (boss.phase < spec.phases.length - 1) {
     boss.phase += 1;
-    boss.hp = scaledHp(spec.phases[boss.phase]?.hp ?? 0, world.difficulty);
+    boss.hp = scaledBossPhaseHp(spec.phases[boss.phase]?.hp ?? 0, world.difficulty);
     boss.tellTimer = 0;
-    boss.fireTimer = scaledInterval(
+    boss.fireTimer = scaledBossFireInterval(
       spec.phases[boss.phase]?.fireIntervalTicks ?? 0,
       world.difficulty,
-      MIN_BOSS_INTERVAL_TICKS,
     );
     world.events.push({
       type: 'BossPhaseChanged',
@@ -310,11 +310,7 @@ export function updateBoss(world: World): void {
       launch(world, bullet, boss.x, boss.y, velocity.vx, velocity.vy);
       world.events.push({ type: 'EnemyFired', id: bullet.id, x: bullet.x, y: bullet.y });
     }
-    boss.fireTimer = scaledInterval(
-      phase.fireIntervalTicks,
-      world.difficulty,
-      MIN_BOSS_INTERVAL_TICKS,
-    );
+    boss.fireTimer = scaledBossFireInterval(phase.fireIntervalTicks, world.difficulty);
     return;
   }
   boss.fireTimer -= 1;
