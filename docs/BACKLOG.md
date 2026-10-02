@@ -14,3 +14,6 @@ Items deliberately left out of the current milestone (AGENTS §1). Each has a ta
 | `debug/` overlay | FR-12, not in M0 scope | M2 |
 | WebKit E2E on non-Debian dev machines | Playwright WebKit needs Debian/Ubuntu system libs; CI (ubuntu) runs it | — |
 | Upgrade to TypeScript 7 | Blocked on typescript-eslint support (ADR 0001) | When available |
+| PWA manifest, service worker, offline cache, and install UX | Separate lifecycle/cache/update risks from M9–M12 mobile-browser compatibility | P1 after M12 |
+| Configurable touch-control layout, alternate drag steering, and haptics | Ship and validate fixed visible controls first; alternatives require usability evidence | Unscheduled post-M12 |
+| Capacitor/mobile-store wrappers | Browser compatibility does not imply native packaging, store compliance, or native API support | P4 |

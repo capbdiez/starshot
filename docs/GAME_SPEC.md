@@ -7,7 +7,7 @@ of a single fixed screen, and waves of enemies fly in, form up, and dive to atta
 formations with modern game feel: tight controls, satisfying feedback, and short runs that make you want one more try.
 
 - **Genre:** Fixed shooter (shoot 'em up subgenre); the screen doesn't scroll and the player moves horizontally.
-- **Platform:** Web browser (desktop first, mobile-ready portrait layout).
+- **Platform:** Web browser: desktop keyboard/gamepad at release; M9–M12 add current mobile-browser portrait and landscape play with touch controls.
 - **Session length:** 3–5 minutes for the MVP run (5 stages + boss), 10–15 minutes for the full game.
 - **Audience:** Retro arcade fans, casual players looking for quick sessions, and score chasers.
 - **Pillars:** *Readable chaos* · *Instant restart* · *Every hit feels good*.
@@ -35,6 +35,9 @@ Wave enters (formation paths) → Enemies form up → Enemies dive/attack
 - US-10: As a player, I can pause at any time, and the game pauses automatically when the tab loses focus.
 - US-11: As a player sensitive to motion or flashing, I can reduce screen shake and flashes.
 - US-12: As a player, I can adjust music and SFX volume separately.
+- US-13: As a mobile player, I can start, move, fire, use bombs, pause, and navigate menus with touch controls.
+- US-14: As a mobile player, I can play without browser scrolling, pinch zoom, browser-UI overlap, or stuck touch input.
+- US-15: As a mobile player, I can rotate my device or background the browser without corrupting a run or held controls.
 
 **Developer / Designer**
 - US-20: As a designer, I add or tune enemies, waves and bosses by editing data files, without changing code.
@@ -74,6 +77,9 @@ All numbers here are **starting values**. The source of truth is `content/*.json
 | FR-10 | Settings: volume per bus, screen shake, flash reduction, CRT filter, fullscreen |
 | FR-11 | Auto-pause when the tab is hidden or focus is lost |
 | FR-12 | Debug overlay (dev builds only): FPS, entity counts, hitboxes, stage select, invincibility |
+| FR-13 | Touch input maps simultaneous left, right, fire, and bomb gestures into the existing deterministic `InputFrame` controls |
+| FR-14 | Supported touch contexts expose usable on-screen gameplay controls and touch-operable menu actions without affecting desktop controls |
+| FR-15 | Pointer cancellation, capture loss, blur, visibility changes, orientation changes, and dynamic viewport changes clear held touch state safely |
 
 ## 6. Non-Functional Requirements
 
@@ -87,6 +93,9 @@ All numbers here are **starting values**. The source of truth is `content/*.json
 | NFR-06 | Accessibility | Can be played with a colour-blind simulation filter; flash-reduction mode respects the 3 Hz limit |
 | NFR-07 | Maintainability | Architecture rules enforced by tooling; the simulation core has ≥ 80 % line coverage |
 | NFR-08 | Art quality | Passes all ART_DIRECTION §9 gates at every milestone |
+| NFR-09 | Mobile compatibility | Latest two iOS Safari and Android Chrome versions support documented portrait and landscape viewports; desktop browser support remains unchanged |
+| NFR-10 | Mobile usability | Touch supports simultaneous movement and fire, respects safe areas, prevents browser-gesture interference, and meets the ≤2-frame input-latency target |
+| NFR-11 | Mobile resilience | Rotation, dynamic browser chrome, backgrounding, pointer cancellation, and capture loss cannot crash the app or leave gameplay input held |
 
 ## 7. Constraints
 
@@ -111,7 +120,7 @@ The MVP is a **complete, polished, short arcade run** that could be released on 
 
 | Feature | Target |
 |---------|--------|
-| Touch controls + PWA install | MVP+1 |
+| PWA install and offline cache | After M12; separate from mobile-browser compatibility |
 | Online leaderboards (Supabase, replay-verified) | MVP+1 |
 | Key rebinding, localization | MVP+1 |
 | More stages, enemies and bosses; "loop 2" harder difficulty | MVP+2 |

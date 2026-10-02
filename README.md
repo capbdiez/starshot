@@ -35,7 +35,7 @@ deploy, production-url E2E smoke, itch.io-ready archive, and optional itch.io up
 | [TECH_STACK.md](./docs/TECH_STACK.md) | Requirements analysis, stack comparison, final recommendation | 2 |
 | [GAME_SPEC.md](./docs/GAME_SPEC.md) | Vision, user stories, requirements, MVP, deferred features | 3 |
 | [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Subsystems, boundaries, data flow, folder layout, testing | 4 |
-| [MILESTONES.md](./docs/MILESTONES.md) | Incremental roadmap with acceptance criteria and DoD | 5 |
+| [MILESTONES.md](./docs/MILESTONES.md) | Incremental roadmap with acceptance criteria and DoD; includes the M9–M12 mobile-browser program | 5 |
 | [AGENTS.md](./docs/AGENTS.md) | Rules for AI coding agents and contributors | 6 |
 
 ## Reading Order

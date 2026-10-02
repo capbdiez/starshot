@@ -34,6 +34,8 @@ Read first: `GAME_SPEC.md` (scope), `ARCHITECTURE.md` (where code goes), `MILEST
 - If a golden replay hash changes, update the fixture **on purpose** and explain why in the PR.
 - Before opening a PR, run: `npm run typecheck && npm run lint && npm run lint:deps && npm test && npm run check:assets`.
 - Changes to UI or scene flow must keep the Playwright smoke test passing.
+- Mobile input changes use Pointer Events, compose only through `InputSource.poll(): InputFrame`, and include multi-touch plus cancellation/blur/visibility tests; never add DOM or Phaser behavior to `sim/`.
+- Mobile viewport/control changes include iPhone-class WebKit and Pixel-class Chromium E2E coverage plus a recorded physical iOS Safari and Android Chrome check before M12 sign-off.
 
 ## 6. Documentation Rules
 - Update the relevant `.md` file **in the same PR** as any change to behavior, architecture or scope.

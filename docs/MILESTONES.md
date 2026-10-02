@@ -12,6 +12,7 @@ Art, audio and effects run through every milestone as tracks, not at the end.
 - [ ] Art gates (ART_DIRECTION §9) pass for all assets added in the milestone.
 - [ ] Docs updated (spec/architecture/art) where behavior changed; ADRs written for decisions.
 - [ ] No new items left out of scope without a note in `docs/BACKLOG.md`.
+- [ ] For M9–M12, desktop regression plus the milestone's specified mobile Chromium/WebKit E2E coverage pass; M12 additionally records the required physical iOS Safari and Android Chrome evidence.
 
 ## Timeline Overview (≈ 10–12 weeks)
 
@@ -408,12 +409,118 @@ The MVP milestones above remain the historical release plan. This is a separate,
 
 ---
 
-## Post-MVP Roadmap (not scheduled in detail)
+## Mobile Browser Compatibility Program (Post-MVP)
+
+The release and graphics milestones above remain historical. M9–M12 make the existing web build playable in current mobile browsers without changing the 270×480 simulation/world contract or 540×960 presentation buffer. Every milestone ends with a preview deployment and retains desktop keyboard, gamepad, Chromium, and WebKit coverage.
+
+**Program constraints**
+- `sim/`, content tuning, hitboxes, replay format, fixed-step timing, and golden hashes do not change. Mobile input emits existing `InputFrame` bits only.
+- `platform/` owns browser APIs and held-pointer state; `ui/`/Phaser owns visible controls; `app/` composes them. Do not put DOM or Phaser code in `sim/`.
+- Use Pointer Events and pointer capture. Clear held touch state on release, cancellation, capture loss, blur, visibility loss, and viewport interruption.
+- Prefer crisp integer scaling. Permit centered fractional fit only when a complete 540×960 presentation canvas cannot fit; never crop gameplay.
+- Support the latest two Android Chrome and iOS Safari versions in documented portrait and landscape viewports. PWA/offline installation, native wrappers, configurable layouts, and haptics remain separate work.
+
+### Mobile Program Overview (≈ 4–6 weeks)
+
+| # | Milestone | Est. | Primary deliverable |
+|---|-----------|------|---------------------|
+| M9 | Mobile viewport foundation & compatibility baseline | 0.5–1 wk | Safe, stable mobile canvas fitting and automated device-emulation baseline |
+| M10 | Deterministic multi-touch input platform adapter | 1–1.5 wk | Tested Pointer Events → `InputFrame` adapter |
+| M11 | Mobile touch-control HUD & scene-flow integration | 1–1.5 wk | Discoverable on-screen controls and fully touch-operable game flow |
+| M12 | Mobile browser quality, performance & release readiness | 1–2 wk | Device evidence, CI coverage, documentation, and production sign-off |
+
+---
+
+## M9 — Mobile Viewport Foundation & Compatibility Baseline
+
+**Scope**
+- Define the supported matrix: latest two Android Chrome and iOS Safari versions, while retaining desktop Chrome, Firefox, Safari, and Edge support.
+- Harden viewport measurement for `VisualViewport` where available, with `innerWidth`/`innerHeight` fallback; handle browser-toolbar changes, orientation, resize, and device-pixel-ratio changes.
+- Update game-surface CSS for dynamic viewport height, safe-area insets, centered letterboxing, `touch-action`, overscroll prevention, and selection/callout suppression.
+- Keep the 270×480 world and 540×960 presentation buffer unchanged; document integer-scale preference and the complete-canvas fractional-fit fallback.
+- Add iPhone-class WebKit and Pixel-class Chromium Playwright projects plus portrait/landscape boot, resize, and no-console-error coverage.
+- Define the real-device QA matrix, minimum supported viewport, and evidence-record format.
+
+**Out of scope:** gameplay touch input, visible touch controls, PWA/service worker/offline cache, mobile-store wrappers, gameplay/art/balance changes.
+
+**Acceptance criteria**
+- Portrait and landscape mobile emulations boot to title without console or page errors.
+- The canvas remains centered, complete, pixelated, and aspect-correct through rotation and dynamic browser-toolbar viewport changes.
+- No page scroll, pinch zoom, selection, callout, overscroll, or pull-to-refresh interferes with the game surface.
+- Desktop canvas scaling and fixed-seed replay hashes remain unchanged.
+- The supported viewport and fractional-fit policy are documented.
+
+**Testing:** viewport and `displayZoom` unit tests; desktop Chromium/WebKit regression; iPhone-class WebKit and Pixel-class Chromium E2E boot/resize/orientation checks; manual iOS Safari and Android Chrome safe-area review.
+
+---
+
+## M10 — Deterministic Multi-Touch Input Platform Adapter
+
+**Scope**
+- Add a testable `platform/input` touch adapter using Pointer Events and pointer capture; compose its bits with existing keyboard and gamepad state through `InputSource.poll()`.
+- Define lower-screen touch-zone semantics for left, right, held fire, and bomb; support simultaneous independent pointers.
+- Clear all held pointer state on `pointerup`, `pointercancel`, lost capture, blur, hidden visibility, and viewport/orientation interruption.
+- Keep first valid touch compatible with browser audio unlock and add touch-control copy to the string table.
+- Preserve existing input timing, autofire cadence, replay format, and simulation API.
+
+**Out of scope:** final Phaser control visuals, swipe/drag steering alternatives, configurable layouts, rebinding, haptics, or gameplay changes.
+
+**Acceptance criteria**
+- Each touch action maps to the existing left, right, fire, or bomb `InputBit`.
+- Movement and fire can be held simultaneously; bomb does not corrupt other held input.
+- Cancellation and lifecycle interruptions never leave a control held.
+- Touch, keyboard, and gamepad input compose correctly.
+- Equivalent seed and `InputFrame` sequences retain identical simulation hash and score; input-to-screen latency remains within two frames.
+
+**Testing:** DOM-free touch-zone/state unit tests; cancellation/blur/visibility/capture-loss tests; extended input-source tests; Chromium/WebKit mobile touch-injection E2E; manual Android/iOS latency check.
+
+---
+
+## M11 — Mobile Touch-Control HUD & Scene-Flow Integration
+
+**Scope**
+- Add a Phaser/UI touch-control component shown only in supported coarse-pointer/touch contexts: lower-left movement, lower-right fire, nearby bomb, and a touch-reachable pause affordance.
+- Position controls in presentation coordinates and safe areas; keep usable targets at the minimum viewport and preserve player/HUD/bullet readability.
+- Keep title, pause, settings, high-score, results, retry, and return-to-title actions pointer-operable; gameplay controls must not intercept those menu interactions.
+- Add touch-specific title/help messaging and capability-checked fullscreen behavior with documented iOS fallback.
+
+**Out of scope:** responsive DOM UI rewrite, new gameplay mechanics, custom layouts, haptics, PWA/installability.
+
+**Acceptance criteria**
+- A first-time mobile player can start, move, fire, bomb, pause, resume, change settings, retry, and return to title without a keyboard.
+- Controls are absent on normal desktop fine-pointer devices and support simultaneous move plus fire on touch devices.
+- Controls stay within safe areas, remain readable, and do not obstruct critical HUD or gameplay cues beyond the approved visual review.
+- Browser audio unlocks only after a permitted gesture; unsupported fullscreen never blocks play.
+
+**Testing:** control visibility/layout unit tests; mobile E2E title → play → move/fire/bomb → pause/resume → results/retry; desktop absence assertion; stable mobile screenshot review/baselines; manual iOS/Android usability playtest.
+
+---
+
+## M12 — Mobile Browser Quality, Performance & Release Readiness
+
+**Scope**
+- Run and record the supported device/browser QA matrix at high and low quality: peak-density performance, safe areas, rotation, browser toolbars, audio unlock, interruption/background recovery, fullscreen fallback, and touch usability.
+- Run mobile Playwright projects in CI; update production smoke, README, game spec, architecture, known issues, release checklist, and support/reporting guidance.
+- Record unsupported edge cases and deferred follow-up work in `docs/BACKLOG.md`.
+
+**Out of scope:** PWA/offline cache, app-store packaging, native APIs, analytics/accounts/leaderboards, and unrelated accessibility work.
+
+**Acceptance criteria**
+- Desktop and mobile Chromium/WebKit E2E suites pass with no errors in boot, play, pause/resume, rotation, and retry flows.
+- The documented reference iOS and Android devices meet the performance target for the selected quality mode; any fallback is visible and documented.
+- Manual QA passes on at least one current iPhone/iOS Safari and one current Android/Chrome device in portrait and landscape.
+- Documentation accurately states mobile support, limitations, controls, and the remaining deferred PWA/native scope.
+
+**Testing:** `npm run typecheck`, `npm run lint`, `npm run lint:deps`, `npm test`, `npm run check:assets`, `npm run test:e2e`, `npm run build`, and `npm run release:check`; hosted-production mobile smoke; recorded device, OS, browser, orientation, URL, date, and result.
+
+---
+
+## Further Post-MVP Roadmap
 
 | ID | Milestone | Key Deliverables |
 |----|-----------|------------------|
-| P1 | Mobile & PWA | Touch controls (relative drag + autofire), PWA manifest and offline cache |
+| P1 | PWA & offline install | Web app manifest, service worker/cache policy, install UX, offline-update QA |
 | P2 | Online leaderboards | Supabase anonymous auth, `LeaderboardPort`, edge function that verifies replays, RLS |
 | P3 | Content expansion | New enemies and bosses, loop 2, daily seed, capturing enemies |
-| P4 | Desktop / stores | Electron + steamworks.js build (ADR), achievements; Capacitor mobile builds |
+| P4 | Desktop / mobile stores | Electron + steamworks.js build (ADR), achievements; Capacitor mobile builds |
 

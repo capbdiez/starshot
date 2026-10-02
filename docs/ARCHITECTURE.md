@@ -47,7 +47,7 @@
 | `sim` | `World` entity stores, pools, RNG state, system internals | `createSim(content, seed)`, `sim.step(input: InputFrame)`, `sim.snapshot(): Readonly<SimView>`, `sim.drainEvents(): readonly SimEvent[]`, `sim.hash()` |
 | `content` | Raw JSON, parse cache | `loadContent(): Content` (frozen, typed), `validateContent()` |
 | `presentation` | Phaser GameObjects, sprite↔entity-id map, emitters, tweens | `Presenter.sync(view, alpha)`, `Presenter.handle(events)`, `Presenter.setSettings(fx)` |
-| `platform` | DOM listeners, raw gamepad state, storage keys | `InputSource.poll(): InputFrame`, `SaveStore.load/save<T>(key, schema)`, `AudioDevice`, `Visibility.onChange` |
+| `platform` | DOM listeners, raw keyboard/gamepad/pointer state, viewport listeners, storage keys | `InputSource.poll(): InputFrame`, `SaveStore.load/save<T>(key, schema)`, `AudioDevice`, `Visibility.onChange`, viewport read/watch APIs |
 | `ui` | Scene widgets | Emits `UiCommand` (`start`, `pause`, `resume`, `setSetting`, …) |
 | `app` | Scene flow state, loop accumulator | None (top level) |
 
@@ -90,6 +90,7 @@ Keyboard/Gamepad ─► platform.InputSource.poll() ─► InputFrame (bitmask, 
 
 - **MVP:** client only. The one I/O boundary is `platform.SaveStore` (localStorage, with a versioned schema and migrations).
 - **Post-MVP leaderboards:** a new `services/leaderboard` client module behind a `LeaderboardPort` interface, backed by a Supabase edge function. The game only depends on the port; the adapter is plugged in by `app`. Offline play falls back to a no-op adapter.
+- **Mobile browser:** `platform/input` maps Pointer Events and pointer lifecycle into the existing `InputFrame`; `platform/viewport` reports browser-visible dimensions; Phaser/UI renders touch controls in presentation coordinates. The simulation, content tuning, hitboxes, and replay format do not change.
 - **Desktop/mobile wrappers:** implemented as extra `platform/` adapters (for example, Steam achievements). The simulation and presentation don't change.
 
 ## 6. Folder Structure
@@ -149,7 +150,7 @@ Extra lint rules inside `sim/`: no `Math.random`, `Date`, `performance`, `setTim
 | Content | Vitest + Zod | All `content/` files pass schemas; cross-references resolve (for example, a wave refers to an existing enemy, which refers to an existing pattern) |
 | Assets | Node scripts in CI | Palette check, manifest ↔ atlas keys, required animation clips, frame sizes |
 | Presentation | Vitest (light) | Event → effect mapping logic (the Phaser adapter is faked); settings scaling (shake/flash) |
-| E2E smoke | Playwright | Boot → title → play → pause → game over on Chromium and WebKit; no console errors |
+| E2E smoke | Playwright | Desktop and emulated mobile Chromium/WebKit: boot → title → play → pause → game over with no console errors; mobile coverage includes touch, orientation, and resize lifecycle |
 | Visual | Playwright screenshots | Fixed-seed frames of the HUD and a sample scene, compared against baselines to catch visual regressions |
 | Performance | Stress scene + manual device test | 300 bullets / 400 particles held at 60 FPS; CI logs the frame-time budget on Chromium as a warning, not a failure |
 | Playtest | Human | Each milestone that touches game feel |

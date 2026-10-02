@@ -12,6 +12,9 @@ Evidence for the post-MVP graphics release candidate. Mark a manual/deployment i
 | NFR-06 | Colour-blind playable; flash reduction ≤ 3 Hz | **Automated:** `Presenter` rate-limits reduced flashes to 333.33 ms; high-contrast bullet and subtitle settings persist through `SaveStore`. **Manual:** capture colour-blind simulation screenshots. |
 | NFR-07 | Architecture enforced; sim coverage ≥ 80% | **Automated:** `npm run lint:deps && npm test` (Vitest coverage threshold/report). |
 | NFR-08 | ART_DIRECTION §9 asset gates | **Automated:** `npm run check:assets`; it validates content references, atlas frames/sizes, palette and rejects every `placeholder: true` manifest entry. |
+| NFR-09 | Mobile-browser compatibility | **Automated after M9:** mobile Chromium/WebKit Playwright projects boot in portrait and landscape without errors. **Manual after M12:** record current iOS Safari and Android Chrome version, viewport/orientation, production URL, and result. |
+| NFR-10 | Mobile usability | **Automated after M10/M11:** touch E2E covers simultaneous move/fire, bomb, menus, pause/resume, and desktop control absence. **Manual after M12:** verify safe-area fit, tap targets, input latency, and browser-gesture suppression. |
+| NFR-11 | Mobile resilience | **Automated after M9/M10:** resize/orientation and pointer cancellation clear held input. **Manual after M12:** background/foreground, browser-toolbar, audio-unlock, and fullscreen-fallback checks. |
 
 ## G9 Automated Release-Candidate Record
 
@@ -38,6 +41,7 @@ The following local evidence was reproduced on 2026-01-10 with Node 26.10.0. It 
 | Settings/fallback review | On the reference device and a browser fallback path, record flash-reduction (≤3 Hz), high-contrast bullets, low/high quality, background motion, FX intensity, and fullscreen results. |
 | Cold-load review | Typical broadband method, device/browser, cache state, measured first-playable time (≤3 s), URL, and date. |
 | Hosted production smoke | Production URL, deployment timestamp, `STARSHOT_PRODUCTION_URL=<url> npm run test:e2e:production` result, and no-console-error evidence. |
+| Mobile-browser pass (after M12) | At least one current iPhone/iOS Safari and Android/Chrome device: model, OS/browser version, portrait/landscape viewport, production URL, touch flow, safe-area, rotation, browser-toolbar, audio, fullscreen-fallback, and peak-load result. |
 
 ## Automated release gates
 
@@ -58,6 +62,7 @@ The following local evidence was reproduced on 2026-01-10 with Node 26.10.0. It 
 - [ ] Colour-blind screenshots, required store screenshots, cover art, and trailer GIF are captured and uploaded; see `release/capture-guide.md`.
 - [ ] n ≥ 10 feel-playtest result is recorded against the GAME_SPEC §10 success criteria.
 - [ ] `v1.0.0` git tag is created from the signed-off release commit.
+- [ ] After M12, mobile-browser sign-off records the required iOS Safari and Android Chrome evidence, including touch, orientation, safe-area, interruption, audio, fullscreen-fallback, and peak-load checks.
 
 ## Sign-off
 
