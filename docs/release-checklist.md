@@ -41,7 +41,7 @@ The following local evidence was reproduced on 2026-01-10 with Node 26.10.0. It 
 | Settings/fallback review | On the reference device and a browser fallback path, record flash-reduction (≤3 Hz), high-contrast bullets, low/high quality, background motion, FX intensity, and fullscreen results. |
 | Cold-load review | Typical broadband method, device/browser, cache state, measured first-playable time (≤3 s), URL, and date. |
 | Hosted production smoke | Production URL, deployment timestamp, `STARSHOT_PRODUCTION_URL=<url> npm run test:e2e:production` result, and no-console-error evidence. |
-| Mobile-browser pass (after M12) | At least one current iPhone/iOS Safari and Android/Chrome device: model, OS/browser version, portrait/landscape viewport, production URL, touch flow, safe-area, rotation, browser-toolbar, audio, fullscreen-fallback, and peak-load result. |
+| Mobile-browser pass (after M12) | Complete `docs/mobile-qa.md` for at least one current iPhone/iOS Safari and Android/Chrome device: model, OS/browser version, portrait/landscape viewport, production URL, selected quality, touch flow, safe-area, rotation, browser-toolbar, background recovery, audio, fullscreen fallback, and peak-load result. |
 
 ## Automated release gates
 
@@ -62,7 +62,7 @@ The following local evidence was reproduced on 2026-01-10 with Node 26.10.0. It 
 - [ ] Colour-blind screenshots, required store screenshots, cover art, and trailer GIF are captured and uploaded; see `release/capture-guide.md`.
 - [ ] n ≥ 10 feel-playtest result is recorded against the GAME_SPEC §10 success criteria.
 - [ ] `v1.0.0` git tag is created from the signed-off release commit.
-- [ ] After M12, mobile-browser sign-off records the required iOS Safari and Android Chrome evidence, including touch, orientation, safe-area, interruption, audio, fullscreen-fallback, and peak-load checks.
+- [ ] After M12, complete and link the two physical-device rows in `docs/mobile-qa.md`; they must record iOS Safari and Android Chrome evidence for touch, portrait/landscape, safe areas, interruption, audio, fullscreen fallback, selected quality, and peak load.
 
 ## Sign-off
 

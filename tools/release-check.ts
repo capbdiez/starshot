@@ -13,6 +13,7 @@ const REQUIRED_RELEASE_FILES = [
   'CHANGELOG.md',
   'docs/known-issues.md',
   'docs/release-checklist.md',
+  'docs/mobile-qa.md',
   'docs/ART_DIRECTION.md',
   'release/store-page.md',
   'release/capture-guide.md',

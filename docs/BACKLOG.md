@@ -17,3 +17,5 @@ Items deliberately left out of the current milestone (AGENTS §1). Each has a ta
 | PWA manifest, service worker, offline cache, and install UX | Separate lifecycle/cache/update risks from M9–M12 mobile-browser compatibility | P1 after M12 |
 | Configurable touch-control layout, alternate drag steering, and haptics | Ship and validate fixed visible controls first; alternatives require usability evidence | Unscheduled post-M12 |
 | Capacitor/mobile-store wrappers | Browser compatibility does not imply native packaging, store compliance, or native API support | P4 |
+| Mobile devices below the documented 270×480 visible-viewport baseline | The centered fractional fit still avoids gameplay cropping, but control readability and performance are not release-supported at smaller sizes | Reassess with device evidence after M12 |
+| Automated physical-device browser and FPS telemetry | Playwright emulation cannot validate Safari/Chrome hardware compositor, browser chrome, thermal throttling, or measured frame pacing | Keep the M12 manual QA record; reassess for a device-farm/telemetry follow-up |

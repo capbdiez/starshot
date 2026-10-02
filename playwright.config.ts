@@ -26,12 +26,14 @@ export default defineConfig({
     {
       name: 'mobile-chromium',
       use: { ...devices['Pixel 5'] },
-      testMatch: /m(?:9-mobile-viewport|10-touch-input|11-touch-controls)\.spec\.ts/,
+      testMatch:
+        /m(?:9-mobile-viewport|10-touch-input|11-touch-controls|12-mobile-release)\.spec\.ts/,
     },
     {
       name: 'mobile-webkit',
       use: { ...devices['iPhone 13'] },
-      testMatch: /m(?:9-mobile-viewport|10-touch-input|11-touch-controls)\.spec\.ts/,
+      testMatch:
+        /m(?:9-mobile-viewport|10-touch-input|11-touch-controls|12-mobile-release)\.spec\.ts/,
     },
   ],
   // With STARSHOT_PRODUCTION_URL, run the same smoke suite against a deployed release.

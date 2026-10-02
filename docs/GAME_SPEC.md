@@ -97,6 +97,13 @@ All numbers here are **starting values**. The source of truth is `content/*.json
 | NFR-10 | Mobile usability | Touch supports simultaneous movement and fire, respects safe areas, prevents browser-gesture interference, and meets the ≤2-frame input-latency target |
 | NFR-11 | Mobile resilience | Rotation, dynamic browser chrome, backgrounding, pointer cancellation, and capture loss cannot crash the app or leave gameplay input held |
 
+### Mobile support and performance policy (M12)
+
+- **Supported browsers:** the latest two iOS Safari and Android Chrome releases, in portrait and landscape, while desktop support in NFR-05 remains unchanged. Automated coverage uses iPhone 13 WebKit and Pixel 5 Chromium emulation; emulation does not replace physical-device sign-off.
+- **Reference physical QA devices:** one current iPhone-class device running iOS Safari and one Pixel 5-class-or-better Android device running Chrome. Record exact models, OS/browser versions, visible viewport dimensions, build URL, and date in `docs/mobile-qa.md` for every release candidate.
+- **Performance target:** the selected `HIGH` or visible `LOW` quality setting must sustain 60 FPS at the 300-bullet/400-particle peak-load scenario. `HIGH` is the default; select and record `LOW` only when a reference device cannot hold the target at high quality. Quality tiers may remove cosmetic work only, never gameplay cues.
+- **Manual release checks:** on both reference devices, verify safe areas, browser-toolbar resize, portrait/landscape rotation, permitted-gesture audio unlock, background/foreground recovery, fullscreen fallback, simultaneous touch movement/fire, bomb, pause/resume, and retry. Record the outcome rather than inferring it from emulation.
+
 ## 7. Constraints
 
 - A small team (1–2 developers + 1 artist/contractor), heavily AI-assisted.

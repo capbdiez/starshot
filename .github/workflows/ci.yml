@@ -42,7 +42,7 @@ jobs:
       - run: npm audit --omit=dev --audit-level=high
 
   e2e:
-    name: E2E smoke (Chromium + WebKit)
+    name: E2E smoke (desktop + mobile Chromium/WebKit)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

@@ -150,7 +150,7 @@ Extra lint rules inside `sim/`: no `Math.random`, `Date`, `performance`, `setTim
 | Content | Vitest + Zod | All `content/` files pass schemas; cross-references resolve (for example, a wave refers to an existing enemy, which refers to an existing pattern) |
 | Assets | Node scripts in CI | Palette check, manifest ↔ atlas keys, required animation clips, frame sizes |
 | Presentation | Vitest (light) | Event → effect mapping logic (the Phaser adapter is faked); settings scaling (shake/flash) |
-| E2E smoke | Playwright | Desktop and emulated mobile Chromium/WebKit: boot → title → play → pause → game over with no console errors; mobile coverage includes touch, orientation, and resize lifecycle |
+| E2E smoke | Playwright | Desktop Chromium/WebKit plus emulated Pixel 5 Chromium and iPhone 13 WebKit: boot → play → interruption pause → resume → retry with no console errors; mobile coverage includes touch, orientation, resize lifecycle, and complete-canvas fit. The same suite runs against `STARSHOT_PRODUCTION_URL` on release. |
 | Visual | Playwright screenshots | Fixed-seed frames of the HUD and a sample scene, compared against baselines to catch visual regressions |
 | Performance | Stress scene + manual device test | 300 bullets / 400 particles held at 60 FPS; CI logs the frame-time budget on Chromium as a warning, not a failure |
 | Playtest | Human | Each milestone that touches game feel |

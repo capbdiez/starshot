@@ -16,8 +16,9 @@ Requires Node 26 (`.nvmrc`; ≥ 24 works). Tools are TypeScript run natively by 
 npm ci
 npm run dev            # http://localhost:5173 — 270×480 integer-scaled canvas + placeholder ship
 npm run typecheck && npm run lint && npm run lint:deps && npm test && npm run check:assets
-npm run test:e2e       # Playwright smoke (Chromium + WebKit); first run: npx playwright install
+npm run test:e2e       # Desktop + Pixel 5 Chromium/iPhone 13 WebKit Playwright smoke; first run: npx playwright install
 npm run release:archive # Produces the itch.io-ready starshot-v1.0.0-itchio.zip archive
+# Hosted smoke: STARSHOT_PRODUCTION_URL=https://your-release.example npm run test:e2e:production
 npm run assets:build   # Aseprite + code-art export → atlas → generated audio/music (ffmpeg) → asset gates
 ```
 
@@ -36,6 +37,7 @@ deploy, production-url E2E smoke, itch.io-ready archive, and optional itch.io up
 | [GAME_SPEC.md](./docs/GAME_SPEC.md) | Vision, user stories, requirements, MVP, deferred features | 3 |
 | [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Subsystems, boundaries, data flow, folder layout, testing | 4 |
 | [MILESTONES.md](./docs/MILESTONES.md) | Incremental roadmap with acceptance criteria and DoD; includes the M9–M12 mobile-browser program | 5 |
+| [mobile-qa.md](./docs/mobile-qa.md) | M12 physical-device QA matrix, performance record, and sign-off template | M12 |
 | [AGENTS.md](./docs/AGENTS.md) | Rules for AI coding agents and contributors | 6 |
 
 ## Reading Order
