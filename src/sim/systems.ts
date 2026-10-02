@@ -7,13 +7,13 @@ import {
   type InputFrame,
 } from '../shared/index.ts';
 import { overlaps } from './collision.ts';
+import { scaledNormalWaveInterval } from './difficulty.ts';
 import { diveInterval } from './dive-scheduler.ts';
 import { easeInOut, sampleCubic } from './path.ts';
 import { patternVelocities } from './patterns.ts';
 import {
   advanceLevel,
   MIN_BOSS_INTERVAL_TICKS,
-  MIN_NORMAL_INTERVAL_TICKS,
   newId,
   placePlayer,
   resetGame,
@@ -207,11 +207,7 @@ export function updateEnemyFire(world: World): void {
           launch(world, bullet, enemy.x, enemy.y, velocity.vx, velocity.vy);
           world.events.push({ type: 'EnemyFired', id: bullet.id, x: bullet.x, y: bullet.y });
         }
-        enemy.fireTimer = scaledInterval(
-          spec.fireIntervalTicks,
-          world.difficulty,
-          MIN_NORMAL_INTERVAL_TICKS,
-        );
+        enemy.fireTimer = scaledNormalWaveInterval(spec.fireIntervalTicks, world.difficulty);
       }
       continue;
     }
@@ -238,8 +234,8 @@ export function updateEnemyFire(world: World): void {
     const diver = alive[world.rng.int(0, alive.length - 1)];
     if (diver) diver.diving = wave.dive.durationTicks / 2;
     world.diveTimer = diveInterval(
-      scaledInterval(wave.dive.minIntervalTicks, world.difficulty, MIN_NORMAL_INTERVAL_TICKS),
-      scaledInterval(wave.dive.maxIntervalTicks, world.difficulty, MIN_NORMAL_INTERVAL_TICKS),
+      scaledNormalWaveInterval(wave.dive.minIntervalTicks, world.difficulty),
+      scaledNormalWaveInterval(wave.dive.maxIntervalTicks, world.difficulty),
       alive.length,
       world.grunts.length,
     );

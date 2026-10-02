@@ -7,6 +7,7 @@ All notable changes to Starshot are documented here.
 ### Changed
 
 - P3 replaces the finite campaign with endless deterministic levels, recurring tenth-level Overlord encounters, and level-based local scores.
+- P3.3 scales normal-wave enemy durability, fire cadence, and dive cadence from difficulty at runtime, with readable timing floors and unchanged authored content.
 
 
 ## [1.0.0] — 2026-01-10

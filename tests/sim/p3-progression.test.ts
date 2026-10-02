@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
-  createWorld,
+  MIN_NORMAL_WAVE_INTERVAL_TICKS,
+  scaledNormalEnemyHp,
+  scaledNormalWaveInterval,
+} from '../../src/sim/difficulty.ts';
+import { moveMovers, updateEnemyFire } from '../../src/sim/systems.ts';
+import {
   advanceLevel,
-  scaledHp,
-  scaledInterval,
+  createWorld,
+  ENEMY_BULLET_POOL,
+  spawnWave,
   waveForLevel,
 } from '../../src/sim/world.ts';
 import { realContent } from './helpers.ts';
@@ -57,10 +63,47 @@ describe('P3 endless progression', () => {
   });
 
   it('preserves difficulty-one tuning and clamps high-difficulty timing safely', () => {
-    expect(scaledHp(5, 1)).toBe(5);
-    expect(scaledInterval(60, 1, 18)).toBe(60);
-    expect(scaledHp(5, 12)).toBeGreaterThan(5);
-    expect(scaledInterval(60, 12, 18)).toBeLessThan(60);
-    expect(scaledInterval(1, 999, 18)).toBe(18);
+    expect(scaledNormalEnemyHp(5, 1)).toBe(5);
+    expect(scaledNormalWaveInterval(60, 1)).toBe(60);
+    expect(scaledNormalEnemyHp(5, 12)).toBeGreaterThan(5);
+    expect(scaledNormalWaveInterval(60, 12)).toBeLessThan(60);
+    expect(scaledNormalWaveInterval(1, 999)).toBe(MIN_NORMAL_WAVE_INTERVAL_TICKS);
+  });
+
+  it('applies modifiers to normal waves without mutating frozen authored content', () => {
+    const world = createWorld(realContent, 42);
+    const baselineHp = realContent.enemies['grunt']?.hp;
+    const baselineFireInterval = realContent.enemies['grunt']?.fireIntervalTicks;
+    const baselineDiveInterval = realContent.waves['opening']?.dive.maxIntervalTicks;
+    world.difficulty = 12;
+    spawnWave(world);
+
+    expect(world.grunts.every((enemy) => enemy.hp === scaledNormalEnemyHp(1, 12))).toBe(true);
+    expect(
+      world.grunts.every((enemy) => enemy.fireTimer === scaledNormalWaveInterval(120, 12)),
+    ).toBe(true);
+    expect(world.diveTimer).toBe(scaledNormalWaveInterval(180, 12));
+    expect(realContent.enemies['grunt']?.hp).toBe(baselineHp);
+    expect(realContent.enemies['grunt']?.fireIntervalTicks).toBe(baselineFireInterval);
+    expect(realContent.waves['opening']?.dive.maxIntervalTicks).toBe(baselineDiveInterval);
+  });
+
+  it('keeps the fixed enemy-bullet pool bounded during an extended high-difficulty normal wave', () => {
+    const world = createWorld(realContent, 42);
+    world.difficulty = 999;
+    spawnWave(world);
+    world.diveTimer = Number.MAX_SAFE_INTEGER;
+    let peakBullets = 0;
+
+    for (let tick = 0; tick < 10_000; tick += 1) {
+      world.tick += 1;
+      moveMovers(world.bullets);
+      updateEnemyFire(world);
+      peakBullets = Math.max(peakBullets, world.bullets.filter((bullet) => bullet.active).length);
+    }
+
+    expect(peakBullets).toBeGreaterThan(0);
+    expect(peakBullets).toBeLessThanOrEqual(ENEMY_BULLET_POOL);
+    expect(world.bullets).toHaveLength(ENEMY_BULLET_POOL);
   });
 });

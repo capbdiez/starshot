@@ -1,6 +1,7 @@
 import type { Content } from '../content/index.ts';
 import { WORLD_WIDTH } from '../shared/index.ts';
 import type { SimEvent } from './events.ts';
+import { scaledNormalEnemyHp, scaledNormalWaveInterval } from './difficulty.ts';
 import { createRng, type Rng } from './rng.ts';
 
 /** Capacity of the enemy bullet pool (structural limit, not a tuning value). */
@@ -233,10 +234,18 @@ export function placePlayer(world: World): void {
   p.bombHeld = false;
 }
 
-/** Lowest readable fire interval for normal enemies and dives. */
-export const MIN_NORMAL_INTERVAL_TICKS = 18;
 /** Lowest readable fire interval for the recurring boss. */
 export const MIN_BOSS_INTERVAL_TICKS = 36;
+
+/** Existing recurring-boss durability transform. */
+export function scaledHp(base: number, difficulty: number): number {
+  return Math.ceil(base * (1 + (difficulty - 1) * 0.2));
+}
+
+/** Existing recurring-boss interval transform. */
+export function scaledInterval(base: number, difficulty: number, minimum: number): number {
+  return Math.max(minimum, Math.round(base / (1 + (difficulty - 1) * 0.08)));
+}
 
 /** Returns the level's cyclic normal-wave template, excluding every tenth boss encounter. */
 export function waveForLevel(world: World) {
@@ -246,16 +255,6 @@ export function waveForLevel(world: World) {
   const normalIndex = world.level - Math.floor(world.level / 10) - 1;
   const stage = templates[normalIndex % templates.length];
   return stage?.type === 'wave' ? world.content.waves[stage.wave] : undefined;
-}
-
-/** Difficulty-derived hit points; difficulty one always preserves content values. */
-export function scaledHp(base: number, difficulty: number): number {
-  return Math.ceil(base * (1 + (difficulty - 1) * 0.2));
-}
-
-/** Difficulty-derived interval with a hard readability and pool-safety floor. */
-export function scaledInterval(base: number, difficulty: number, minimum: number): number {
-  return Math.max(minimum, Math.round(base / (1 + (difficulty - 1) * 0.08)));
 }
 
 /** Spawns the current level's cyclic normal formation and announces the encounter. */
@@ -278,7 +277,7 @@ export function spawnWave(world: World): void {
     if (!spec) return;
     enemy.id = newId(world);
     enemy.alive = true;
-    enemy.hp = scaledHp(spec.hp, world.difficulty);
+    enemy.hp = scaledNormalEnemyHp(spec.hp, world.difficulty);
     enemy.kind = spec.key;
     enemy.slot = i;
     enemy.x = left + (i % wave.formation.columns) * wave.formation.spacingX;
@@ -286,21 +285,13 @@ export function spawnWave(world: World): void {
     enemy.prevX = enemy.x;
     enemy.prevY = enemy.y;
     enemy.tellTimer = 0;
-    enemy.fireTimer = scaledInterval(
-      spec.fireIntervalTicks,
-      world.difficulty,
-      MIN_NORMAL_INTERVAL_TICKS,
-    );
+    enemy.fireTimer = scaledNormalWaveInterval(spec.fireIntervalTicks, world.difficulty);
     enemy.diving = 0;
     enemy.entryTimer = 60;
   });
   world.wave = world.level;
   world.waveTimer = 0;
-  world.diveTimer = scaledInterval(
-    wave.dive.maxIntervalTicks,
-    world.difficulty,
-    MIN_NORMAL_INTERVAL_TICKS,
-  );
+  world.diveTimer = scaledNormalWaveInterval(wave.dive.maxIntervalTicks, world.difficulty);
   world.events.push({ type: 'WaveStarted', level: world.level, difficulty: world.difficulty });
 }
 
