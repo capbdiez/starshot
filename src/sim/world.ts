@@ -247,8 +247,14 @@ export function scaledInterval(base: number, difficulty: number, minimum: number
   return Math.max(minimum, Math.round(base / (1 + (difficulty - 1) * 0.08)));
 }
 
-/** Returns the level's cyclic normal-wave template, excluding every tenth boss encounter. */
+/** Returns whether an absolute level schedules the recurring boss encounter. */
+export function isBossLevel(level: number): boolean {
+  return level > 0 && level % 10 === 0;
+}
+
+/** Returns the level's cyclic normal-wave template, excluding recurring boss encounters. */
 export function waveForLevel(world: World) {
+  if (isBossLevel(world.level)) return undefined;
   const templates = world.content.stages.filter((stage) => stage.type === 'wave');
   if (templates.length === 0)
     throw new Error('endless progression requires one normal wave template');

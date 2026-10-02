@@ -95,8 +95,13 @@ describe('P3 recurring boss systems', () => {
     ];
     expect(ofType(events, 'BossStarted')).toHaveLength(1);
     expect(ofType(events, 'BossPartDestroyed')).toHaveLength(3);
-    expect(ofType(events, 'BossPhaseChanged').map((event) => event.phase)).toEqual([2, 3]);
-    expect(ofType(events, 'BossDefeated')).toHaveLength(1);
+    const phaseChanges = ofType(events, 'BossPhaseChanged');
+    const defeats = ofType(events, 'BossDefeated');
+    expect(phaseChanges.map((event) => event.phase)).toEqual([2, 3]);
+    expect(phaseChanges.every((event) => event.level === 10 && event.difficulty > 0)).toBe(true);
+    expect(defeats).toHaveLength(1);
+    expect(defeats[0]?.level).toBe(10);
+    expect(defeats[0]?.difficulty).toBeGreaterThan(0);
     expect(sim.snapshot().phase).toBe('playing');
     expect(sim.snapshot().level).toBe(11);
     expect(ofType(events, 'WaveStarted').map((event) => event.level)).toContain(11);

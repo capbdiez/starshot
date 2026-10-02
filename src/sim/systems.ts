@@ -14,6 +14,7 @@ import { patternVelocities } from './patterns.ts';
 import {
   advanceLevel,
   MIN_BOSS_INTERVAL_TICKS,
+  isBossLevel,
   newId,
   placePlayer,
   resetGame,
@@ -265,12 +266,25 @@ function damageBoss(world: World, amount: number): void {
       world.difficulty,
       MIN_BOSS_INTERVAL_TICKS,
     );
-    world.events.push({ type: 'BossPhaseChanged', phase: boss.phase + 1, x: boss.x, y: boss.y });
+    world.events.push({
+      type: 'BossPhaseChanged',
+      phase: boss.phase + 1,
+      level: world.level,
+      difficulty: world.difficulty,
+      x: boss.x,
+      y: boss.y,
+    });
     return;
   }
   boss.active = false;
   for (const bullet of world.bullets) bullet.active = false;
-  world.events.push({ type: 'BossDefeated', x: boss.x, y: boss.y });
+  world.events.push({
+    type: 'BossDefeated',
+    level: world.level,
+    difficulty: world.difficulty,
+    x: boss.x,
+    y: boss.y,
+  });
   advanceLevel(world);
   world.waveTimer = 0;
 }
@@ -423,7 +437,7 @@ export function updateWave(world: World): void {
   if (world.waveTimer < world.rules.grunt.respawnTicks) return;
   if (world.waveTimer !== world.rules.grunt.respawnTicks) return;
   if (world.waveKey !== '') advanceLevel(world);
-  if (world.level % 10 === 0) spawnBoss(world);
+  if (isBossLevel(world.level)) spawnBoss(world);
   else spawnWave(world);
 }
 

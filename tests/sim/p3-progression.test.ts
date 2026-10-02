@@ -4,11 +4,12 @@ import {
   scaledNormalEnemyHp,
   scaledNormalWaveInterval,
 } from '../../src/sim/difficulty.ts';
-import { moveMovers, updateEnemyFire } from '../../src/sim/systems.ts';
+import { moveMovers, updateEnemyFire, updateWave } from '../../src/sim/systems.ts';
 import {
   advanceLevel,
   createWorld,
   ENEMY_BULLET_POOL,
+  isBossLevel,
   spawnWave,
   waveForLevel,
 } from '../../src/sim/world.ts';
@@ -42,6 +43,63 @@ describe('P3 endless progression', () => {
       'opening',
       'swoop',
     ]);
+  });
+
+  it('starts normal encounters on levels 1–9 and 11–19, and bosses on levels 10 and 20', () => {
+    const world = createWorld(realContent, 42);
+    const schedule = [world.events[0]?.type ?? ''];
+    for (let level = 2; level <= 20; level += 1) {
+      world.waveKey = 'cleared';
+      world.waveTimer = world.rules.grunt.respawnTicks - 1;
+      world.boss.active = false;
+      for (const enemy of world.grunts) enemy.alive = false;
+      world.events.length = 0;
+      updateWave(world);
+      schedule.push(world.events[0]?.type ?? '');
+    }
+
+    expect(schedule).toEqual([
+      'WaveStarted',
+      'WaveStarted',
+      'WaveStarted',
+      'WaveStarted',
+      'WaveStarted',
+      'WaveStarted',
+      'WaveStarted',
+      'WaveStarted',
+      'WaveStarted',
+      'BossStarted',
+      'WaveStarted',
+      'WaveStarted',
+      'WaveStarted',
+      'WaveStarted',
+      'WaveStarted',
+      'WaveStarted',
+      'WaveStarted',
+      'WaveStarted',
+      'WaveStarted',
+      'BossStarted',
+    ]);
+  });
+
+  it('schedules boss levels independently of unrelated RNG consumption', () => {
+    const clean = createWorld(realContent, 42);
+    const noisy = createWorld(realContent, 42);
+    const cleanBossLevels: number[] = [];
+    const noisyBossLevels: number[] = [];
+
+    for (let transition = 0; transition < 99; transition += 1) {
+      if (isBossLevel(clean.level)) cleanBossLevels.push(clean.level);
+      if (isBossLevel(noisy.level)) noisyBossLevels.push(noisy.level);
+      for (let roll = 0; roll <= transition; roll += 1) noisy.rng.nextU32();
+      advanceLevel(clean);
+      advanceLevel(noisy);
+    }
+    if (isBossLevel(clean.level)) cleanBossLevels.push(clean.level);
+    if (isBossLevel(noisy.level)) noisyBossLevels.push(noisy.level);
+
+    expect(cleanBossLevels).toEqual([10, 20, 30, 40, 50, 60, 70, 80, 90, 100]);
+    expect(noisyBossLevels).toEqual(cleanBossLevels);
   });
 
   it('uses one deterministic 50/50 roll per level transition and never lowers difficulty', () => {

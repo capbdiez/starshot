@@ -65,10 +65,18 @@ export type SimEvent =
   | {
       readonly type: 'BossPhaseChanged';
       readonly phase: number;
+      readonly level: number;
+      readonly difficulty: number;
       readonly x: number;
       readonly y: number;
     }
-  | { readonly type: 'BossDefeated'; readonly x: number; readonly y: number }
+  | {
+      readonly type: 'BossDefeated';
+      readonly level: number;
+      readonly difficulty: number;
+      readonly x: number;
+      readonly y: number;
+    }
   | { readonly type: 'GameRestarted' };
 
 /** Every event kind, e.g. for exhaustive event → effect maps. */

@@ -52,7 +52,7 @@ describe('quality-tier FX planning', () => {
 
   it('caps a batch at its fixed pool budget and scales reduced flashes', () => {
     const reactions = reactionsFor({ BossDefeated: { effect: 'boss', particles: 400 } }, [
-      { type: 'BossDefeated', x: 135, y: 120 },
+      { type: 'BossDefeated', level: 10, difficulty: 1, x: 135, y: 120 },
     ]);
     expect(planFxBatch(reactions.reactions, settings, 100)).toEqual([
       expect.objectContaining({ effect: 'boss', particles: 100 }),
