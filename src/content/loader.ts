@@ -8,6 +8,7 @@ import {
   type EnemySpec,
 } from './schemas/enemies.ts';
 import { gameplaySchema, type Gameplay } from './schemas/gameplay.ts';
+import { stageEnvironmentFileSchema, type StageEnvironment } from './schemas/environments.ts';
 import { spriteFileSchema, type SpriteSpec } from './schemas/sprites.ts';
 import { stagesSchema, waveFileSchema, type StageSpec, type WaveSpec } from './schemas/waves.ts';
 import { z } from 'zod';
@@ -27,6 +28,8 @@ export type Content = DeepReadonly<{
   patterns: Record<string, BulletPattern>;
   waves: Record<string, WaveSpec>;
   stages: readonly StageSpec[];
+  /** Presentation-only stage environments, indexed by their one-based stage number. */
+  environments: readonly StageEnvironment[];
   /** Sim event type → presentation reaction (merged from `fx/*.json`). */
   fx: Record<string, FxEntry>;
   /** English UI strings; all displayed UI copy comes from this table. */
@@ -69,6 +72,7 @@ interface MutableContent {
   patterns: Record<string, BulletPattern>;
   waves: Record<string, WaveSpec>;
   stages?: readonly StageSpec[];
+  environments?: readonly StageEnvironment[];
   strings?: Strings;
 }
 
@@ -161,6 +165,18 @@ const CONTENT_KINDS: readonly ContentKind[] = [
     },
   },
   {
+    pattern: /^environments\/stages\.json$/,
+    apply: (data, file, into) => {
+      const parsed = stageEnvironmentFileSchema.safeParse(data);
+      if (!parsed.success) return schemaIssues(file, parsed.error);
+      const stages = new Set(parsed.data.environments.map((environment) => environment.stage));
+      if (stages.size !== parsed.data.environments.length)
+        return [{ file, message: 'environments: each stage may have only one environment' }];
+      into.environments = parsed.data.environments;
+      return [];
+    },
+  },
+  {
     pattern: /^strings\/en\.json$/,
     apply: (data, file, into) => {
       const parsed = stringsFileSchema.safeParse(data);
@@ -230,10 +246,12 @@ export function validateContent(files: RawContentFiles): ContentValidationResult
   if (issues.length > 0) {
     return { ok: false, issues };
   }
-  const { gameplay, sprites, fx, enemies, bosses, patterns, waves, stages, strings } = into;
+  const { gameplay, sprites, fx, enemies, bosses, patterns, waves, stages, environments, strings } =
+    into;
   if (
     !gameplay ||
     !stages ||
+    !environments ||
     !strings ||
     Object.keys(enemies).length === 0 ||
     Object.keys(bosses).length === 0 ||
@@ -245,11 +263,13 @@ export function validateContent(files: RawContentFiles): ContentValidationResult
         ? 'strings/en.json'
         : !stages
           ? 'stages.json'
-          : Object.keys(enemies).length === 0
-            ? 'enemies.json'
-            : Object.keys(bosses).length === 0
-              ? 'bosses.json'
-              : 'patterns.json';
+          : !environments
+            ? 'environments/stages.json'
+            : Object.keys(enemies).length === 0
+              ? 'enemies.json'
+              : Object.keys(bosses).length === 0
+                ? 'bosses.json'
+                : 'patterns.json';
     return { ok: false, issues: [{ file: missing, message: 'required file is missing' }] };
   }
   const refIssues = gameplaySpriteIssues(gameplay, sprites);
@@ -274,6 +294,12 @@ export function validateContent(files: RawContentFiles): ContentValidationResult
         });
     }
   }
+  for (const environment of environments)
+    if (!stages[environment.stage - 1])
+      refIssues.push({
+        file: 'environments/stages.json',
+        message: `stage: ${String(environment.stage)} has no matching stage`,
+      });
   for (const stage of stages) {
     if (stage.type === 'wave' && !(stage.wave in waves))
       refIssues.push({
@@ -305,6 +331,7 @@ export function validateContent(files: RawContentFiles): ContentValidationResult
       patterns,
       waves,
       stages,
+      environments,
       fx,
       strings,
     }),

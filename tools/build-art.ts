@@ -5,13 +5,17 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadContent } from '../src/content/index.ts';
-import { SPRITE_ART } from './art/sprites.ts';
+import { RECIPE_METADATA, SPRITE_ART } from './art/sprites.ts';
 import { writePng } from './lib/image.ts';
 import { buildSheet } from './lib/pixel-art.ts';
 import { PATHS, readContentFiles } from './lib/repo.ts';
 
 const content = loadContent(readContentFiles());
 mkdirSync(PATHS.artExport, { recursive: true });
+writeFileSync(
+  join(PATHS.artExport, 'recipe-manifest.json'),
+  `${JSON.stringify({ version: 1, recipes: RECIPE_METADATA }, null, 2)}\n`,
+);
 for (const [key, clips] of Object.entries(SPRITE_ART)) {
   const spec = content.sprites[key];
   if (!spec) throw new Error(`tools/art/sprites.ts: "${key}" is not defined in content`);

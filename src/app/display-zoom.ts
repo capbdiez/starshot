@@ -8,17 +8,17 @@ export interface ZoomViewport {
 }
 
 /**
- * CSS zoom for a `gameWidth`×`gameHeight` canvas so that each game pixel covers a whole number
- * of *device* pixels (crisp nearest-neighbour scaling even at fractional devicePixelRatio).
- * The remaining space is letterboxed by the page layout.
+ * CSS zoom for a `gameWidth`×`gameHeight` canvas. When at least 1× fits, each presentation
+ * pixel covers a whole number of device pixels for crisp nearest-neighbour scaling. Smaller
+ * viewports use the largest fractional fallback that fits; the canvas stays centered and visible.
  */
 export function displayZoom(viewport: ZoomViewport, gameWidth: number, gameHeight: number): number {
   const ratio = viewport.pixelRatio > 0 ? viewport.pixelRatio : 1;
-  const deviceScale = integerScale(
-    viewport.width * ratio,
-    viewport.height * ratio,
-    gameWidth,
-    gameHeight,
-  );
+  const availableWidth = viewport.width * ratio;
+  const availableHeight = viewport.height * ratio;
+  const fit = Math.min(availableWidth / gameWidth, availableHeight / gameHeight);
+  if (!(fit > 0)) return 1;
+  const deviceScale =
+    fit >= 1 ? integerScale(availableWidth, availableHeight, gameWidth, gameHeight) : fit;
   return deviceScale / ratio;
 }

@@ -10,6 +10,9 @@ export default defineConfig({
     // Phaser alone is ~1.2 MB minified; the NFR budget is 5 MB gzipped total.
     chunkSizeWarningLimit: 2000,
   },
-  server: { port: 5173 },
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+  },
   preview: { port: 4173 },
 });

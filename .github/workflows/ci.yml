@@ -28,6 +28,7 @@ jobs:
       - run: npm run lint:deps
       - run: npm test
       - run: npm run check:assets
+      - run: npm run release:check
       - name: Committed atlas is up to date with content/ and tools/art
         run: |
           npm run assets:art

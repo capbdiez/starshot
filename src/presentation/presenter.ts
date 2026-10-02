@@ -1,12 +1,13 @@
 import type Phaser from 'phaser';
 import type { AssetManifest, Content } from '../content/index.ts';
-import { GAME_HEIGHT, GAME_WIDTH } from '../shared/index.ts';
+import { displayGlyph, PRESENTATION_SCALE, WORLD_HEIGHT, WORLD_WIDTH } from '../shared/index.ts';
 import type { SimEvent, SimView } from '../sim/index.ts';
 import { animationKey } from './anim/register-animations.ts';
+import { StageBackground } from './background/stage-background.ts';
 import type { AudioDirector } from './audio/audio-director.ts';
-import { reactionsFor, smooth } from './fx/event-fx.ts';
+import { planFxBatch, reactionsFor, smooth, type VisualQuality } from './fx/event-fx.ts';
 import { Trauma } from './fx/trauma.ts';
-import { Starfield, VisualFx } from './fx/visual-fx.ts';
+import { VisualFx } from './fx/visual-fx.ts';
 import { SpriteLayer, type SpriteSource } from './renderer/sprite-layer.ts';
 
 /** Time effects requested by the event map for the loop driver. */
@@ -23,6 +24,9 @@ export interface PresentationSettings {
   readonly crt: boolean;
   readonly highContrastBullets: boolean;
   readonly subtitles: boolean;
+  readonly visualQuality: VisualQuality;
+  readonly backgroundMotion: boolean;
+  readonly effectsIntensity: number;
 }
 
 /** Flash colour (palette white) and length in render frames. */
@@ -67,7 +71,7 @@ export class Presenter {
   private readonly pickups: SpriteLayer;
   private readonly bossSprites: Map<string, SpriteLayer>;
   private readonly player: Phaser.GameObjects.Sprite;
-  private readonly hud: Phaser.GameObjects.Text;
+  private readonly hud: Phaser.GameObjects.Graphics;
   private readonly deaths: Phaser.GameObjects.Sprite[] = [];
   private readonly flash: Phaser.GameObjects.Rectangle;
   private readonly scanlines: Phaser.GameObjects.Graphics;
@@ -83,13 +87,16 @@ export class Presenter {
   private readonly audio: AudioDirector;
   private readonly trauma = new Trauma();
   private readonly visual: VisualFx;
-  private readonly starfield: Starfield;
+  private readonly background: StageBackground;
   private settings: PresentationSettings = {
     shake: 1,
     flashReduction: false,
     crt: false,
     highContrastBullets: false,
     subtitles: true,
+    visualQuality: 'high',
+    backgroundMotion: true,
+    effectsIntensity: 1,
   };
 
   constructor(
@@ -97,12 +104,16 @@ export class Presenter {
     content: Content,
     manifest: AssetManifest,
     audio: AudioDirector,
+    runSeed: number,
   ) {
     this.scene = scene;
+    // The scene continues to use simulation/world coordinates. This camera is the single
+    // compatibility transform from the 270×480 world into the 540×960 presentation buffer.
+    scene.cameras.main.setOrigin(0, 0).setZoom(PRESENTATION_SCALE).setScroll(0, 0);
     this.content = content;
     this.manifest = manifest;
     this.audio = audio;
-    this.starfield = new Starfield(scene);
+    this.background = new StageBackground(scene, content.environments, runSeed);
     this.visual = new VisualFx(scene);
     const g = content.gameplay;
     this.grunts = new Map(
@@ -149,20 +160,11 @@ export class Presenter {
         ]),
     );
     const ship = source(manifest, g.player.sprite);
-    this.player = scene.add.sprite(GAME_WIDTH / 2, g.player.y, ship.atlas, ship.frame);
+    this.player = scene.add.sprite(WORLD_WIDTH / 2, g.player.y, ship.atlas, ship.frame);
     this.player.setDepth(DEPTH.player);
-    this.hud = scene.add
-      .text(4, 2, '', {
-        fontFamily: 'monospace',
-        fontSize: '8px',
-        color: '#ffffff',
-        stroke: '#0b0b1a',
-        strokeThickness: 1,
-      })
-      .setDepth(DEPTH.hud)
-      .setResolution(1);
+    this.hud = scene.add.graphics().setDepth(DEPTH.hud);
     this.subtitle = scene.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT - 42, '', {
+      .text(WORLD_WIDTH / 2, WORLD_HEIGHT - 42, '', {
         align: 'center',
         color: '#ffffff',
         fontFamily: 'monospace',
@@ -175,9 +177,9 @@ export class Presenter {
       .setVisible(false);
     this.scanlines = scene.add.graphics().setDepth(DEPTH.scanlines).setVisible(false);
     this.scanlines.lineStyle(1, 0x0b0b1a, 0.28);
-    for (let y = 0; y < GAME_HEIGHT; y += 2) this.scanlines.lineBetween(0, y, GAME_WIDTH, y);
+    for (let y = 0; y < WORLD_HEIGHT; y += 2) this.scanlines.lineBetween(0, y, WORLD_WIDTH, y);
     this.flash = scene.add
-      .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, FLASH_COLOUR)
+      .rectangle(0, 0, WORLD_WIDTH, WORLD_HEIGHT, FLASH_COLOUR)
       .setOrigin(0, 0)
       .setDepth(DEPTH.flash)
       .setVisible(false);
@@ -190,6 +192,7 @@ export class Presenter {
 
   /** Positions every sprite from `view`, interpolating by `alpha` between the last two ticks. */
   sync(view: Readonly<SimView>, alpha: number): void {
+    this.background.setStage(view.wave);
     const p = view.player;
     const shipKey = this.content.gameplay.player.sprite;
     this.player.setVisible(
@@ -251,9 +254,7 @@ export class Presenter {
         smooth(pickup.prevY, pickup.y, alpha),
       );
     this.pickups.end();
-    this.hud.setText(
-      `SCORE ${String(view.score).padStart(6, '0')}  x${String(view.multiplier)}  STG ${String(view.wave)}${view.boss ? ` P${String(view.boss.phase)}` : ''}\nW${String(view.weaponLevel)}                 L${String(view.lives)} B${String(view.bombs)}`,
-    );
+    this.drawHud(view);
 
     if (this.flashFrames > 0) {
       this.flashFrames -= 1;
@@ -261,9 +262,51 @@ export class Presenter {
     }
   }
 
+  /** Renders the compact top-strip HUD and bottom-corner status with the shared display glyph grid. */
+  private drawHud(view: Readonly<SimView>): void {
+    const g = this.hud;
+    g.clear();
+    g.fillStyle(0x0b0b1a, 0.9).fillRect(2, 2, WORLD_WIDTH - 4, 18);
+    g.lineStyle(1, 0x2a2d63, 1).strokeRect(2, 2, WORLD_WIDTH - 4, 18);
+    g.fillStyle(0x3ee0ff, 1)
+      .fillRect(5, 5, 18, 1)
+      .fillRect(WORLD_WIDTH - 23, 5, 18, 1);
+    this.drawHudText(`SCORE ${String(view.score).padStart(6, '0')}`, 8, 9, 0xffffff);
+    this.drawHudText(`X${String(view.multiplier)}`, 110, 9, 0xffd08a);
+    this.drawHudText(
+      `STG ${String(view.wave)}${view.boss ? ` P${String(view.boss.phase)}` : ''}`,
+      160,
+      9,
+      0xa6f6ff,
+    );
+    g.fillStyle(0x0b0b1a, 0.85).fillRect(3, WORLD_HEIGHT - 14, 58, 11);
+    g.fillStyle(0x0b0b1a, 0.85).fillRect(WORLD_WIDTH - 61, WORLD_HEIGHT - 14, 58, 11);
+    this.drawHudText(
+      `W${String(view.weaponLevel)} L${String(view.lives)}`,
+      6,
+      WORLD_HEIGHT - 11,
+      0xffffff,
+    );
+    this.drawHudText(`B${String(view.bombs)}`, WORLD_WIDTH - 23, WORLD_HEIGHT - 11, 0xc4ff5c);
+  }
+
+  private drawHudText(text: string, x: number, y: number, colour: number): void {
+    let cursor = x;
+    this.hud.fillStyle(colour, 1);
+    for (const character of text) {
+      const glyph = displayGlyph(character);
+      glyph.forEach((row, rowIndex) => {
+        for (let column = 0; column < row.length; column += 1)
+          if (row.charAt(column) === '1') this.hud.fillRect(cursor + column, y + rowIndex, 1, 1);
+      });
+      cursor += 6;
+    }
+  }
+
   /** Applies the user-controlled visual accessibility preferences. */
   setSettings(settings: Partial<PresentationSettings>): void {
     this.settings = { ...this.settings, ...settings };
+    this.background.setMotionEnabled(this.settings.backgroundMotion);
     this.scanlines.setVisible(this.settings.crt);
     this.subtitle.setVisible(this.subtitleMs > 0 && this.settings.subtitles);
   }
@@ -271,7 +314,7 @@ export class Presenter {
   /** Advances render-only effects, parallax and trauma shake. */
   update(deltaMs: number): void {
     this.elapsedMs += deltaMs;
-    this.starfield.update(deltaMs);
+    this.background.update(deltaMs);
     this.visual.update(deltaMs);
     if (this.subtitleMs > 0) {
       this.subtitleMs = Math.max(0, this.subtitleMs - deltaMs);
@@ -298,12 +341,14 @@ export class Presenter {
       if (this.settings.flashReduction) this.lastReducedFlashMs = this.elapsedMs;
     }
     const g = this.content.gameplay;
+    const plannedFx = planFxBatch(reactions.reactions, this.settings);
+    for (const plan of plannedFx) {
+      if ('x' in plan.event)
+        this.visual.emit(plan.effect, plan.event.x, plan.event.y, plan.particles);
+    }
     for (const { event, entry } of reactions.reactions) {
       if (entry.sfx !== undefined)
         this.audio.play(entry.sfx, entry.voiceLimit, entry.pitchVariance);
-      if (entry.muzzle === true && 'x' in event) this.visual.muzzleFlash(event.x, event.y);
-      if (entry.particles !== undefined && 'x' in event)
-        this.visual.sparks(event.x, event.y, entry.particles);
       if (entry.trauma !== undefined) this.trauma.add(entry.trauma);
       hitStopMs = Math.max(hitStopMs, entry.hitStopMs ?? 0);
       slowMotionMs = Math.max(slowMotionMs, entry.slowMotionMs ?? 0);

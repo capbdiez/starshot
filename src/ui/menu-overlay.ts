@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import type { Content } from '../content/index.ts';
+import { addButton, drawDisplayText, drawPanelFrame, UI_COLOUR } from './ui-art.ts';
 
 /** Commands emitted by the UI; app maps them to its scene-flow state machine. */
 export type UiCommand = 'start' | 'pause' | 'resume' | 'title' | 'settings' | 'back';
@@ -14,6 +15,9 @@ export interface UiSettings {
   readonly crt: boolean;
   readonly highContrastBullets: boolean;
   readonly subtitles: boolean;
+  readonly visualQuality: 'low' | 'high';
+  readonly backgroundMotion: boolean;
+  readonly effectsIntensity: number;
 }
 
 /** One high-score row displayed by the UI. */
@@ -30,6 +34,10 @@ export interface MenuOverlayEvents {
 }
 
 const DEPTH = 200;
+const PANEL_WIDTH = 246;
+const PANEL_HEIGHT = 430;
+const TITLE_SCORE_START_Y = 55;
+const TITLE_SCORE_ROW_STEP = 12;
 
 /** Phaser menu overlay; it emits commands and never accesses simulation or browser APIs. */
 export class MenuOverlay {
@@ -52,9 +60,11 @@ export class MenuOverlay {
   ): void {
     this.panel.removeAll(true);
     this.panel.setVisible(true);
-    this.panel.add(
-      this.scene.add.rectangle(0, 0, 246, 350, 0x0b0b1a, 0.94).setStrokeStyle(2, 0xa6f6ff),
-    );
+    const frame = this.scene.add.graphics();
+    drawPanelFrame(frame, 0, 0, PANEL_WIDTH, PANEL_HEIGHT);
+    frame.lineStyle(1, UI_COLOUR.panelEdge, 1).lineBetween(-102, -158, 102, -158);
+    frame.fillStyle(UI_COLOUR.cyanGlow, 1).fillRect(-100, -159, 24, 2).fillRect(76, -159, 24, 2);
+    this.panel.add(frame);
     if (state === 'title') this.title(scores);
     if (state === 'pause') this.pause();
     if (state === 'results') this.results(scores);
@@ -65,51 +75,30 @@ export class MenuOverlay {
     this.panel.setVisible(false);
   }
 
-  private label(text: string, y: number, size = '12px'): Phaser.GameObjects.Text {
-    const label = this.scene.add
-      .text(0, y, text, {
-        color: '#f4f7ff',
-        fontFamily: 'monospace',
-        fontSize: size,
-        align: 'center',
-      })
-      .setOrigin(0.5);
+  private label(text: string, y: number, scale = 1, colour: number = UI_COLOUR.white): void {
+    const label = this.scene.add.graphics();
+    drawDisplayText(label, text, 0, y, scale, colour, true);
     this.panel.add(label);
-    return label;
   }
 
-  private button(text: string, y: number, action: () => void): void {
-    const button = this.scene.add
-      .text(0, y, text, {
-        color: '#a6f6ff',
-        fontFamily: 'monospace',
-        fontSize: '11px',
-        align: 'center',
-        backgroundColor: '#1c1f47',
-        padding: { x: 8, y: 4 },
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-    button.on('pointerdown', action);
-    button.on('pointerover', () => button.setColor('#ffffff'));
-    button.on('pointerout', () => button.setColor('#a6f6ff'));
-    this.panel.add(button);
+  private button(text: string, y: number, action: () => void, compact = false): void {
+    addButton(this.scene, this.panel, text, y, action, compact);
   }
 
   private title(scores: readonly UiHighScore[]): void {
-    this.label(this.strings['title'] ?? 'STARSHOT', -130, '28px');
-    this.label(this.strings['start'] ?? 'PRESS FIRE TO START', -75);
+    this.label(this.strings['title'] ?? 'STARSHOT', -137, 3, UI_COLOUR.cyan);
+    this.label(this.strings['start'] ?? 'PRESS FIRE TO START', -96, 1, UI_COLOUR.amber);
     this.button('PLAY', -25, () => {
       this.events.command('start');
     });
     this.button(this.strings['settings'] ?? 'SETTINGS', 15, () => {
       this.events.command('settings');
     });
-    this.scoreLines(scores, 75);
+    this.scoreLines(scores, TITLE_SCORE_START_Y, TITLE_SCORE_ROW_STEP);
   }
 
   private pause(): void {
-    this.label('PAUSED', -80, '22px');
+    this.label('PAUSED', -80, 2, UI_COLOUR.amber);
     this.button(this.strings['resume'] ?? 'RESUME', -20, () => {
       this.events.command('resume');
     });
@@ -122,7 +111,7 @@ export class MenuOverlay {
   }
 
   private results(scores: readonly UiHighScore[]): void {
-    this.label(this.strings['results'] ?? 'GAME OVER', -125, '22px');
+    this.label(this.strings['results'] ?? 'GAME OVER', -125, 2, UI_COLOUR.amber);
     this.scoreLines(scores, -55);
     this.button(this.strings['retry'] ?? 'PLAY AGAIN', 100, () => {
       this.events.command('start');
@@ -133,48 +122,63 @@ export class MenuOverlay {
   }
 
   private settings(settings: UiSettings): void {
-    this.label(this.strings['settings'] ?? 'SETTINGS', -150, '20px');
-    this.button(`MUSIC ${String(Math.round(settings.music * 100))}%`, -115, () => {
+    // Thirteen controls fit inside the panel's ±215 world-pixel bounds at this compact rhythm.
+    this.label(this.strings['settings'] ?? 'SETTINGS', -185, 2, UI_COLOUR.cyan);
+    this.button(`MUSIC ${String(Math.round(settings.music * 100))}%`, -150, () => {
       this.events.settings({ music: settings.music >= 1 ? 0 : settings.music + 0.1 });
     });
-    this.button(`SFX ${String(Math.round(settings.sfx * 100))}%`, -85, () => {
+    this.button(`SFX ${String(Math.round(settings.sfx * 100))}%`, -125, () => {
       this.events.settings({ sfx: settings.sfx >= 1 ? 0 : settings.sfx + 0.1 });
     });
-    this.button(`UI ${String(Math.round(settings.ui * 100))}%`, -55, () => {
+    this.button(`UI ${String(Math.round(settings.ui * 100))}%`, -100, () => {
       this.events.settings({ ui: settings.ui >= 1 ? 0 : settings.ui + 0.1 });
     });
-    this.button(`SHAKE ${String(Math.round(settings.shake * 100))}%`, -25, () => {
+    this.button(`SHAKE ${String(Math.round(settings.shake * 100))}%`, -75, () => {
       this.events.settings({ shake: settings.shake >= 1 ? 0 : settings.shake + 0.1 });
     });
-    this.button(`FLASH ${settings.flashReduction ? 'REDUCED' : 'FULL'}`, 5, () => {
+    this.button(`FLASH ${settings.flashReduction ? 'REDUCED' : 'FULL'}`, -50, () => {
       this.events.settings({ flashReduction: !settings.flashReduction });
     });
-    this.button(`CRT ${settings.crt ? 'ON' : 'OFF'}`, 35, () => {
+    this.button(`CRT ${settings.crt ? 'ON' : 'OFF'}`, -25, () => {
       this.events.settings({ crt: !settings.crt });
     });
     this.button(
       `${this.strings['highContrastBullets'] ?? 'HIGH-CONTRAST BULLETS'} ${settings.highContrastBullets ? 'ON' : 'OFF'}`,
-      65,
+      0,
       () => {
         this.events.settings({ highContrastBullets: !settings.highContrastBullets });
       },
     );
     this.button(
       `${this.strings['subtitles'] ?? 'BOSS SUBTITLES'} ${settings.subtitles ? 'ON' : 'OFF'}`,
-      95,
+      25,
       () => {
         this.events.settings({ subtitles: !settings.subtitles });
       },
     );
+    this.button(`QUALITY ${settings.visualQuality.toUpperCase()}`, 50, () => {
+      this.events.settings({ visualQuality: settings.visualQuality === 'high' ? 'low' : 'high' });
+    });
+    this.button(`BACKGROUND MOTION ${settings.backgroundMotion ? 'ON' : 'OFF'}`, 75, () => {
+      this.events.settings({ backgroundMotion: !settings.backgroundMotion });
+    });
+    this.button(`FX ${String(Math.round(settings.effectsIntensity * 100))}%`, 100, () => {
+      this.events.settings({
+        effectsIntensity:
+          settings.effectsIntensity >= 1
+            ? 0
+            : Math.round((settings.effectsIntensity + 0.25) * 100) / 100,
+      });
+    });
     this.button(this.strings['fullscreen'] ?? 'FULLSCREEN', 125, () => {
       this.events.fullscreen();
     });
-    this.button('BACK', 155, () => {
+    this.button('BACK', 150, () => {
       this.events.command('back');
     });
   }
 
-  private scoreLines(scores: readonly UiHighScore[], startY: number): void {
+  private scoreLines(scores: readonly UiHighScore[], startY: number, rowStep = 15): void {
     this.label('HIGH SCORES', startY - 20);
     const entries =
       scores.length === 0
@@ -183,6 +187,8 @@ export class MenuOverlay {
             (entry, index) =>
               `${String(index + 1).padStart(2, '0')}  ${String(entry.score).padStart(6, '0')}  STG ${String(entry.stage)}`,
           );
-    entries.slice(0, 10).forEach((entry, index) => this.label(entry, startY + index * 15, '10px'));
+    entries.slice(0, 10).forEach((entry, index) => {
+      this.label(entry, startY + index * rowStep);
+    });
   }
 }

@@ -11,7 +11,7 @@ import {
 import { AudioDirector, Presenter, registerAnimations } from '../../presentation/index.ts';
 import { MenuOverlay, type UiCommand } from '../../ui/index.ts';
 import { transitionFlow, type FlowCommand, type FlowState } from '../flow.ts';
-import { TICK_MS } from '../../shared/index.ts';
+import { TICK_MS, WORLD_HEIGHT, WORLD_WIDTH } from '../../shared/index.ts';
 import type { Sim } from '../../sim/index.ts';
 import { createGameLoop, type GameLoop } from '../game-loop.ts';
 
@@ -26,6 +26,8 @@ export interface BootSceneDeps {
   readonly atlasUrl: (fileName: string) => string;
   /** Resolves an `assets/audio/` file name to a bundled URL. */
   readonly audioUrl: (fileName: string) => string;
+  /** Stable run seed shared with presentation-only seeded layouts. */
+  readonly runSeed: number;
   /** Receives game status as `data-*` attributes (used by the E2E tests). */
   readonly statusElement: HTMLElement;
   /** Optional dev hook: may take over stepping (frame-step debug view). */
@@ -78,6 +80,7 @@ export class BootScene extends Phaser.Scene {
   private hitStopMs = 0;
   private slowMotionMs = 0;
   private slowScale = 1;
+  private transitionWipe?: Phaser.GameObjects.Graphics;
 
   constructor(deps: BootSceneDeps) {
     super('boot');
@@ -119,9 +122,10 @@ export class BootScene extends Phaser.Scene {
         return sound;
       },
     });
-    const presenter = new Presenter(this, content, manifest, audio);
+    const presenter = new Presenter(this, content, manifest, audio, this.deps.runSeed);
     this.presenter = presenter;
     this.audio = audio;
+    this.transitionWipe = this.add.graphics().setDepth(250).setVisible(false);
     this.applySettings(this.deps.saves.settings());
     this.menus = new MenuOverlay(this, content, {
       command: (command) => {
@@ -164,11 +168,11 @@ export class BootScene extends Phaser.Scene {
     this.render(0);
     this.showFlow();
     this.deps.statusElement.dataset['state'] = 'ready';
-    this.input.keyboard?.on('keydown-ESC', () => {
-      if (this.flow === 'play') this.command('pause');
-      else if (this.flow === 'pause') this.command('resume');
-    });
-    const onStartKey = (event: KeyboardEvent): void => {
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.code === 'Escape') {
+        if (this.flow === 'play') this.command('pause');
+        else if (this.flow === 'pause') this.command('resume');
+      }
       if (
         (event.code === 'KeyZ' || event.code === 'Space') &&
         (this.flow === 'title' || this.flow === 'results')
@@ -176,7 +180,7 @@ export class BootScene extends Phaser.Scene {
         this.command('start');
       }
     };
-    window.addEventListener('keydown', onStartKey);
+    window.addEventListener('keydown', onKeyDown);
     this.removeVisibilityWatch = watchVisibility(document, (hidden) => {
       if (hidden) {
         this.sound.pauseAll();
@@ -187,7 +191,7 @@ export class BootScene extends Phaser.Scene {
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.removeVisibilityWatch?.();
-      window.removeEventListener('keydown', onStartKey);
+      window.removeEventListener('keydown', onKeyDown);
     });
 
     this.deps.attachDebug?.({
@@ -233,6 +237,7 @@ export class BootScene extends Phaser.Scene {
     unlockAudio(this.sound);
     this.flow = next;
     this.showFlow();
+    this.playTransitionWipe();
     this.render(0);
   }
 
@@ -243,6 +248,25 @@ export class BootScene extends Phaser.Scene {
     else if (this.sim?.snapshot().boss) this.setMusic('music_boss');
     else this.setMusic('music_stage');
     this.deps.statusElement.dataset['flow'] = this.flow;
+  }
+
+  /** A restrained 180 ms palette shutter: presentation-only and never blocks input. */
+  private playTransitionWipe(): void {
+    const wipe = this.transitionWipe;
+    if (!wipe) return;
+    wipe.clear().setAlpha(0.75).setVisible(true);
+    wipe.fillStyle(0x141430, 1);
+    for (let y = 0; y < WORLD_HEIGHT; y += 12) wipe.fillRect(0, y, WORLD_WIDTH, 5);
+    wipe.fillStyle(0x3ee0ff, 1);
+    for (let y = 0; y < WORLD_HEIGHT; y += 48) wipe.fillRect(0, y, WORLD_WIDTH, 1);
+    this.tweens.killTweensOf(wipe);
+    this.tweens.add({
+      targets: wipe,
+      alpha: 0,
+      duration: 180,
+      ease: 'Quad.easeOut',
+      onComplete: () => wipe.setVisible(false),
+    });
   }
 
   private setMusic(key: MusicLoopKey, restart = false): void {
@@ -294,6 +318,9 @@ export class BootScene extends Phaser.Scene {
       crt: settings.crt,
       highContrastBullets: settings.highContrastBullets,
       subtitles: settings.subtitles,
+      visualQuality: settings.visualQuality,
+      backgroundMotion: settings.backgroundMotion,
+      effectsIntensity: settings.effectsIntensity,
     });
   }
 

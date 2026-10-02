@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('boots to a 270×480 integer-scaled canvas showing the atlas ship, without console errors', async ({
+test('boots to a 540×960 presentation canvas showing the atlas ship, without console errors', async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -29,13 +29,13 @@ test('boots to a 270×480 integer-scaled canvas showing the atlas ship, without 
       dpr: devicePixelRatio,
     };
   });
-  expect([size.width, size.height]).toEqual([270, 480]);
+  expect([size.width, size.height]).toEqual([540, 960]);
 
-  // Integer scale in device pixels: 1000 px tall viewport → 2× at DPR 1.
-  const deviceScale = (size.cssH * size.dpr) / 480;
+  // Integer scale in device pixels: 1000 px tall viewport → 1× at DPR 1.
+  const deviceScale = (size.cssH * size.dpr) / 960;
   expect(Number.isInteger(Math.round(deviceScale * 1000) / 1000)).toBe(true);
-  expect(size.cssW / size.cssH).toBeCloseTo(270 / 480);
-  expect(deviceScale).toBe(2);
+  expect(size.cssW / size.cssH).toBeCloseTo(540 / 960);
+  expect(deviceScale).toBe(1);
 
   expect(errors).toEqual([]);
 });

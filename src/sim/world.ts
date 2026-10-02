@@ -1,5 +1,5 @@
 import type { Content } from '../content/index.ts';
-import { GAME_WIDTH } from '../shared/index.ts';
+import { WORLD_WIDTH } from '../shared/index.ts';
 import type { SimEvent } from './events.ts';
 import { createRng, type Rng } from './rng.ts';
 
@@ -214,7 +214,7 @@ export function newId(world: World): number {
 export function placePlayer(world: World): void {
   const p = world.player;
   p.alive = true;
-  p.x = GAME_WIDTH / 2;
+  p.x = WORLD_WIDTH / 2;
   p.prevX = p.x;
   p.dir = 0;
   p.fireCooldown = 0;
@@ -237,7 +237,7 @@ export function spawnWave(world: World): void {
     const enemy = world.grunts[i];
     if (enemy) enemy.alive = false;
   }
-  const left = GAME_WIDTH / 2 - ((wave.formation.columns - 1) * wave.formation.spacingX) / 2;
+  const left = WORLD_WIDTH / 2 - ((wave.formation.columns - 1) * wave.formation.spacingX) / 2;
   world.grunts.forEach((enemy, i) => {
     const kind = roster[i];
     const spec = kind === undefined ? undefined : world.content.enemies[kind];

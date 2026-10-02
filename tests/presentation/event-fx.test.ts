@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { reactionsFor, smooth } from '../../src/presentation/fx/event-fx.ts';
+import { planFxBatch, reactionsFor, smooth } from '../../src/presentation/fx/event-fx.ts';
 
 const fx = {
   PlayerFired: { sfx: 'sfx_shot' },
@@ -25,6 +25,41 @@ describe('event → effect mapping', () => {
   it('requests a flash when any event asks for one', () => {
     const reactions = reactionsFor(fx, [{ type: 'PlayerHit', x: 1, y: 2, livesLeft: 2 }]);
     expect(reactions.flash).toBe(true);
+  });
+});
+
+describe('quality-tier FX planning', () => {
+  const settings = { visualQuality: 'high' as const, effectsIntensity: 1, flashReduction: false };
+
+  it('keeps gameplay tells while dropping cosmetic trails at low quality', () => {
+    const reactions = reactionsFor(
+      {
+        EnemyFired: { effect: 'trail', particles: 12 },
+        EnemyAttackTold: { effect: 'tell', particles: 8 },
+      },
+      [
+        { type: 'EnemyFired', id: 1, x: 10, y: 20 },
+        { type: 'EnemyAttackTold', id: 2, x: 30, y: 40 },
+      ],
+    );
+    expect(planFxBatch(reactions.reactions, { ...settings, visualQuality: 'low' })).toEqual([
+      expect.objectContaining({ effect: 'tell', particles: 8 }),
+    ]);
+    expect(planFxBatch(reactions.reactions, { ...settings, effectsIntensity: 0 })).toEqual([
+      expect.objectContaining({ effect: 'tell', particles: 8 }),
+    ]);
+  });
+
+  it('caps a batch at its fixed pool budget and scales reduced flashes', () => {
+    const reactions = reactionsFor({ BossDefeated: { effect: 'boss', particles: 400 } }, [
+      { type: 'BossDefeated', x: 135, y: 120 },
+    ]);
+    expect(planFxBatch(reactions.reactions, settings, 100)).toEqual([
+      expect.objectContaining({ effect: 'boss', particles: 100 }),
+    ]);
+    expect(planFxBatch(reactions.reactions, { ...settings, flashReduction: true }, 400)).toEqual([
+      expect.objectContaining({ effect: 'boss', particles: 221 }),
+    ]);
   });
 });
 

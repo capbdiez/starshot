@@ -1,43 +1,51 @@
-# Starshot — Art Direction (Phase 1)
+# Starshot — Art Direction
 
-Art, animation, audio and effects are **first-class systems**. They are designed now so that
-placeholder → final replacement is a **data/asset swap, never a code rewrite**.
+## G1 Premium Neo-Arcade Contract
 
----
+Art, animation, audio, and effects are **first-class presentation systems**. The graphics program upgrades visual quality without changing gameplay ownership: simulation remains deterministic and presentation only reads snapshots and events. Art replacement remains a **data/asset swap, never a simulation rewrite**.
+
+### Coordinate and Resolution Contract
+
+| Space | Size | Owner | Rules |
+| --- | --- | --- | --- |
+| World / simulation | **270×480 logical px** | `sim/`, gameplay content | Positions, hitboxes, paths, waves, and replay inputs use this space only. Never manually multiply gameplay coordinates. |
+| Presentation buffer | **540×960 px** | Phaser presentation / UI | G2 canonical internal render target. The main presentation camera centrally maps each world pixel to a 2×2 presentation-pixel area. |
+| Browser display | Variable CSS/device pixels | app scale layer | Integer scaling and letterboxing preserve aspect ratio when 1× fits. Below that, a centered fractional fit is used so the complete portrait canvas remains visible; browser DPR never changes world coordinates. |
+
+G2 implements the 540×960 buffer without changing the 270×480 simulation, content tuning, hitboxes, or replay determinism. Current MVP art is rendered through the camera's 2× compatibility transform until later art milestones replace it.
 
 ## 1. Visual Pillars
 
-1. **Readability first** — The player must identify ship, threats, bullets and pickups in < 100 ms, even at peak bullet density.
-2. **Juice with discipline** — Every action has feedback (flash, shake, particles, sound), all tuned by data and all toggleable for accessibility.
-3. **Cohesion over detail** — One fixed palette, one pixel scale, one font family. Consistency beats fidelity.
+1. **Readable combat first** — Identify player, hostile bullets, attack tells, enemies, and pickups in under 100 ms at peak density and in greyscale.
+2. **Premium neo-arcade material** — Crisp raster silhouettes use selective highlights, controlled emissive colour, and deep negative space rather than noisy detail or generic glow.
+3. **Juice with discipline** — Effects clarify actions and are bounded, data-driven, pooled, and accessibility-aware; spectacle never obscures gameplay.
+4. **Cohesion over detail** — One fixed palette, pixel grid, border language, and emissive vocabulary make sprites, environments, effects, and UI feel authored together.
 
-## 2. Style: "Neo-Arcade Pixel"
+## 2. Silhouette, Value, and Role Hierarchy
 
-- **Hand-made pixel art** at a fixed low internal resolution, plus **modern effects**: additive glow, particles, parallax, hit-stop, and an optional CRT filter.
-- Chosen because a small team can make it look professional, it scales cleanly to any screen, and it fits the genre.
+Gameplay roles must be distinguishable by both outline and value before hue is considered. Review this contract with greyscale screenshots at native presentation scale and at peak density.
 
-| Property | Value |
-|----------|-------|
-| Internal resolution | **270 × 480** (9:16 portrait), rendered to a low-res buffer |
-| Scaling | Integer scale plus letterbox; nearest-neighbour filtering; no sub-pixel sprite positions on screen |
-| Pixel density | 1 art pixel = 1 game pixel. Sprites are never scaled or rotated except by designed effects |
-| Frame rate target | 60 FPS rendering; animations authored at 8–12 FPS |
+| Priority | Role | Silhouette / motion cue | Value requirement |
+| --- | --- | --- | --- |
+| 1 | Player ship | Compact upward-pointing, symmetrical wedge; unique cyan/white core | Bright lower-screen focal object with a separating dark edge. |
+| 2 | Hostile bullets and attack tells | Round/non-player-shaped bullets; tell geometry is larger and stable before firing | Brighter core/rim contrast than adjacent background; never shares player-shot silhouette. |
+| 3 | Pickups | Diamond/capsule with persistent outline or pulse | High local contrast distinct from both bullet families. |
+| 4 | Enemies and boss parts | Downward/insectoid or plated shapes; distinct boss weak points | Mid-to-high value, below immediate hazards/player except for a bounded tell. |
+| 5 | HUD and menus | Bitmap/display glyphs and 1-px borders | High value only in UI regions; never competes with the playfield. |
+| 6 | Background | Large low-frequency shapes and sparse stars | Low contrast/luminance; no bullet-like clusters. |
 
-## 3. Palette & Color Roles
+**Greyscale gate:** title, representative gameplay, peak-density, boss, flash-reduction, and high-contrast-bullet captures must leave player, hostile projectiles, active tells, and pickups identifiable without hue.
 
-- A single **32-colour master palette** (`assets/palette/starshot.hex`). Every sprite, UI element and particle uses only these colours; CI checks this (see §9).
-- **Color is assigned by gameplay role**, and each role also has a distinct shape so it works for colour-blind players:
+## 3. Material, Palette, and Effect Limits
 
-| Role | Hue family | Shape language | Value |
-|------|-----------|----------------|-------|
-| Player ship & player shots | Cyan / white | Angular, pointing upward, symmetrical | Brightest |
-| Enemies | Magenta / orange / violet | Organic or insectoid, facing downward | Mid-high |
-| **Enemy bullets** | Hot pink with a white core | **Round** orbs (never thin lines) | Highest contrast against the background |
-| Pickups | Lime / yellow | Rotating diamonds or capsules, with a pulsing outline | High |
-| Background | Deep navy / indigo, desaturated | Soft parallax star layers and nebulae | **Low** (≤ 30 % luminance) |
-| UI / HUD | White + one accent color | Bitmap font, 1-px outlines | High |
-
-**Readability rule:** anything that can damage the player must stay clearly visible in a **greyscale** screenshot against every background.
+- The 32-colour master palette in `assets/palette/starshot.hex` remains authoritative in G1; palette changes are out of scope.
+- Player/player shots use cyan/white; enemies use magenta/orange/violet; hostile bullets use hot-pink with white core; pickups use lime/yellow; UI uses white plus restrained accent; backgrounds use deep navy/indigo.
+- Raster materials use dark structural edges, local body colour, and selective highlights. Highlights describe form; they are not full-surface noise.
+- Emissive pixels are reserved for player energy, bullets, pickups, weapon muzzles, weak points, and explicit tells. Glow supports a readable silhouette; it never replaces one.
+- Do not introduce gradients, anti-aliased raster edges, arbitrary alpha haze, or off-palette colours in generated art.
+- Background stays deep/desaturated and **at or below 30% perceived luminance**. Motion stays slow and never resembles an attack tell. G6 stage environments are seeded, bounded 540×960 presentation layouts with cached layers; they never affect simulation state or gameplay coordinates.
+- Effects are short, bounded, event/content-driven, pooled reactions. With flash reduction enabled, no content flashes more than three times per second.
+- Quality tiers may remove cosmetic stars, debris, or secondary particles, but never bullets, tells, pickups, silhouettes, outlines, or accessibility cues.
 
 ## 4. Asset Specifications
 
@@ -83,7 +91,7 @@ All effects are triggered by **simulation events** (see ARCHITECTURE.md), never 
 ## 7. UI / HUD
 
 - The HUD is a **top strip only** (score, hi-score, stage). Lives and bombs sit in the bottom corners. The play area stays clear.
-- Menus use the same bitmap font and palette. Screen transitions use 150–250 ms wipes or dissolves.
+- Menus use the same generated 5×7 bitmap/display glyphs, beveled panel frames, cyan emissive rails, and palette as the HUD and gameplay. Screen transitions use restrained 150–250 ms palette-safe wipes or dissolves.
 - Every UI string goes through a string table, so the game can be localized later.
 
 ## 8. Audio Direction
@@ -119,6 +127,8 @@ All effects are triggered by **simulation events** (see ARCHITECTURE.md), never 
 - Greyscale screenshot readability check.
 - Peak-density test scene (300 bullets): the player can still find their ship and the incoming threats.
 - Stays at 60 FPS on the reference low-end device (see TECH_STACK.md).
+
+**G9 release-candidate audit:** `npm run release:check` verifies the production gzip budget, required release documentation, and absence of manifest placeholders after building. Approved fixed-seed Chromium captures live in `tests/e2e/graphics-baselines.spec.ts-snapshots/` under the `g9-` prefix. The reference-device, target-browser, greyscale/colour-blind, flash-safety, fullscreen, and cold-load results must be recorded in `docs/release-checklist.md`; automated checks do not stand in for that evidence.
 
 ## 10. Accessibility (Visual/Audio)
 

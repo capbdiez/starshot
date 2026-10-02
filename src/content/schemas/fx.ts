@@ -9,6 +9,19 @@ export const SFX_KEY_PATTERN = /^sfx_[a-z0-9]+(?:_[a-z0-9]+)*$/;
 const count = z.int().min(0).max(400);
 const milliseconds = z.int().min(0).max(300);
 
+/** Bounded layered-pool treatment selected by an event reaction. */
+export const fxKindSchema = z.enum([
+  'trail',
+  'muzzle',
+  'hit',
+  'debris',
+  'explosion',
+  'bomb',
+  'tell',
+  'pickup',
+  'boss',
+]);
+
 /** Declarative presentation reaction for one simulation event. */
 export const fxEntrySchema = z.strictObject({
   /** Audio-sprite clip to play. */
@@ -23,7 +36,9 @@ export const fxEntrySchema = z.strictObject({
   muzzle: z.boolean().optional(),
   /** Reuse the event's animated death sprite as an explosion. */
   explosion: z.boolean().optional(),
-  /** Number of pooled sparks to emit at the event position. */
+  /** Bounded layered-pool treatment selected for the event position. */
+  effect: fxKindSchema.optional(),
+  /** Number of pooled particles requested by the treatment at high quality. */
   particles: count.optional(),
   /** Trauma added to the camera; rendered intensity is trauma squared. */
   trauma: z.number().min(0).max(1).optional(),
@@ -43,3 +58,4 @@ export const fxFileSchema = z.strictObject({
 });
 
 export type FxEntry = z.infer<typeof fxEntrySchema>;
+export type FxKind = z.infer<typeof fxKindSchema>;

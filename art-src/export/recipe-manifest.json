@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "recipes": [
+    {
+      "id": "player_ship",
+      "version": 2,
+      "seed": 1284,
+      "detailScale": 2
+    },
+    {
+      "id": "enemy_roster",
+      "version": 2,
+      "seed": 58117,
+      "detailScale": 2
+    },
+    {
+      "id": "boss_parts",
+      "version": 2,
+      "seed": 45141,
+      "detailScale": 2
+    },
+    {
+      "id": "projectiles_pickup",
+      "version": 2,
+      "seed": 2580,
+      "detailScale": 2
+    },
+    {
+      "id": "explosion_fx",
+      "version": 1,
+      "seed": 3856,
+      "detailScale": 2
+    }
+  ]
+}

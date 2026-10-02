@@ -6,7 +6,7 @@ import {
   readViewport,
   watchViewport,
 } from '../platform/index.ts';
-import { GAME_HEIGHT, GAME_WIDTH } from '../shared/index.ts';
+import { PRESENTATION_HEIGHT, PRESENTATION_WIDTH } from '../shared/index.ts';
 import { createSim } from '../sim/index.ts';
 import {
   atlasFileUrl,
@@ -46,13 +46,14 @@ function boot(): void {
   const input = createInputSource(window);
   const saves = createSaveStore(window.localStorage);
 
-  const zoomFor = (): number => displayZoom(readViewport(window), GAME_WIDTH, GAME_HEIGHT);
+  const zoomFor = (): number =>
+    displayZoom(readViewport(window), PRESENTATION_WIDTH, PRESENTATION_HEIGHT);
 
   const game = new Phaser.Game({
     type: Phaser.AUTO,
     parent: container,
-    width: GAME_WIDTH,
-    height: GAME_HEIGHT,
+    width: PRESENTATION_WIDTH,
+    height: PRESENTATION_HEIGHT,
     backgroundColor: '#0b0b1a',
     pixelArt: true,
     scale: { mode: Phaser.Scale.NONE, zoom: zoomFor() },
@@ -61,6 +62,7 @@ function boot(): void {
       content,
       manifest,
       createSim: () => createSim(content, seed),
+      runSeed: seed,
       input,
       saves,
       atlasUrl: atlasFileUrl,
@@ -72,7 +74,7 @@ function boot(): void {
 
   game.events.once(Phaser.Core.Events.READY, () => {
     watchViewport(window, (viewport) => {
-      game.scale.setZoom(displayZoom(viewport, GAME_WIDTH, GAME_HEIGHT));
+      game.scale.setZoom(displayZoom(viewport, PRESENTATION_WIDTH, PRESENTATION_HEIGHT));
     });
   });
 }

@@ -10,6 +10,9 @@ export const settingsSchema = z.object({
   crt: z.boolean(),
   highContrastBullets: z.boolean(),
   subtitles: z.boolean(),
+  visualQuality: z.enum(['low', 'high']),
+  backgroundMotion: z.boolean(),
+  effectsIntensity: z.number().min(0).max(1),
 });
 
 export type Settings = z.infer<typeof settingsSchema>;
@@ -22,14 +25,14 @@ export const highScoreSchema = z.object({
 export type HighScore = z.infer<typeof highScoreSchema>;
 
 const saveSchema = z.object({
-  version: z.literal(2),
+  version: z.literal(3),
   settings: settingsSchema,
   scores: z.array(highScoreSchema),
 });
 type Save = z.infer<typeof saveSchema>;
 
 const legacySaveSchema = z.object({
-  version: z.union([z.literal(0), z.literal(1)]),
+  version: z.union([z.literal(0), z.literal(1), z.literal(2)]),
   settings: settingsSchema.partial().optional(),
   scores: z.array(highScoreSchema).optional(),
 });
@@ -43,6 +46,9 @@ const DEFAULT_SETTINGS: Settings = {
   crt: false,
   highContrastBullets: false,
   subtitles: true,
+  visualQuality: 'high',
+  backgroundMotion: true,
+  effectsIntensity: 1,
 };
 
 /** Browser storage surface, kept small so save behavior is testable without a DOM. */
@@ -61,7 +67,7 @@ export interface SaveStore {
 }
 
 function defaults(): Save {
-  return { version: 2, settings: { ...DEFAULT_SETTINGS }, scores: [] };
+  return { version: 3, settings: { ...DEFAULT_SETTINGS }, scores: [] };
 }
 
 function migrate(value: unknown): Save | undefined {
@@ -70,7 +76,7 @@ function migrate(value: unknown): Save | undefined {
   const legacy = legacySaveSchema.safeParse(value);
   if (!legacy.success) return undefined;
   return {
-    version: 2,
+    version: 3,
     settings: { ...DEFAULT_SETTINGS, ...legacy.data.settings },
     scores: (legacy.data.scores ?? []).slice(0, 10),
   };

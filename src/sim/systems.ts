@@ -1,6 +1,6 @@
 import {
-  GAME_HEIGHT,
-  GAME_WIDTH,
+  WORLD_HEIGHT,
+  WORLD_WIDTH,
   hasInput,
   InputBit,
   trigSin,
@@ -60,7 +60,7 @@ export function updatePlayer(world: World, input: InputFrame): void {
   const right = hasInput(input, InputBit.right);
   p.dir = left === right ? 0 : left ? -1 : 1;
   p.x = Math.min(
-    GAME_WIDTH - rules.edgeMargin,
+    WORLD_WIDTH - rules.edgeMargin,
     Math.max(rules.edgeMargin, p.x + p.dir * rules.speed),
   );
 
@@ -144,8 +144,8 @@ export function moveMovers(pool: readonly Mover[]): void {
     m.prevY = m.y;
     m.x += m.vx;
     m.y += m.vy;
-    const offY = m.y < -CULL_MARGIN || m.y > GAME_HEIGHT + CULL_MARGIN;
-    const offX = m.x < -CULL_MARGIN || m.x > GAME_WIDTH + CULL_MARGIN;
+    const offY = m.y < -CULL_MARGIN || m.y > WORLD_HEIGHT + CULL_MARGIN;
+    const offX = m.x < -CULL_MARGIN || m.x > WORLD_WIDTH + CULL_MARGIN;
     if (offX || offY) m.active = false;
   }
 }
@@ -172,7 +172,7 @@ export function updateEnemyFire(world: World): void {
       const [start, controlA, controlB, end] = entry.path;
       if (!start || !controlA || !controlB || !end) continue;
       const targetX =
-        GAME_WIDTH / 2 -
+        WORLD_WIDTH / 2 -
         ((wave.formation.columns - 1) * wave.formation.spacingX) / 2 +
         (enemy.slot % wave.formation.columns) * wave.formation.spacingX;
       const targetY =
@@ -222,7 +222,7 @@ export function updateEnemyFire(world: World): void {
         wave.formation.swayTicks;
     // Escaped divers are no longer active wave members. Without this cull they remain alive below
     // the play field and prevent updateWave() from ever advancing to the next formation.
-    if (enemy.y > GAME_HEIGHT) enemy.alive = false;
+    if (enemy.y > WORLD_HEIGHT) enemy.alive = false;
   }
   world.diveTimer -= 1;
   if (world.diveTimer <= 0) {

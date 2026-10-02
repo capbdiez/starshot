@@ -110,6 +110,18 @@ describe('content loader', () => {
     );
   });
 
+  it('rejects invalid presentation environment data', () => {
+    const bad = structuredClone(real) as Record<string, unknown>;
+    const environments = bad['environments/stages.json'] as {
+      environments: Record<string, unknown>[];
+    };
+    environments.environments[0] = {
+      ...environments.environments[0],
+      layers: { distantStars: 999 },
+    };
+    expect(issuesOf(bad).join()).toMatch(/environments\/stages\.json: environments\.0\.layers/);
+  });
+
   it('rejects files with no registered schema', () => {
     expect(issuesOf({ 'mystery/thing.json': {} }).join()).toMatch(/no schema is registered/);
   });
