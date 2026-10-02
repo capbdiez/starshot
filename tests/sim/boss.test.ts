@@ -112,8 +112,10 @@ function defeatBossAt(seed: number, difficulty: number): void {
   expect(defeats).toHaveLength(1);
   expect(defeats[0]?.level).toBe(10);
   expect(defeats[0]?.difficulty).toBe(difficulty);
+  expect(ofType(events, 'GameOver')).toHaveLength(0);
   expect(sim.snapshot().phase).toBe('playing');
   expect(sim.snapshot().level).toBe(11);
+  expect(sim.snapshot().enemyBullets).toHaveLength(0);
   expect(ofType(events, 'WaveStarted').map((event) => event.level)).toContain(11);
 }
 

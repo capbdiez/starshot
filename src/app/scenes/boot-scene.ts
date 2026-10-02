@@ -10,7 +10,13 @@ import {
 } from '../../platform/index.ts';
 import { AudioDirector, Presenter, registerAnimations } from '../../presentation/index.ts';
 import { MenuOverlay, TouchControls, type UiCommand } from '../../ui/index.ts';
-import { transitionFlow, type FlowCommand, type FlowState } from '../flow.ts';
+import {
+  musicTransitionFor,
+  resultsCommandFor,
+  transitionFlow,
+  type FlowCommand,
+  type FlowState,
+} from '../flow.ts';
 import { TICK_MS, WORLD_HEIGHT, WORLD_WIDTH } from '../../shared/index.ts';
 import type { Sim } from '../../sim/index.ts';
 import { createGameLoop, type GameLoop } from '../game-loop.ts';
@@ -157,15 +163,14 @@ export class BootScene extends Phaser.Scene {
       if (!activeSim) return;
       activeSim.step(input.poll());
       const events = activeSim.drainEvents();
-      const gameOver = events.some((event) => event.type === 'GameOver');
-      if (gameOver) {
+      if (resultsCommandFor(events)) {
         const view = activeSim.snapshot();
         this.deps.saves.recordScore({ score: view.score, level: view.level });
         this.command('results');
         this.playCue('music_game_over');
       }
-      if (events.some((event) => event.type === 'BossStarted')) this.setMusic('music_boss');
-      if (events.some((event) => event.type === 'BossDefeated')) this.setMusic('music_stage');
+      const musicTransition = musicTransitionFor(events);
+      if (musicTransition) this.setMusic(`music_${musicTransition}`);
       if (events.some((event) => event.type === 'BossStarted' || event.type === 'PlayerHit'))
         this.duckMusic();
       const timing = presenter.handle(events);
