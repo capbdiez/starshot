@@ -45,11 +45,18 @@ export class MenuOverlay {
   private readonly events: MenuOverlayEvents;
   private readonly strings: Content['strings'];
   private readonly panel: Phaser.GameObjects.Container;
+  private readonly showTouchHelp: boolean;
 
-  constructor(scene: Phaser.Scene, content: Content, events: MenuOverlayEvents) {
+  constructor(
+    scene: Phaser.Scene,
+    content: Content,
+    events: MenuOverlayEvents,
+    showTouchHelp = false,
+  ) {
     this.scene = scene;
     this.events = events;
     this.strings = content.strings;
+    this.showTouchHelp = showTouchHelp;
     this.panel = scene.add.container(135, 240).setDepth(DEPTH).setVisible(false);
   }
 
@@ -88,6 +95,8 @@ export class MenuOverlay {
   private title(scores: readonly UiHighScore[]): void {
     this.label(this.strings['title'] ?? 'STARSHOT', -137, 3, UI_COLOUR.cyan);
     this.label(this.strings['start'] ?? 'PRESS FIRE TO START', -96, 1, UI_COLOUR.amber);
+    if (this.showTouchHelp)
+      this.label(this.strings['touchControls'] ?? '', -80, 1, UI_COLOUR.violet);
     this.button('PLAY', -25, () => {
       this.events.command('start');
     });

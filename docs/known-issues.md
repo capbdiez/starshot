@@ -11,7 +11,7 @@ No known release-blocking defects are recorded for v1.0.0.
 
 ## Platform limitations
 
-- M10 maps captured Pointer Events from the lower 40% of the game surface into four equal left-to-right zones: left, right, held fire, and bomb. Touch pointers compose with keyboard/gamepad input and clear on release, cancellation, capture loss, blur, hidden visibility, and viewport interruption. The adapter intentionally has no visual controls; discoverable controls and touch-operable menu flow arrive in M11. PWA/offline installation, configurable layouts, haptics, native desktop builds, and mobile-store builds remain separate post-MVP work (see `docs/MILESTONES.md`).
+- M10 maps captured Pointer Events from the lower 40% of the game surface into left, right, held-fire, and bomb zones. M11 makes those zones discoverable with fixed lower-screen `LEFT`, `RIGHT`, `FIRE`, and `BOMB` controls plus a top-right `PAUSE` control, shown only when the browser reports a coarse primary pointer with touch capability. Their world positions use the fixed camera transform into the safe-area-fitted presentation canvas, and they are hidden outside gameplay so title, pause, settings, results, retry, and title actions retain their Phaser pointer targets. Fullscreen is requested only where supported; iOS Safari can continue playing normally when it declines or lacks the API. PWA/offline installation, configurable layouts, haptics, native desktop builds, and mobile-store builds remain separate post-MVP work (see `docs/MILESTONES.md`).
 - Browser audio requires a player gesture before it can start; this is a browser security requirement, not a game error.
 - Older browser versions are not supported.
 

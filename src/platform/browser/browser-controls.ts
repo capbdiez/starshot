@@ -10,6 +10,7 @@ export function unlockAudio(audio: AudioUnlocker): void {
 
 /** Requests browser fullscreen when supported; rejection is a non-fatal browser policy outcome. */
 export function requestFullscreen(element: HTMLElement): void {
-  if (document.fullscreenElement === element) return;
+  if (typeof element.requestFullscreen !== 'function' || document.fullscreenElement === element)
+    return;
   void element.requestFullscreen().catch(() => undefined);
 }

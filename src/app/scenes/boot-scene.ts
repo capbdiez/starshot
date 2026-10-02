@@ -9,7 +9,7 @@ import {
   watchVisibility,
 } from '../../platform/index.ts';
 import { AudioDirector, Presenter, registerAnimations } from '../../presentation/index.ts';
-import { MenuOverlay, type UiCommand } from '../../ui/index.ts';
+import { MenuOverlay, TouchControls, type UiCommand } from '../../ui/index.ts';
 import { transitionFlow, type FlowCommand, type FlowState } from '../flow.ts';
 import { TICK_MS, WORLD_HEIGHT, WORLD_WIDTH } from '../../shared/index.ts';
 import type { Sim } from '../../sim/index.ts';
@@ -71,6 +71,7 @@ export class BootScene extends Phaser.Scene {
   private sim?: Sim;
   private audio?: AudioDirector;
   private menus?: MenuOverlay;
+  private touchControls?: TouchControls;
   private flow: FlowState = 'title';
   private restarts = 0;
   private removeVisibilityWatch?: () => void;
@@ -127,20 +128,29 @@ export class BootScene extends Phaser.Scene {
     this.audio = audio;
     this.transitionWipe = this.add.graphics().setDepth(250).setVisible(false);
     this.applySettings(this.deps.saves.settings());
-    this.menus = new MenuOverlay(this, content, {
-      command: (command) => {
-        this.command(command);
-      },
-      settings: (settings) => {
-        const updated = this.deps.saves.updateSettings(settings);
-        this.applySettings(updated);
-        if (this.flow === 'settings')
-          this.menus?.show('settings', this.deps.saves.scores(), updated);
-      },
-      fullscreen: () => {
-        requestFullscreen(this.game.canvas);
-      },
+    this.touchControls = new TouchControls(this, () => {
+      this.command('pause');
     });
+    this.deps.statusElement.dataset['touchControls'] = String(this.touchControls.isSupported);
+    this.menus = new MenuOverlay(
+      this,
+      content,
+      {
+        command: (command) => {
+          this.command(command);
+        },
+        settings: (settings) => {
+          const updated = this.deps.saves.updateSettings(settings);
+          this.applySettings(updated);
+          if (this.flow === 'settings')
+            this.menus?.show('settings', this.deps.saves.scores(), updated);
+        },
+        fullscreen: () => {
+          requestFullscreen(this.game.canvas);
+        },
+      },
+      this.touchControls.isSupported,
+    );
 
     const step = (): void => {
       const activeSim = this.sim;
@@ -242,6 +252,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   private showFlow(): void {
+    this.touchControls?.setVisible(this.flow === 'play');
     if (this.flow === 'play') this.menus?.hide();
     else this.menus?.show(this.flow, this.deps.saves.scores(), this.deps.saves.settings());
     if (this.flow !== 'play' && this.flow !== 'pause') this.setMusic('music_title');
