@@ -46,8 +46,19 @@ function boot(): void {
   const input = createInputSource(window);
   const saves = createSaveStore(window.localStorage);
 
-  const zoomFor = (): number =>
-    displayZoom(readViewport(window), PRESENTATION_WIDTH, PRESENTATION_HEIGHT);
+  const zoomFor = (): number => {
+    const viewport = readViewport(window);
+    // client dimensions exclude the CSS safe-area padding reserved around the game surface.
+    return displayZoom(
+      {
+        ...viewport,
+        width: container.clientWidth || viewport.width,
+        height: container.clientHeight || viewport.height,
+      },
+      PRESENTATION_WIDTH,
+      PRESENTATION_HEIGHT,
+    );
+  };
 
   const game = new Phaser.Game({
     type: Phaser.AUTO,
@@ -73,8 +84,8 @@ function boot(): void {
   });
 
   game.events.once(Phaser.Core.Events.READY, () => {
-    watchViewport(window, (viewport) => {
-      game.scale.setZoom(displayZoom(viewport, PRESENTATION_WIDTH, PRESENTATION_HEIGHT));
+    watchViewport(window, () => {
+      game.scale.setZoom(zoomFor());
     });
   });
 }

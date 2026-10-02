@@ -5,7 +5,14 @@ export {
   type InputSource,
   type PadState,
 } from './input/input-source.ts';
-export { readViewport, watchViewport, type ViewportSize } from './viewport/viewport.ts';
+export {
+  readViewport,
+  watchViewport,
+  type MediaQueryPort,
+  type ViewportSize,
+  type ViewportWindow,
+  type VisualViewportPort,
+} from './viewport/viewport.ts';
 export {
   createSaveStore,
   settingsSchema,

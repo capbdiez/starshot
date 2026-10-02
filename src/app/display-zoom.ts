@@ -10,7 +10,7 @@ export interface ZoomViewport {
 /**
  * CSS zoom for a `gameWidth`×`gameHeight` canvas. When at least 1× fits, each presentation
  * pixel covers a whole number of device pixels for crisp nearest-neighbour scaling. Smaller
- * viewports use the largest fractional fallback that fits; the canvas stays centered and visible.
+ * viewports use the largest centered fractional fallback that shows the complete canvas.
  */
 export function displayZoom(viewport: ZoomViewport, gameWidth: number, gameHeight: number): number {
   const ratio = viewport.pixelRatio > 0 ? viewport.pixelRatio : 1;

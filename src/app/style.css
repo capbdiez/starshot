@@ -1,20 +1,36 @@
 html,
 body {
   margin: 0;
-  height: 100%;
+  width: 100%;
+  min-height: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
   background: #000;
 }
 
-/* Letterbox: the integer-zoomed canvas is centered and the rest stays black. */
+/* The dynamic viewport and safe-area inset keep the complete canvas visible around browser chrome. */
 #game {
   position: fixed;
   inset: 0;
+  box-sizing: border-box;
   display: grid;
+  width: 100vw;
+  width: 100dvw;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
   place-items: center;
+  overscroll-behavior: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 #game canvas {
   display: block;
   image-rendering: pixelated;
+  touch-action: none;
 }
