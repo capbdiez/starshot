@@ -22,6 +22,19 @@ interface MovingLayer {
   offset: number;
 }
 
+/** Selects a cyclic normal environment or the authored boss environment for an absolute level. */
+export function environmentForLevel(
+  environments: readonly StageEnvironment[],
+  level: number,
+): StageEnvironment | undefined {
+  const bossEnvironment = environments.find((environment) => environment.stage === 5);
+  if (level > 0 && level % 10 === 0) return bossEnvironment;
+  const normalEnvironments = environments.filter((environment) => environment.stage !== 5);
+  if (normalEnvironments.length === 0) return undefined;
+  const normalIndex = level - Math.floor(level / 10) - 1;
+  return normalEnvironments[normalIndex % normalEnvironments.length];
+}
+
 /** Cached, presentation-space stage environment; it never reads or changes simulation state. */
 export class StageBackground {
   private moving: readonly MovingLayer[] = [];
@@ -42,9 +55,7 @@ export class StageBackground {
   /** Replaces cached presentation layers only when the visible simulation level changes. */
   setStage(level: number): void {
     if (this.stage === level) return;
-    const environment = this.environments.find(
-      (candidate) => candidate.stage === ((level - 1) % this.environments.length) + 1,
-    );
+    const environment = environmentForLevel(this.environments, level);
     if (!environment) return;
     this.stage = level;
     for (const object of this.objects) object.destroy();

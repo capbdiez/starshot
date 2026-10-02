@@ -87,6 +87,7 @@ export class BootScene extends Phaser.Scene {
   private hitStopMs = 0;
   private slowMotionMs = 0;
   private slowScale = 1;
+  private result?: { readonly score: number; readonly level: number };
   private transitionWipe?: Phaser.GameObjects.Graphics;
 
   constructor(deps: BootSceneDeps) {
@@ -149,7 +150,7 @@ export class BootScene extends Phaser.Scene {
           const updated = this.deps.saves.updateSettings(settings);
           this.applySettings(updated);
           if (this.flow === 'settings')
-            this.menus?.show('settings', this.deps.saves.scores(), updated);
+            this.menus?.show('settings', this.deps.saves.scores(), updated, this.result);
         },
         fullscreen: () => {
           requestFullscreen(this.game.canvas);
@@ -165,7 +166,8 @@ export class BootScene extends Phaser.Scene {
       const events = activeSim.drainEvents();
       if (resultsCommandFor(events)) {
         const view = activeSim.snapshot();
-        this.deps.saves.recordScore({ score: view.score, level: view.level });
+        this.result = { score: view.score, level: view.level };
+        this.deps.saves.recordScore(this.result);
         this.command('results');
         this.playCue('music_game_over');
       }
@@ -242,6 +244,7 @@ export class BootScene extends Phaser.Scene {
     const next = transitionFlow(this.flow, command);
     if (next === this.flow) return;
     if (command === 'start') {
+      this.result = undefined;
       this.sim = this.deps.createSim();
       this.restarts += 1;
       this.loop?.reset();
@@ -259,7 +262,13 @@ export class BootScene extends Phaser.Scene {
   private showFlow(): void {
     this.touchControls?.setVisible(this.flow === 'play');
     if (this.flow === 'play') this.menus?.hide();
-    else this.menus?.show(this.flow, this.deps.saves.scores(), this.deps.saves.settings());
+    else
+      this.menus?.show(
+        this.flow,
+        this.deps.saves.scores(),
+        this.deps.saves.settings(),
+        this.result,
+      );
     if (this.flow !== 'play' && this.flow !== 'pause') this.setMusic('music_title');
     else if (this.sim?.snapshot().boss) this.setMusic('music_boss');
     else this.setMusic('music_stage');

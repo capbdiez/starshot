@@ -60,6 +60,13 @@ function source(manifest: AssetManifest, key: string): SpriteSource {
   return { atlas: entry.atlas, frame };
 }
 
+/** Formats absolute progression state for the compact gameplay HUD. */
+export function hudProgressText(level: number, difficulty: number, bossActive: boolean): string {
+  return bossActive
+    ? `BOSS LV ${String(level)} D${String(difficulty)}`
+    : `LV ${String(level)} D${String(difficulty)}`;
+}
+
 /**
  * Draws a read-only {@link SimView} (smoothed with the loop alpha) and reacts to sim events
  * with data-driven SFX and a basic flash (ARCHITECTURE §3). Never mutates the simulation.
@@ -274,7 +281,7 @@ export class Presenter {
     this.drawHudText(`SCORE ${String(view.score).padStart(6, '0')}`, 8, 9, 0xffffff);
     this.drawHudText(`X${String(view.multiplier)}`, 110, 9, 0xffd08a);
     this.drawHudText(
-      `LV ${String(view.level)} D${String(view.difficulty)}${view.boss ? ` B${String(view.boss.phase)}` : ''}`,
+      hudProgressText(view.level, view.difficulty, view.boss !== undefined),
       142,
       9,
       0xa6f6ff,

@@ -3,6 +3,7 @@ export {
   type MenuOverlayEvents,
   type UiCommand,
   type UiHighScore,
+  type UiRunResult,
   type UiSettings,
 } from './menu-overlay.ts';
 export {

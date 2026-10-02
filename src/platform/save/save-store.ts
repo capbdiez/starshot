@@ -70,17 +70,21 @@ function defaults(): Save {
   return { version: 4, settings: { ...DEFAULT_SETTINGS }, scores: [] };
 }
 
+function sortedScores(scores: readonly HighScore[]): HighScore[] {
+  return [...scores].sort((a, b) => b.score - a.score || b.level - a.level).slice(0, 10);
+}
+
 function migrate(value: unknown): Save | undefined {
   const current = saveSchema.safeParse(value);
-  if (current.success) return { ...current.data, scores: current.data.scores.slice(0, 10) };
+  if (current.success) return { ...current.data, scores: sortedScores(current.data.scores) };
   const legacy = legacySaveSchema.safeParse(value);
   if (!legacy.success) return undefined;
   return {
     version: 4,
     settings: { ...DEFAULT_SETTINGS, ...legacy.data.settings },
-    scores: (legacy.data.scores ?? [])
-      .map(({ score, stage }) => ({ score, level: stage }))
-      .slice(0, 10),
+    scores: sortedScores(
+      (legacy.data.scores ?? []).map(({ score, stage }) => ({ score, level: stage })),
+    ),
   };
 }
 
@@ -115,9 +119,7 @@ export function createSaveStore(storage: StoragePort, key = 'starshot.save'): Sa
       const parsed = highScoreSchema.parse(score);
       state = {
         ...state,
-        scores: [...state.scores, parsed]
-          .sort((a, b) => b.score - a.score || b.level - a.level)
-          .slice(0, 10),
+        scores: sortedScores([...state.scores, parsed]),
       };
       persist();
       return state.scores;

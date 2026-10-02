@@ -65,6 +65,44 @@ describe('SaveStore', () => {
     expect(store.scores()[0]).toEqual({ score: 50, level: 9 });
   });
 
+  it('normalizes current records and safely rejects invalid level data', () => {
+    const store = createSaveStore(
+      memory(
+        JSON.stringify({
+          version: 4,
+          settings: {
+            music: 0.7,
+            sfx: 0.8,
+            ui: 0.8,
+            shake: 1,
+            flashReduction: false,
+            crt: false,
+            highContrastBullets: false,
+            subtitles: true,
+            visualQuality: 'high',
+            backgroundMotion: true,
+            effectsIntensity: 1,
+          },
+          scores: [
+            { score: 50, level: 2 },
+            { score: 50, level: 9 },
+            { score: 70, level: 1 },
+          ],
+        }),
+      ),
+    );
+    expect(store.scores()).toEqual([
+      { score: 70, level: 1 },
+      { score: 50, level: 9 },
+      { score: 50, level: 2 },
+    ]);
+    expect(
+      createSaveStore(
+        memory(JSON.stringify({ version: 4, settings: {}, scores: [{ score: 1, level: 0 }] })),
+      ).scores(),
+    ).toEqual([]);
+  });
+
   it('keeps only the highest ten local scores', () => {
     const store = createSaveStore(memory());
     for (let score = 0; score < 12; score += 1) store.recordScore({ score, level: 1 });

@@ -26,6 +26,12 @@ export interface UiHighScore {
   readonly level: number;
 }
 
+/** Completed run data displayed on Results independently of high-score qualification. */
+export interface UiRunResult {
+  readonly score: number;
+  readonly level: number;
+}
+
 /** UI events consumed by the app composition root. */
 export interface MenuOverlayEvents {
   command(command: UiCommand): void;
@@ -64,6 +70,7 @@ export class MenuOverlay {
     state: 'title' | 'pause' | 'results' | 'settings',
     scores: readonly UiHighScore[],
     settings: UiSettings,
+    result?: UiRunResult,
   ): void {
     this.panel.removeAll(true);
     this.panel.setVisible(true);
@@ -74,7 +81,7 @@ export class MenuOverlay {
     this.panel.add(frame);
     if (state === 'title') this.title(scores);
     if (state === 'pause') this.pause();
-    if (state === 'results') this.results(scores);
+    if (state === 'results') this.results(scores, result);
     if (state === 'settings') this.settings(settings);
   }
 
@@ -119,9 +126,11 @@ export class MenuOverlay {
     });
   }
 
-  private results(scores: readonly UiHighScore[]): void {
+  private results(scores: readonly UiHighScore[], result?: UiRunResult): void {
     this.label(this.strings['results'] ?? 'GAME OVER', -125, 2, UI_COLOUR.amber);
-    this.scoreLines(scores, -55);
+    if (result)
+      this.label(`SCORE ${String(result.score).padStart(6, '0')}  LV ${String(result.level)}`, -95);
+    this.scoreLines(scores, -45);
     this.button(this.strings['retry'] ?? 'PLAY AGAIN', 100, () => {
       this.events.command('start');
     });
