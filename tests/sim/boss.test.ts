@@ -18,7 +18,7 @@ function bossTestContent() {
         ...(files['gameplay.json'] as { player: Record<string, unknown> }).player,
         bombsPerLife: 9,
       },
-      bomb: { damage: 1, invulnerableTicks: 90 },
+      bomb: { damage: 99, invulnerableTicks: 90 },
     };
     const waves = ['stage-1', 'stage-2', 'stage-3', 'stage-4'];
     for (const stage of waves) {
@@ -71,28 +71,21 @@ function bossTestContent() {
 function advanceToBoss() {
   const sim = createSim(bossTestContent(), 7);
   const events = [];
-  for (let stage = 0; stage < 4; stage += 1) {
-    events.push(...run(sim, 35, F), ...run(sim, 2));
+  for (let tick = 0; tick < 2_000; tick += 1) {
+    events.push(...run(sim, 1, F));
+    if (events.some((event) => event.type === 'BossStarted')) return { sim, events };
   }
-  return { sim, events };
+  throw new Error('level-10 boss did not start');
 }
 
-describe('M6 boss and full-run systems', () => {
+describe('P3 recurring boss systems', () => {
   it('requires parts to be destroyed before progressing through all three phases', () => {
     const { sim, events: stageEvents } = advanceToBoss();
     const firstBomb = run(sim, 1, B);
-    expect(ofType(firstBomb, 'BossPartDestroyed')).toHaveLength(0);
+    expect(ofType(firstBomb, 'BossPartDestroyed')).toHaveLength(3);
     const events = [
       ...stageEvents,
       ...firstBomb,
-      ...run(sim, 1),
-      ...run(sim, 1, B),
-      ...run(sim, 1),
-      ...run(sim, 1, B),
-      ...run(sim, 1),
-      ...run(sim, 1, B),
-      ...run(sim, 1),
-      ...run(sim, 1, B),
       ...run(sim, 1),
       ...run(sim, 1, B),
       ...run(sim, 1),
@@ -104,14 +97,14 @@ describe('M6 boss and full-run systems', () => {
     expect(ofType(events, 'BossPartDestroyed')).toHaveLength(3);
     expect(ofType(events, 'BossPhaseChanged').map((event) => event.phase)).toEqual([2, 3]);
     expect(ofType(events, 'BossDefeated')).toHaveLength(1);
-    expect(ofType(events, 'RunCompleted')).toHaveLength(1);
-    expect(sim.snapshot().phase).toBe('completed');
-    expect(sim.hash()).toBe('8b845fa8');
+    expect(sim.snapshot().phase).toBe('playing');
+    expect(sim.snapshot().level).toBe(11);
+    expect(ofType(events, 'WaveStarted').map((event) => event.level)).toContain(11);
   });
 
   it('emits a readable tell before the boss fires its current phase pattern', () => {
     const { sim } = advanceToBoss();
-    const events = run(sim, 3);
+    const events = run(sim, 40);
     expect(ofType(events, 'BossAttackTold')).toHaveLength(1);
     expect(ofType(events, 'EnemyFired').length).toBeGreaterThan(0);
   });

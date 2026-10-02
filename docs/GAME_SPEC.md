@@ -8,7 +8,7 @@ formations with modern game feel: tight controls, satisfying feedback, and short
 
 - **Genre:** Fixed shooter (shoot 'em up subgenre); the screen doesn't scroll and the player moves horizontally.
 - **Platform:** Web browser: desktop keyboard/gamepad at release; M9–M12 add current mobile-browser portrait and landscape play with touch controls.
-- **Session length:** 3–5 minutes for the MVP run (5 stages + boss), 10–15 minutes for the full game.
+- **Session length:** Endless score-chasing runs; players can stop after a short session or continue through recurring bosses.
 - **Audience:** Retro arcade fans, casual players looking for quick sessions, and score chasers.
 - **Pillars:** *Readable chaos* · *Instant restart* · *Every hit feels good*.
 
@@ -17,7 +17,7 @@ formations with modern game feel: tight controls, satisfying feedback, and short
 ```
 Wave enters (formation paths) → Enemies form up → Enemies dive/attack
   → Player dodges + shoots → Chain kills for multiplier → Wave cleared
-  → Next wave / Boss → Stage results → Continue or Game Over → Retry (≤ 2 s)
+  → Next level / recurring boss → Continue until Game Over → Retry (≤ 2 s)
 ```
 
 ## 3. User Stories
@@ -29,7 +29,7 @@ Wave enters (formation paths) → Enemies form up → Enemies dive/attack
 - US-04: As a player, I see my score, multiplier, lives and bombs without them covering the play area.
 - US-05: As a player, I can use a bomb to clear bullets when I'm overwhelmed.
 - US-06: As a player, I collect power-ups that visibly change my weapon.
-- US-07: As a player, I fight a boss at the end of the run with distinct attack phases.
+- US-07: As a player, I fight a recurring boss every tenth level with distinct attack phases.
 - US-08: As a player, I restart instantly after a game over.
 - US-09: As a player, my high score and settings are saved between sessions.
 - US-10: As a player, I can pause at any time, and the game pauses automatically when the tab loses focus.
@@ -54,7 +54,8 @@ Wave enters (formation paths) → Enemies form up → Enemies dive/attack
 | Weapons | Level 1: single shot → Level 2: double → Level 3: triple spread; losing a life drops one level |
 | Enemies (MVP) | Grunt (dives), Swooper (curved dive plus aimed shot), Tank (2 HP, spread shot), Elite (3 HP, fires bullet patterns) |
 | Waves | Enemies enter along paths, form into a grid, then launch dives; the dive rate rises as fewer enemies remain |
-| Boss (MVP) | 1 boss, 3 phases, parts that can be destroyed |
+| Progression | Unbounded levels; normal templates cycle, seeded 50/50 transitions may increase difficulty, and a boss appears every tenth level |
+| Boss | Recurring Overlord, 3 phases, parts that can be destroyed |
 | Scoring | Base points × chain multiplier (goes up with consecutive kills and resets when a kill window expires or you get hit); bonus for killing enemies mid-dive |
 | Extra life | At 20k, and every 60k after that |
 | Game over | No lives left → results screen → retry |

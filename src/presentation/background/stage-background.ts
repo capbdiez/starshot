@@ -39,12 +39,14 @@ export class StageBackground {
     this.setStage(1);
   }
 
-  /** Replaces cached presentation layers only when the visible simulation stage changes. */
-  setStage(stage: number): void {
-    if (this.stage === stage) return;
-    const environment = this.environments.find((candidate) => candidate.stage === stage);
+  /** Replaces cached presentation layers only when the visible simulation level changes. */
+  setStage(level: number): void {
+    if (this.stage === level) return;
+    const environment = this.environments.find(
+      (candidate) => candidate.stage === ((level - 1) % this.environments.length) + 1,
+    );
     if (!environment) return;
-    this.stage = stage;
+    this.stage = level;
     for (const object of this.objects) object.destroy();
     this.objects = [];
     const palette = PALETTES[environment.paletteRole];

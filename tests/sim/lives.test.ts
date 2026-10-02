@@ -13,7 +13,7 @@ describe('waves', () => {
       contentWith(() => undefined),
       1,
     );
-    expect(ofType(run(sim, 1), 'WaveStarted').map((event) => event.wave)).toContain(1);
+    expect(ofType(run(sim, 1), 'WaveStarted').map((event) => event.level)).toContain(1);
     expect(sim.snapshot().grunts).toHaveLength(10);
   });
 });
@@ -51,7 +51,7 @@ describe('lives, respawn and game over', () => {
         expect(tick - overTick).toBeLessThanOrEqual(120);
         expect(sim.snapshot().lives).toBe(rules.player.lives);
         expect(sim.snapshot().phase).toBe('playing');
-        expect(sim.snapshot().wave).toBe(1);
+        expect(sim.snapshot().level).toBe(1);
         return;
       }
     }

@@ -38,7 +38,6 @@ const EVENT_TYPES: Record<SimEventType, true> = {
   BossPartDestroyed: true,
   BossPhaseChanged: true,
   BossDefeated: true,
-  RunCompleted: true,
   GameRestarted: true,
 };
 

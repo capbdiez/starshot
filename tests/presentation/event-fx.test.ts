@@ -9,7 +9,7 @@ const fx = {
 describe('event → effect mapping', () => {
   it('plays mapped SFX in order and ignores unmapped events', () => {
     const reactions = reactionsFor(fx, [
-      { type: 'WaveStarted', wave: 1 },
+      { type: 'WaveStarted', level: 1, difficulty: 1 },
       { type: 'PlayerFired', id: 1, x: 0, y: 0 },
       { type: 'PlayerFired', id: 2, x: 0, y: 0 },
     ]);

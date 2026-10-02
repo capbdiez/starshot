@@ -12,7 +12,7 @@ interface Fixture {
     readonly hash: string;
     readonly tick: number;
     readonly lives: number;
-    readonly wave: number;
+    readonly level: number;
     readonly kills: number;
     readonly gameOvers: number;
   };
@@ -42,7 +42,7 @@ function play() {
     hash: sim.hash(),
     tick: view.tick,
     lives: view.lives,
-    wave: view.wave,
+    level: view.level,
     kills,
     gameOvers,
   };

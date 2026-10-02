@@ -52,7 +52,7 @@ export interface Player {
   bombHeld: boolean;
 }
 
-export type Phase = 'playing' | 'gameOver' | 'completed';
+export type Phase = 'playing' | 'gameOver';
 
 /** Mutable boss part, owned by the pure simulation. */
 export interface BossPart {
@@ -90,7 +90,14 @@ export interface World {
   nextId: number;
   phase: Phase;
   lives: number;
+  /** Absolute encounter number, starting at one and never capped. */
+  level: number;
+  /** Positive difficulty that may increase by at most one between levels. */
+  difficulty: number;
+  /** Legacy alias for the current absolute level; retained for replay compatibility. */
   wave: number;
+  /** Key of the currently active cyclic normal-wave template. */
+  waveKey: string;
   waveTimer: number;
   enemyFireTimer: number;
   diveTimer: number;
@@ -126,7 +133,10 @@ export function createWorld(content: Content, seed: number): World {
     nextId: 1,
     phase: 'playing',
     lives: 0,
-    wave: 0,
+    level: 1,
+    difficulty: 1,
+    wave: 1,
+    waveKey: '',
     waveTimer: 0,
     enemyFireTimer: 0,
     diveTimer: 0,
@@ -223,16 +233,40 @@ export function placePlayer(world: World): void {
   p.bombHeld = false;
 }
 
-/** Spawns the configured stage formation and announces the wave. */
+/** Lowest readable fire interval for normal enemies and dives. */
+export const MIN_NORMAL_INTERVAL_TICKS = 18;
+/** Lowest readable fire interval for the recurring boss. */
+export const MIN_BOSS_INTERVAL_TICKS = 36;
+
+/** Returns the level's cyclic normal-wave template, excluding every tenth boss encounter. */
+export function waveForLevel(world: World) {
+  const templates = world.content.stages.filter((stage) => stage.type === 'wave');
+  if (templates.length === 0)
+    throw new Error('endless progression requires one normal wave template');
+  const normalIndex = world.level - Math.floor(world.level / 10) - 1;
+  const stage = templates[normalIndex % templates.length];
+  return stage?.type === 'wave' ? world.content.waves[stage.wave] : undefined;
+}
+
+/** Difficulty-derived hit points; difficulty one always preserves content values. */
+export function scaledHp(base: number, difficulty: number): number {
+  return Math.ceil(base * (1 + (difficulty - 1) * 0.2));
+}
+
+/** Difficulty-derived interval with a hard readability and pool-safety floor. */
+export function scaledInterval(base: number, difficulty: number, minimum: number): number {
+  return Math.max(minimum, Math.round(base / (1 + (difficulty - 1) * 0.08)));
+}
+
+/** Spawns the current level's cyclic normal formation and announces the encounter. */
 export function spawnWave(world: World): void {
-  const stageSpec = world.content.stages[world.wave];
-  if (stageSpec?.type !== 'wave') return;
-  const wave = world.content.waves[stageSpec.wave];
-  if (!wave) return;
+  const wave = waveForLevel(world);
+  if (!wave) throw new Error(`missing wave template for level ${String(world.level)}`);
   const roster = wave.entries.flatMap((entry) =>
     Array.from({ length: entry.count }, () => entry.enemy),
   );
   if (roster.length > world.grunts.length) throw new Error('wave exceeds the enemy pool capacity');
+  world.waveKey = wave.key;
   for (let i = roster.length; i < world.grunts.length; i += 1) {
     const enemy = world.grunts[i];
     if (enemy) enemy.alive = false;
@@ -244,7 +278,7 @@ export function spawnWave(world: World): void {
     if (!spec) return;
     enemy.id = newId(world);
     enemy.alive = true;
-    enemy.hp = spec.hp;
+    enemy.hp = scaledHp(spec.hp, world.difficulty);
     enemy.kind = spec.key;
     enemy.slot = i;
     enemy.x = left + (i % wave.formation.columns) * wave.formation.spacingX;
@@ -252,23 +286,30 @@ export function spawnWave(world: World): void {
     enemy.prevX = enemy.x;
     enemy.prevY = enemy.y;
     enemy.tellTimer = 0;
-    enemy.fireTimer = spec.fireIntervalTicks;
+    enemy.fireTimer = scaledInterval(
+      spec.fireIntervalTicks,
+      world.difficulty,
+      MIN_NORMAL_INTERVAL_TICKS,
+    );
     enemy.diving = 0;
     enemy.entryTimer = 60;
   });
-  world.wave += 1;
+  world.wave = world.level;
   world.waveTimer = 0;
-  world.diveTimer = wave.dive.maxIntervalTicks;
-  world.events.push({ type: 'WaveStarted', wave: world.wave });
+  world.diveTimer = scaledInterval(
+    wave.dive.maxIntervalTicks,
+    world.difficulty,
+    MIN_NORMAL_INTERVAL_TICKS,
+  );
+  world.events.push({ type: 'WaveStarted', level: world.level, difficulty: world.difficulty });
 }
 
-/** Spawns the fifth-stage boss and its independently destructible parts. */
+/** Spawns the existing Overlord for every tenth level. */
 export function spawnBoss(world: World): void {
-  const stage = world.content.stages[world.wave];
-  if (stage?.type !== 'boss') return;
-  const spec = world.content.bosses[stage.boss];
-  if (!spec) return;
+  const spec = Object.values(world.content.bosses)[0];
+  if (!spec) throw new Error('endless progression requires one boss');
   const boss = world.boss;
+  world.waveKey = '';
   boss.active = true;
   boss.id = newId(world);
   boss.key = spec.key;
@@ -276,31 +317,51 @@ export function spawnBoss(world: World): void {
   boss.x = spec.x;
   boss.y = spec.y;
   boss.phase = 0;
-  boss.hp = spec.phases[0]?.hp ?? 0;
+  boss.hp = scaledHp(spec.phases[0]?.hp ?? 0, world.difficulty);
   boss.tellTimer = 0;
-  boss.fireTimer = spec.phases[0]?.fireIntervalTicks ?? 0;
+  boss.fireTimer = scaledInterval(
+    spec.phases[0]?.fireIntervalTicks ?? 0,
+    world.difficulty,
+    MIN_BOSS_INTERVAL_TICKS,
+  );
   boss.parts.length = 0;
   for (const part of spec.parts) {
     boss.parts.push({
       id: newId(world),
       alive: true,
-      hp: part.hp,
+      hp: scaledHp(part.hp, world.difficulty),
       x: boss.x + part.offset.x,
       y: boss.y + part.offset.y,
       key: part.key,
       sprite: part.sprite,
     });
   }
-  world.wave += 1;
+  world.wave = world.level;
   world.waveTimer = 0;
-  world.events.push({ type: 'BossStarted', boss: spec.key, stage: world.wave });
+  world.events.push({
+    type: 'BossStarted',
+    boss: spec.key,
+    level: world.level,
+    difficulty: world.difficulty,
+  });
 }
 
-/** Starts a fresh game (lives, wave 1, empty pools). The RNG keeps running: no reseed. */
+/** Advances one level and consumes the sole deterministic 50/50 difficulty roll for that transition. */
+export function advanceLevel(world: World): void {
+  world.level += 1;
+  world.wave = world.level;
+  if ((world.rng.nextU32() & 1) === 1) world.difficulty += 1;
+}
+
+/** Starts a fresh endless run. The RNG keeps running: no reseed. */
 export function resetGame(world: World): void {
   world.phase = 'playing';
   world.lives = world.rules.player.lives;
-  world.wave = 0;
+  world.level = 1;
+  world.difficulty = 1;
+  world.wave = 1;
+  world.waveKey = '';
+  world.waveTimer = 0;
   world.gameOverTimer = 0;
   world.score = 0;
   world.chain = 0;

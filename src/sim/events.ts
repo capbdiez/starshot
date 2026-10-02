@@ -26,8 +26,8 @@ export type SimEvent =
       readonly livesLeft: number;
     }
   | { readonly type: 'PlayerRespawned'; readonly x: number; readonly y: number }
-  | { readonly type: 'WaveStarted'; readonly wave: number }
-  | { readonly type: 'GameOver'; readonly wave: number }
+  | { readonly type: 'WaveStarted'; readonly level: number; readonly difficulty: number }
+  | { readonly type: 'GameOver'; readonly level: number }
   | { readonly type: 'PickupSpawned'; readonly id: number; readonly x: number; readonly y: number }
   | {
       readonly type: 'PickupCollected';
@@ -49,7 +49,12 @@ export type SimEvent =
       readonly multiplier: number;
     }
   | { readonly type: 'ExtraLifeAwarded'; readonly lives: number; readonly score: number }
-  | { readonly type: 'BossStarted'; readonly boss: string; readonly stage: number }
+  | {
+      readonly type: 'BossStarted';
+      readonly boss: string;
+      readonly level: number;
+      readonly difficulty: number;
+    }
   | { readonly type: 'BossAttackTold'; readonly id: number; readonly x: number; readonly y: number }
   | {
       readonly type: 'BossPartDestroyed';
@@ -64,7 +69,6 @@ export type SimEvent =
       readonly y: number;
     }
   | { readonly type: 'BossDefeated'; readonly x: number; readonly y: number }
-  | { readonly type: 'RunCompleted'; readonly score: number; readonly stage: number }
   | { readonly type: 'GameRestarted' };
 
 /** Every event kind, e.g. for exhaustive event → effect maps. */

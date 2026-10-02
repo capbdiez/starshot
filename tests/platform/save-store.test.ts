@@ -26,7 +26,7 @@ describe('SaveStore', () => {
     expect(store.settings()).toMatchObject({ music: 0.2, sfx: 0.8 });
     store.updateSettings({ shake: 0.3, crt: true });
     expect(JSON.parse(storage.value ?? '{}')).toMatchObject({
-      version: 3,
+      version: 4,
       settings: { shake: 0.3, crt: true },
     });
   });
@@ -51,14 +51,23 @@ describe('SaveStore', () => {
     });
     store.updateSettings({ highContrastBullets: true, subtitles: false, visualQuality: 'low' });
     expect(JSON.parse(storage.value ?? '{}')).toMatchObject({
-      version: 3,
+      version: 4,
       settings: { highContrastBullets: true, subtitles: false, visualQuality: 'low' },
     });
   });
 
+  it('migrates legacy stage scores and sorts new scores by score then level', () => {
+    const store = createSaveStore(
+      memory(JSON.stringify({ version: 3, settings: {}, scores: [{ score: 50, stage: 7 }] })),
+    );
+    expect(store.scores()).toEqual([{ score: 50, level: 7 }]);
+    store.recordScore({ score: 50, level: 9 });
+    expect(store.scores()[0]).toEqual({ score: 50, level: 9 });
+  });
+
   it('keeps only the highest ten local scores', () => {
     const store = createSaveStore(memory());
-    for (let score = 0; score < 12; score += 1) store.recordScore({ score, stage: 1 });
+    for (let score = 0; score < 12; score += 1) store.recordScore({ score, level: 1 });
     expect(store.scores()).toHaveLength(10);
     expect(store.scores()[0]?.score).toBe(11);
     expect(store.scores()[9]?.score).toBe(2);

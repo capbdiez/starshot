@@ -192,7 +192,7 @@ export class Presenter {
 
   /** Positions every sprite from `view`, interpolating by `alpha` between the last two ticks. */
   sync(view: Readonly<SimView>, alpha: number): void {
-    this.background.setStage(view.wave);
+    this.background.setStage(view.level);
     const p = view.player;
     const shipKey = this.content.gameplay.player.sprite;
     this.player.setVisible(
@@ -274,8 +274,8 @@ export class Presenter {
     this.drawHudText(`SCORE ${String(view.score).padStart(6, '0')}`, 8, 9, 0xffffff);
     this.drawHudText(`X${String(view.multiplier)}`, 110, 9, 0xffd08a);
     this.drawHudText(
-      `STG ${String(view.wave)}${view.boss ? ` P${String(view.boss.phase)}` : ''}`,
-      160,
+      `LV ${String(view.level)} D${String(view.difficulty)}${view.boss ? ` B${String(view.boss.phase)}` : ''}`,
+      142,
       9,
       0xa6f6ff,
     );

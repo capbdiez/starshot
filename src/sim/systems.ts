@@ -11,9 +11,14 @@ import { diveInterval } from './dive-scheduler.ts';
 import { easeInOut, sampleCubic } from './path.ts';
 import { patternVelocities } from './patterns.ts';
 import {
+  advanceLevel,
+  MIN_BOSS_INTERVAL_TICKS,
+  MIN_NORMAL_INTERVAL_TICKS,
   newId,
   placePlayer,
   resetGame,
+  scaledHp,
+  scaledInterval,
   spawnBoss,
   spawnWave,
   type Mover,
@@ -157,8 +162,7 @@ export function updateEnemyFire(world: World): void {
     updateBoss(world);
     return;
   }
-  const stage = world.content.stages[world.wave - 1];
-  const wave = stage?.type === 'wave' ? world.content.waves[stage.wave] : undefined;
+  const wave = world.content.waves[world.waveKey];
   if (!wave) return;
   for (const enemy of world.grunts) {
     if (!enemy.alive) continue;
@@ -203,7 +207,11 @@ export function updateEnemyFire(world: World): void {
           launch(world, bullet, enemy.x, enemy.y, velocity.vx, velocity.vy);
           world.events.push({ type: 'EnemyFired', id: bullet.id, x: bullet.x, y: bullet.y });
         }
-        enemy.fireTimer = spec.fireIntervalTicks;
+        enemy.fireTimer = scaledInterval(
+          spec.fireIntervalTicks,
+          world.difficulty,
+          MIN_NORMAL_INTERVAL_TICKS,
+        );
       }
       continue;
     }
@@ -230,8 +238,8 @@ export function updateEnemyFire(world: World): void {
     const diver = alive[world.rng.int(0, alive.length - 1)];
     if (diver) diver.diving = wave.dive.durationTicks / 2;
     world.diveTimer = diveInterval(
-      wave.dive.minIntervalTicks,
-      wave.dive.maxIntervalTicks,
+      scaledInterval(wave.dive.minIntervalTicks, world.difficulty, MIN_NORMAL_INTERVAL_TICKS),
+      scaledInterval(wave.dive.maxIntervalTicks, world.difficulty, MIN_NORMAL_INTERVAL_TICKS),
       alive.length,
       world.grunts.length,
     );
@@ -254,17 +262,21 @@ function damageBoss(world: World, amount: number): void {
   if (!spec) return;
   if (boss.phase < spec.phases.length - 1) {
     boss.phase += 1;
-    boss.hp = spec.phases[boss.phase]?.hp ?? 0;
+    boss.hp = scaledHp(spec.phases[boss.phase]?.hp ?? 0, world.difficulty);
     boss.tellTimer = 0;
-    boss.fireTimer = spec.phases[boss.phase]?.fireIntervalTicks ?? 0;
+    boss.fireTimer = scaledInterval(
+      spec.phases[boss.phase]?.fireIntervalTicks ?? 0,
+      world.difficulty,
+      MIN_BOSS_INTERVAL_TICKS,
+    );
     world.events.push({ type: 'BossPhaseChanged', phase: boss.phase + 1, x: boss.x, y: boss.y });
     return;
   }
   boss.active = false;
   for (const bullet of world.bullets) bullet.active = false;
-  world.phase = 'completed';
   world.events.push({ type: 'BossDefeated', x: boss.x, y: boss.y });
-  world.events.push({ type: 'RunCompleted', score: world.score, stage: world.wave });
+  advanceLevel(world);
+  world.waveTimer = 0;
 }
 
 /** Fires the active boss's current data-defined phase after a readable tell. */
@@ -288,7 +300,11 @@ export function updateBoss(world: World): void {
       launch(world, bullet, boss.x, boss.y, velocity.vx, velocity.vy);
       world.events.push({ type: 'EnemyFired', id: bullet.id, x: bullet.x, y: bullet.y });
     }
-    boss.fireTimer = phase.fireIntervalTicks;
+    boss.fireTimer = scaledInterval(
+      phase.fireIntervalTicks,
+      world.difficulty,
+      MIN_BOSS_INTERVAL_TICKS,
+    );
     return;
   }
   boss.fireTimer -= 1;
@@ -311,7 +327,7 @@ function killPlayer(world: World): void {
   if (world.lives <= 0) {
     world.phase = 'gameOver';
     world.gameOverTimer = world.rules.gameOverTicks;
-    world.events.push({ type: 'GameOver', wave: world.wave });
+    world.events.push({ type: 'GameOver', level: world.level });
   } else {
     p.respawnTimer = world.rules.player.respawnTicks;
   }
@@ -404,14 +420,14 @@ export function resolveCollisions(world: World): void {
   if (bulletHit || bodyHit) killPlayer(world);
 }
 
-/** Respawns the grunt row a fixed delay after it is cleared. */
+/** Schedules the next endless encounter after the existing spawn delay. */
 export function updateWave(world: World): void {
   if (world.boss.active || world.grunts.some((g) => g.alive)) return;
-  const next = world.content.stages[world.wave];
-  if (!next) return;
   world.waveTimer += 1;
   if (world.waveTimer < world.rules.grunt.respawnTicks) return;
-  if (next.type === 'boss') spawnBoss(world);
+  if (world.waveTimer !== world.rules.grunt.respawnTicks) return;
+  if (world.waveKey !== '') advanceLevel(world);
+  if (world.level % 10 === 0) spawnBoss(world);
   else spawnWave(world);
 }
 

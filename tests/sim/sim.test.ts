@@ -29,7 +29,7 @@ describe('sim public API', () => {
   it('reports the first wave once, then drains an empty list', () => {
     const sim = createSim(content, 1);
     sim.step(NO_INPUT);
-    expect(sim.drainEvents()).toEqual([{ type: 'WaveStarted', wave: 1 }]);
+    expect(sim.drainEvents()).toEqual([{ type: 'WaveStarted', level: 1, difficulty: 1 }]);
     expect(sim.drainEvents()).toHaveLength(0);
   });
 

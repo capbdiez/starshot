@@ -23,7 +23,7 @@ export interface UiSettings {
 /** One high-score row displayed by the UI. */
 export interface UiHighScore {
   readonly score: number;
-  readonly stage: number;
+  readonly level: number;
 }
 
 /** UI events consumed by the app composition root. */
@@ -194,7 +194,7 @@ export class MenuOverlay {
         ? ['NO SCORES YET']
         : scores.map(
             (entry, index) =>
-              `${String(index + 1).padStart(2, '0')}  ${String(entry.score).padStart(6, '0')}  STG ${String(entry.stage)}`,
+              `${String(index + 1).padStart(2, '0')}  ${String(entry.score).padStart(6, '0')}  LV ${String(entry.level)}`,
           );
     entries.slice(0, 10).forEach((entry, index) => {
       this.label(entry, startY + index * rowStep);

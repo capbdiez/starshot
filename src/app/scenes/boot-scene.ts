@@ -157,15 +157,15 @@ export class BootScene extends Phaser.Scene {
       if (!activeSim) return;
       activeSim.step(input.poll());
       const events = activeSim.drainEvents();
-      const completed = events.some((event) => event.type === 'RunCompleted');
       const gameOver = events.some((event) => event.type === 'GameOver');
-      if (completed || gameOver) {
+      if (gameOver) {
         const view = activeSim.snapshot();
-        this.deps.saves.recordScore({ score: view.score, stage: view.wave });
+        this.deps.saves.recordScore({ score: view.score, level: view.level });
         this.command('results');
-        this.playCue(completed ? 'music_victory' : 'music_game_over');
+        this.playCue('music_game_over');
       }
       if (events.some((event) => event.type === 'BossStarted')) this.setMusic('music_boss');
+      if (events.some((event) => event.type === 'BossDefeated')) this.setMusic('music_stage');
       if (events.some((event) => event.type === 'BossStarted' || event.type === 'PlayerHit'))
         this.duckMusic();
       const timing = presenter.handle(events);
@@ -342,7 +342,8 @@ export class BootScene extends Phaser.Scene {
     const status = this.deps.statusElement.dataset;
     status['phase'] = view.phase;
     status['lives'] = String(view.lives);
-    status['wave'] = String(view.wave);
+    status['level'] = String(view.level);
+    status['difficulty'] = String(view.difficulty);
     status['restarts'] = String(this.restarts);
     status['shipFrame'] = this.presenter?.playerFrame ?? '';
   }

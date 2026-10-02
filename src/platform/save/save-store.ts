@@ -20,21 +20,21 @@ export type Settings = z.infer<typeof settingsSchema>;
 /** One local high-score entry. */
 export const highScoreSchema = z.object({
   score: z.int().nonnegative(),
-  stage: z.int().positive(),
+  level: z.int().positive(),
 });
 export type HighScore = z.infer<typeof highScoreSchema>;
 
 const saveSchema = z.object({
-  version: z.literal(3),
+  version: z.literal(4),
   settings: settingsSchema,
   scores: z.array(highScoreSchema),
 });
 type Save = z.infer<typeof saveSchema>;
 
 const legacySaveSchema = z.object({
-  version: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+  version: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),
   settings: settingsSchema.partial().optional(),
-  scores: z.array(highScoreSchema).optional(),
+  scores: z.array(z.object({ score: z.int().nonnegative(), stage: z.int().positive() })).optional(),
 });
 
 const DEFAULT_SETTINGS: Settings = {
@@ -67,7 +67,7 @@ export interface SaveStore {
 }
 
 function defaults(): Save {
-  return { version: 3, settings: { ...DEFAULT_SETTINGS }, scores: [] };
+  return { version: 4, settings: { ...DEFAULT_SETTINGS }, scores: [] };
 }
 
 function migrate(value: unknown): Save | undefined {
@@ -76,9 +76,11 @@ function migrate(value: unknown): Save | undefined {
   const legacy = legacySaveSchema.safeParse(value);
   if (!legacy.success) return undefined;
   return {
-    version: 3,
+    version: 4,
     settings: { ...DEFAULT_SETTINGS, ...legacy.data.settings },
-    scores: (legacy.data.scores ?? []).slice(0, 10),
+    scores: (legacy.data.scores ?? [])
+      .map(({ score, stage }) => ({ score, level: stage }))
+      .slice(0, 10),
   };
 }
 
@@ -114,7 +116,7 @@ export function createSaveStore(storage: StoragePort, key = 'starshot.save'): Sa
       state = {
         ...state,
         scores: [...state.scores, parsed]
-          .sort((a, b) => b.score - a.score || b.stage - a.stage)
+          .sort((a, b) => b.score - a.score || b.level - a.level)
           .slice(0, 10),
       };
       persist();

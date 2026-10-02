@@ -521,6 +521,135 @@ The release and graphics milestones above remain historical. M9–M12 make the e
 |----|-----------|------------------|
 | P1 | PWA & offline install | Web app manifest, service worker/cache policy, install UX, offline-update QA |
 | P2 | Online leaderboards | Supabase anonymous auth, `LeaderboardPort`, edge function that verifies replays, RLS |
-| P3 | Content expansion | New enemies and bosses, loop 2, daily seed, capturing enemies |
-| P4 | Desktop / mobile stores | Electron + steamworks.js build (ADR), achievements; Capacitor mobile builds |
+| P3.1–P3.8 | Endless progression program | Infinite levels, deterministic 50/50 difficulty growth, recurring boss every 10 levels, UI/persistence, balance |
+| P4 | Content expansion | New enemies and bosses, daily seed, capturing enemies |
+| P5 | Desktop / mobile stores | Electron + steamworks.js build (ADR), achievements; Capacitor mobile builds |
+
+---
+
+## P3 — Endless Progression Program
+
+Post-MVP program. P3 replaces the finite five-stage completion path with an endless, deterministic run. Each sub-milestone inherits the Global Definition of Done and ships as a playable preview build.
+
+### P3.1 — Endless Progression Foundation
+
+**Scope**
+- Add unbounded absolute `level` state, starting at 1, and expose it through the simulation snapshot and deterministic hash.
+- Replace fixed campaign progression with cyclic selection of the existing normal-wave templates.
+- Continue from a cleared normal encounter to the next level after the existing spawn delay; retain game-over and automatic-restart behavior.
+
+**Acceptance criteria**
+- A run continues past level 5 while the simulation remains in `playing` phase.
+- Normal wave templates repeat in their authored order without out-of-range content access.
+- Equal seed and input sequences retain deterministic simulation hashes.
+
+**Testing:** level progression and template-cycle unit tests; replay/hash regression coverage; existing game-over/restart tests.
+
+---
+
+### P3.2 — Deterministic 50/50 Difficulty Growth
+
+**Scope**
+- Add positive, unbounded `difficulty` state, starting at 1.
+- At every transition to a new level, consume exactly one seeded-RNG roll: 50% retain difficulty and 50% increment it by one.
+- Keep all randomness in `sim/`; do not use `Math.random()`.
+
+**Acceptance criteria**
+- Each level's difficulty is either the previous value or exactly one greater; it never decreases.
+- Identical seeds and inputs reproduce identical difficulty sequences; pinned seeds have pinned expected outcomes.
+
+**Testing:** seeded sequence tests; 100+ transition invariant test; deterministic hash/replay regression tests.
+
+---
+
+### P3.3 — Runtime Difficulty Scaling for Normal Waves
+
+**Scope**
+- Derive difficulty modifiers at runtime without mutating schema-validated content.
+- Scale normal-enemy HP, enemy-fire intervals, and dive intervals from current difficulty.
+- Clamp timing values to safe readable minima; retain current enemy counts, projectile speeds, visuals, and fixed pool capacities initially.
+
+**Acceptance criteria**
+- Higher difficulty produces measurably tougher normal encounters while difficulty 1 preserves baseline behavior.
+- Timers remain positive and pools never overflow during extended automated runs.
+
+**Testing:** modifier/unit boundary tests; high-difficulty long-run simulation; enemy/bullet pool-capacity regression tests.
+
+---
+
+### P3.4 — Boss Scheduling Every 10 Levels
+
+**Scope**
+- Classify levels divisible by 10 as boss encounters; all other levels are normal waves.
+- Decouple boss spawning from the current fixed fifth-stage position and reuse the existing Overlord content.
+- Include absolute level and difficulty in boss-start/progression events where presentation needs them.
+
+**Acceptance criteria**
+- Levels 1–9 are normal encounters; levels 10, 20, 30, and every later multiple of 10 start a boss.
+- Defeating a boss resumes normal-wave progression at the following level.
+- Boss cadence is independent of unrelated RNG consumption.
+
+**Testing:** encounter-schedule tests through level 20; deterministic boss-cadence tests; normal-wave resumption test after a boss.
+
+---
+
+### P3.5 — Difficulty-Scaled Recurring Boss
+
+**Scope**
+- Derive recurring Overlord part HP, phase HP, and fire intervals from current difficulty.
+- Preserve the existing weak points, three phases, attack tells, patterns, effects, and audio mapping.
+- Clamp boss attack timing to maintain readable tells and pool-safe projectile density.
+
+**Acceptance criteria**
+- A boss at higher difficulty has greater durability and no faster-than-clamped attacks.
+- All parts and phases remain defeatable, and existing phase events/effects continue to work.
+
+**Testing:** boss modifier and clamp tests; complete multi-phase boss regression at low/high difficulty; bullet-pool safety test.
+
+---
+
+### P3.6 — Post-Boss Continuation
+
+**Scope**
+- Replace the final-boss `completed` transition and `RunCompleted` result flow with next-level scheduling.
+- Keep boss-defeat feedback and projectile clearing.
+- Make game over the sole path to results and high-score recording; restore stage music after a boss.
+
+**Acceptance criteria**
+- Defeating the level-10 boss leaves the simulation in `playing` and starts level 11 after the normal delay.
+- Boss defeat never opens results; game over still does and records the reached level.
+
+**Testing:** boss-defeat continuation test; scene-flow/music transition coverage; game-over results regression test.
+
+---
+
+### P3.7 — Endless UI, Backgrounds, and Score Persistence
+
+**Scope**
+- Show absolute level and current difficulty in the HUD, with a clear boss-level indicator.
+- Cycle existing stage backgrounds for unbounded levels, including the boss-compatible environment at each tenth level.
+- Persist the highest reached level with scores; rename legacy `stage` data to `level` only with a backward-compatible save migration.
+
+**Acceptance criteria**
+- HUD, results, and high-score displays show accurate unbounded level data and current difficulty during play.
+- Background lookup never fails after the authored five environments.
+- Existing local scores load safely and new scores sort by score, then level reached.
+
+**Testing:** HUD/presenter tests; cyclic-background tests; save migration, validation, and score-sort tests; screenshot review for normal and boss levels.
+
+---
+
+### P3.8 — Balance, Documentation, and Release Validation
+
+**Scope**
+- Playtest and tune scaling curves, timing floors, boss cadence, and high-level readability.
+- Update the game specification, README, architecture/event documentation, release notes, and deferred-feature language to describe endless progression.
+- Record remaining balance or accessibility follow-ups in `docs/BACKLOG.md`.
+
+**Acceptance criteria**
+- No runtime or player-facing documentation describes the run as ending after five stages.
+- Sustained high-level play remains readable, performant, and accessible on supported desktop and mobile targets.
+- Full validation passes before release.
+
+**Testing:** `npm run typecheck`, `npm run lint`, `npm run lint:deps`, `npm test`, `npm run check:assets`, `npm run test:e2e`, `npm run build`, and `npm run release:check`; manual high-level desktop/mobile playtest and accessibility review.
 

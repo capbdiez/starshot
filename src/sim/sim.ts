@@ -27,6 +27,11 @@ export interface SimView {
   readonly tick: number;
   readonly phase: Phase;
   readonly lives: number;
+  /** Absolute encounter number; normal waves repeat and bosses occur every tenth level. */
+  readonly level: number;
+  /** Current deterministic difficulty tier. */
+  readonly difficulty: number;
+  /** @deprecated Use `level`; retained for replay compatibility. */
   readonly wave: number;
   readonly score: number;
   readonly multiplier: number;
@@ -78,6 +83,8 @@ function view(world: World): Readonly<SimView> {
     tick: world.tick,
     phase: world.phase,
     lives: world.lives,
+    level: world.level,
+    difficulty: world.difficulty,
     wave: world.wave,
     score: world.score,
     multiplier: world.chain,
@@ -130,6 +137,8 @@ function stateWords(world: World): number[] {
     world.nextId,
     world.phase === 'playing' ? 0 : 1,
     world.lives,
+    world.level,
+    world.difficulty,
     world.wave,
     world.waveTimer,
     world.enemyFireTimer,

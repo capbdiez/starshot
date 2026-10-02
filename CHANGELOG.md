@@ -2,6 +2,13 @@
 
 All notable changes to Starshot are documented here.
 
+## [Unreleased]
+
+### Changed
+
+- P3 replaces the finite campaign with endless deterministic levels, recurring tenth-level Overlord encounters, and level-based local scores.
+
+
 ## [1.0.0] — 2026-01-10
 
 ### Added
