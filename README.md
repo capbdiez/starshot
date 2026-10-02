@@ -4,7 +4,8 @@ A neo-arcade **fixed shooter** (Galaga / Space Invaders lineage) for the web, bu
 
 > Status: **P3 endless progression**. Runs advance through unbounded levels: normal-wave templates cycle, difficulty
 > rises deterministically by a seeded 50/50 roll on each transition, and the three-phase Overlord returns every tenth
-> level. Results retain the run score and highest level; settings and top-10 local scores persist. Boss music ducks
+> level. Normal/boss fire timing floors preserve readable high-level play. Results open only on game over and retain the
+> run score and highest level; settings and top-10 local scores persist. Boss music ducks
 > for its intro and player death. `?seed=N` fixes the run seed. Dev builds: `P` pauses,
 > `.` steps one tick (frame-step latency check). See [release notes](./CHANGELOG.md),
 > [known issues](./docs/known-issues.md), and the [release checklist](./docs/release-checklist.md).

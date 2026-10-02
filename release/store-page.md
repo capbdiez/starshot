@@ -13,12 +13,13 @@ A fast, readable neo-arcade fixed shooter: dodge bullet patterns, build chains, 
 Starshot is a compact, high-energy fixed shooter inspired by the arcade classics. Slide across the bottom of the screen,
 blast through formations, grab weapon upgrades, and save your bombs for the moments when the screen becomes chaos.
 
-Fight through four escalating wave stages before facing the Overlord. Read its tells, destroy its wings and cannon, and
-break through three distinct phases to finish the run.
+Push through cycling wave formations as difficulty rises, then face the Overlord every tenth level. Read its tells,
+destroy its wings and cannon, and break through three distinct phases before the next level begins. Chase a higher score
+and level until game over.
 
 ### Features
 
-- A complete five-stage arcade run with four enemy types and a three-phase boss.
+- Endless deterministic score-chasing with four enemy types and the recurring three-phase Overlord every tenth level.
 - Tight keyboard and gamepad controls, autofire, weapon upgrades, bombs, lives, and chain scoring.
 - Original neo-arcade pixel art, synthesized sound effects, and chiptune/synthwave music.
 - Local top-10 high scores and persisted settings.

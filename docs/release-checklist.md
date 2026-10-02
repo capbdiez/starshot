@@ -61,6 +61,7 @@ The following local evidence was reproduced on 2026-01-10 with Node 26.10.0. It 
 - [ ] Reference-device final pass records sustained performance, input latency, and cold-load time.
 - [ ] Colour-blind screenshots, required store screenshots, cover art, and trailer GIF are captured and uploaded; see `release/capture-guide.md`.
 - [ ] n ≥ 10 feel-playtest result is recorded against the GAME_SPEC §10 success criteria.
+- [ ] P3.8 high-level progression review is recorded: desktop plus physical iOS Safari and Android Chrome runs cover a sustained high-level encounter, readable normal/boss tells, timing floors, flash reduction, high-contrast bullets, and the selected quality mode. Link evidence in `docs/mobile-qa.md` and the table above.
 - [ ] `v1.0.0` git tag is created from the signed-off release commit.
 - [ ] After M12, complete and link the two physical-device rows in `docs/mobile-qa.md`; they must record iOS Safari and Android Chrome evidence for touch, portrait/landscape, safe areas, interruption, audio, fullscreen fallback, selected quality, and peak load.
 

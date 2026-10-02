@@ -115,12 +115,12 @@ All numbers here are **starting values**. The source of truth is `content/*.json
 
 ## 8. MVP Definition
 
-The MVP is a **complete, polished, short arcade run** that could be released on itch.io:
+The MVP is a **complete, polished, score-chasing arcade game** that could be released on itch.io:
 
-- 5 stages (4 wave stages and 1 boss stage), 4 enemy types, 1 boss.
+- Unbounded deterministic levels built from four cycling wave templates and the recurring three-phase Overlord every tenth level.
 - 3 weapon levels, bombs, lives, a chain multiplier, and extra lives.
 - **Final** art, animation, effects, music (3 tracks) and SFX. No placeholders ship.
-- Title, pause, settings, results and game over screens, plus a local high-score table.
+- Title, pause, settings, results and game over screens, plus a local high-score table that records score and highest level reached.
 - Keyboard and gamepad controls.
 - Hosted on Cloudflare Pages and itch.io.
 
@@ -131,7 +131,7 @@ The MVP is a **complete, polished, short arcade run** that could be released on 
 | PWA install and offline cache | After M12; separate from mobile-browser compatibility |
 | Online leaderboards (Supabase, replay-verified) | MVP+1 |
 | Key rebinding, localization | MVP+1 |
-| More stages, enemies and bosses; "loop 2" harder difficulty | MVP+2 |
+| New enemy types, bosses, and wave templates beyond the recurring Overlord program | P4 |
 | Daily challenge seed | MVP+2 |
 | Capturing enemies (Galaga-style tractor beam) | MVP+2 |
 | Steam desktop build (Electron + steamworks.js), achievements | MVP+3 |

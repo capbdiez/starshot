@@ -8,8 +8,8 @@ bundle after the final production smoke test and upload them to the configured C
 | Cover / store page art | 630×500 PNG | The player ship facing a readable formation; use the master palette and no text smaller than 8 px at native scale. |
 | Screenshot 1 | 1280×720 PNG | Peak readable combat: player, high-contrast enemy bullets, HUD, and a weapon pickup. |
 | Screenshot 2 | 1280×720 PNG | A boss phase with the Overlord's wings/cannon and subtitle tell visible. |
-| Screenshot 3 | 1280×720 PNG | Results screen showing score and stage reached. |
-| Trailer GIF | 1280×720 GIF, 10–20 s | Title → combat → bomb → boss phase → victory/result. Keep captions readable and avoid flashes above 3 Hz. |
+| Screenshot 3 | 1280×720 PNG | Results screen showing score and highest level reached after game over. |
+| Trailer GIF | 1280×720 GIF, 10–20 s | Title → combat → bomb → boss phase → next level → game-over results. Keep captions readable and avoid flashes above 3 Hz. |
 
 ## Reproducible capture conditions
 
