@@ -52,6 +52,7 @@ describe('P3 endless progression', () => {
       expect(left.difficulty).toBe(right.difficulty);
       expect(left.level).toBe(right.level);
     }
+    expect(difficulties.slice(0, 16)).toEqual([1, 2, 2, 2, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5]);
     expect(new Set(difficulties).size).toBeGreaterThan(1);
   });
 
