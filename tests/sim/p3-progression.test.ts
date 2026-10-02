@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { createSim } from '../../src/sim/index.ts';
 import {
   createWorld,
   advanceLevel,
@@ -6,9 +7,51 @@ import {
   scaledInterval,
   waveForLevel,
 } from '../../src/sim/world.ts';
-import { realContent } from './helpers.ts';
+import { B, contentWith, ofType, realContent, run } from './helpers.ts';
+
+const rapidProgressionContent = contentWith((gameplay) => {
+  gameplay['grunt'] = {
+    ...(gameplay['grunt'] ?? {}),
+    respawnTicks: 1,
+  };
+  gameplay['player'] = {
+    ...(gameplay['player'] ?? {}),
+    bombsPerLife: 9,
+  };
+  gameplay['bomb'] = {
+    ...(gameplay['bomb'] ?? {}),
+    damage: 99,
+  };
+});
+
+function clearNormalLevels(seed: number): {
+  readonly levels: readonly number[];
+  readonly hashes: readonly string[];
+} {
+  const sim = createSim(rapidProgressionContent, seed);
+  const levels = ofType(run(sim, 1), 'WaveStarted').map((event) => event.level);
+  const hashes = [sim.hash()];
+
+  for (let level = 1; level < 6; level += 1) {
+    levels.push(...ofType(run(sim, 1, B), 'WaveStarted').map((event) => event.level));
+    hashes.push(sim.hash());
+    run(sim, 1);
+    hashes.push(sim.hash());
+  }
+
+  expect(sim.snapshot()).toMatchObject({ level: 6, phase: 'playing' });
+  return { levels, hashes };
+}
 
 describe('P3 endless progression', () => {
+  it('continues through level 6 in playing phase and retains deterministic hashes', () => {
+    const left = clearNormalLevels(42);
+    const right = clearNormalLevels(42);
+
+    expect(left.levels).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(left.hashes).toEqual(right.hashes);
+  });
+
   it('cycles authored normal templates and reserves every tenth level for a boss', () => {
     const world = createWorld(realContent, 42);
     const templates: string[] = [];
