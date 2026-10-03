@@ -201,7 +201,7 @@ function stateWords(world: World): number[] {
     pushFloat(words, g.y);
   }
   for (const m of [...world.shots, ...world.bullets, ...world.pickups]) {
-    words.push(m.id, m.active ? 1 : 0, m.turnRateDegrees);
+    words.push(m.id, m.active ? 1 : 0, m.turnRateDegrees, m.remainingLifetimeTicks);
     for (let i = 0; i < m.variant.length; i += 1) words.push(m.variant.charCodeAt(i));
     pushFloat(words, m.x);
     pushFloat(words, m.y);

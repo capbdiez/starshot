@@ -24,6 +24,8 @@ const projectileSchema = z.strictObject({
   variant: projectileVariantSchema,
   /** Maximum deterministic change in heading per simulation tick. Zero disables guidance. */
   turnRateDegrees: z.number().min(0).max(45),
+  /** Active lifetime in simulation ticks; zero retains the standard off-screen-only cull. */
+  lifetimeTicks: z.int().min(0).max(3600),
 });
 
 const barrageSchema = z.strictObject({

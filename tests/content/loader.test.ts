@@ -117,10 +117,24 @@ describe('content loader', () => {
     if (!boss) throw new Error('boss fixture missing');
     boss.phases[1] = {
       ...boss.phases[1],
-      projectile: { variant: 'boss_guided_bullet', turnRateDegrees: 99 },
+      projectile: { variant: 'boss_guided_bullet', turnRateDegrees: 99, lifetimeTicks: 300 },
     };
     expect(issuesOf(bad).join()).toMatch(
       /bosses\.json: bosses\.0\.phases\.1\.projectile\.turnRateDegrees/,
+    );
+  });
+
+  it('rejects invalid boss projectile lifetimes', () => {
+    const bad = structuredClone(real) as Record<string, unknown>;
+    const bosses = bad['bosses.json'] as { bosses: { phases: Record<string, unknown>[] }[] };
+    const boss = bosses.bosses[0];
+    if (!boss) throw new Error('boss fixture missing');
+    boss.phases[1] = {
+      ...boss.phases[1],
+      projectile: { variant: 'boss_guided_bullet', turnRateDegrees: 1, lifetimeTicks: -1 },
+    };
+    expect(issuesOf(bad).join()).toMatch(
+      /bosses\.json: bosses\.0\.phases\.1\.projectile\.lifetimeTicks/,
     );
   });
 

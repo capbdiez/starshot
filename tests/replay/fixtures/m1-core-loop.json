@@ -20,12 +20,12 @@
     [5, 300]
   ],
   "expected": {
-    "hash": "3aeaf39a",
+    "hash": "2b64f5ba",
     "tick": 4145,
     "lives": 1,
     "level": 1,
     "kills": 11,
     "gameOvers": 4
   },
-  "reason": "P4.3 adds the Overlord's one-shot barrage state to the deterministic hash. This replay retains the same tick, lives, level, kills and game-over count."
+  "reason": "Guided Overlord projectile lifetimes are now part of deterministic mover state. This replay retains the same tick, lives, level, kills and game-over count."
 }

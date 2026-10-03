@@ -45,6 +45,7 @@ function launch(
   vy: number,
   variant: Mover['variant'] = 'enemy_bullet',
   turnRateDegrees = 0,
+  lifetimeTicks = 0,
 ): void {
   m.id = newId(world);
   m.active = true;
@@ -56,6 +57,7 @@ function launch(
   m.vy = vy;
   m.variant = variant;
   m.turnRateDegrees = turnRateDegrees;
+  m.remainingLifetimeTicks = lifetimeTicks;
 }
 
 /** Steers guided hostile projectiles toward the current player position without changing their speed. */
@@ -182,6 +184,13 @@ export function moveMovers(pool: readonly Mover[]): void {
     m.prevY = m.y;
     m.x += m.vx;
     m.y += m.vy;
+    if (m.remainingLifetimeTicks > 0) {
+      m.remainingLifetimeTicks -= 1;
+      if (m.remainingLifetimeTicks === 0) {
+        m.active = false;
+        continue;
+      }
+    }
     const offY = m.y < -CULL_MARGIN || m.y > WORLD_HEIGHT + CULL_MARGIN;
     const offX = m.x < -CULL_MARGIN || m.x > WORLD_WIDTH + CULL_MARGIN;
     if (offX || offY) m.active = false;
@@ -383,6 +392,7 @@ export function updateBoss(world: World): void {
         velocity.vy,
         phase.projectile.variant,
         phase.projectile.turnRateDegrees,
+        phase.projectile.lifetimeTicks,
       );
       world.events.push({ type: 'EnemyFired', id: bullet.id, x: bullet.x, y: bullet.y });
     }

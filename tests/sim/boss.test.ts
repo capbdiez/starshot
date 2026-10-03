@@ -215,6 +215,30 @@ describe('P4 Overlord projectile expansion', () => {
     ).toBe(true);
   });
 
+  it('expires guided bullets after their fixed lifetime without affecting non-guided bullets', () => {
+    const { world, phase, bullets } = launchBossPhase(1);
+    const guided = bullets[0];
+    if (!guided) throw new Error('guided bullet missing');
+    expect(phase.projectile.turnRateDegrees).toBe(1);
+    expect(phase.projectile.lifetimeTicks).toBe(300);
+    guided.vx = 0;
+    guided.vy = 0;
+
+    for (let tick = 0; tick < phase.projectile.lifetimeTicks - 1; tick += 1)
+      moveMovers(world.bullets);
+    expect(guided.active).toBe(true);
+    moveMovers(world.bullets);
+    expect(guided.active).toBe(false);
+
+    // Confirm zero-lifetime movers retain the established off-screen-only cull behavior.
+    guided.active = true;
+    guided.x = 135;
+    guided.y = 100;
+    guided.remainingLifetimeTicks = 0;
+    moveMovers(world.bullets);
+    expect(guided.active).toBe(true);
+  });
+
   it('fires one configured non-guided barrage when final-form HP crosses its threshold', () => {
     const world = createWorld(bossTestContent(1), 7);
     world.level = 10;

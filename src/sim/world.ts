@@ -30,6 +30,8 @@ export interface Mover {
   variant: ProjectileVariant | 'enemy_bullet';
   /** Maximum guidance turn in degrees per tick; zero preserves the launch velocity. */
   turnRateDegrees: number;
+  /** Remaining active ticks; zero means the mover has no lifetime limit. */
+  remainingLifetimeTicks: number;
 }
 
 export interface Grunt {
@@ -142,6 +144,7 @@ function mover(): Mover {
     vy: 0,
     variant: 'enemy_bullet',
     turnRateDegrees: 0,
+    remainingLifetimeTicks: 0,
   };
 }
 

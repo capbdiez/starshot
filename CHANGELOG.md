@@ -6,6 +6,7 @@ All notable changes to Starshot are documented here.
 
 ### Changed
 
+- Guided Overlord projectiles now turn at a gentler 1° per tick and expire after five seconds, preventing them from circling indefinitely while preserving their initial spread and ring patterns.
 - P4.4 renders normal, guided, and barrage Overlord projectiles through variant-specific pooled layers using generated palette-compliant animated sprites; high-contrast bullets apply uniformly to every hostile variant while normal-enemy fire and boss effects/audio remain unchanged.
 - P4.3 fires one configured, non-guided final-form Overlord barrage when its scaled HP first crosses the authored low-health threshold; the one-shot state resets per boss/phase, preserves fixed-pool limits, and clears on defeat.
 - P4.2 activates deterministic, speed-preserving guided fire for Overlord forms two and three: their authored spread and ring launch geometry now curves toward the player at data-configured, bounded turn rates, while form-one and normal-enemy fire remain unguided.
