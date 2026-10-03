@@ -354,6 +354,25 @@ export function spawnBoss(world: World): void {
   });
 }
 
+/** Clears every entity belonging to the encounter currently on screen. */
+function clearEncounter(world: World): void {
+  world.boss.active = false;
+  world.boss.parts.length = 0;
+  for (const enemy of world.grunts) enemy.alive = false;
+  for (const mover of [...world.shots, ...world.bullets, ...world.pickups]) mover.active = false;
+}
+
+/** Immediately starts the current or next recurring boss encounter without changing run rewards. */
+export function jumpToBossLevel(world: World): void {
+  world.level = Math.ceil(world.level / 10) * 10;
+  world.wave = world.level;
+  world.waveTimer = 0;
+  world.enemyFireTimer = 0;
+  world.diveTimer = 0;
+  clearEncounter(world);
+  spawnBoss(world);
+}
+
 /** Advances one level and consumes the sole deterministic 50/50 difficulty roll for that transition. */
 export function advanceLevel(world: World): void {
   world.level += 1;

@@ -87,6 +87,8 @@ export class BootScene extends Phaser.Scene {
   private hitStopMs = 0;
   private slowMotionMs = 0;
   private slowScale = 1;
+  private readonly bossJumpKeys = new Set<string>();
+  private bossJumpLatched = false;
   private result?: { readonly score: number; readonly level: number };
   private transitionWipe?: Phaser.GameObjects.Graphics;
 
@@ -163,22 +165,7 @@ export class BootScene extends Phaser.Scene {
       const activeSim = this.sim;
       if (!activeSim) return;
       activeSim.step(input.poll());
-      const events = activeSim.drainEvents();
-      if (resultsCommandFor(events)) {
-        const view = activeSim.snapshot();
-        this.result = { score: view.score, level: view.level };
-        this.deps.saves.recordScore(this.result);
-        this.command('results');
-        this.playCue('music_game_over');
-      }
-      const musicTransition = musicTransitionFor(events);
-      if (musicTransition) this.setMusic(`music_${musicTransition}`);
-      if (events.some((event) => event.type === 'BossStarted' || event.type === 'PlayerHit'))
-        this.duckMusic();
-      const timing = presenter.handle(events);
-      this.hitStopMs = Math.max(this.hitStopMs, timing.hitStopMs);
-      this.slowMotionMs = Math.max(this.slowMotionMs, timing.slowMotionMs);
-      this.slowScale = Math.min(this.slowScale, timing.slowScale);
+      this.handleEvents(activeSim.drainEvents());
     };
     const loop = createGameLoop({ stepMs: TICK_MS, maxFrameMs: MAX_FRAME_MS, step });
     this.loop = loop;
@@ -186,6 +173,22 @@ export class BootScene extends Phaser.Scene {
     this.showFlow();
     this.deps.statusElement.dataset['state'] = 'ready';
     const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.code === 'F5' || event.code === 'F6') {
+        event.preventDefault();
+        this.bossJumpKeys.add(event.code);
+        if (
+          this.flow === 'play' &&
+          !this.bossJumpLatched &&
+          this.bossJumpKeys.has('F5') &&
+          this.bossJumpKeys.has('F6')
+        ) {
+          this.bossJumpLatched = true;
+          this.sim?.jumpToBossLevel();
+          if (this.sim) this.handleEvents(this.sim.drainEvents());
+          loop.reset();
+          this.render(0);
+        }
+      }
       if (event.code === 'Escape') {
         if (this.flow === 'play') this.command('pause');
         else if (this.flow === 'pause') this.command('resume');
@@ -197,7 +200,13 @@ export class BootScene extends Phaser.Scene {
         this.command('start');
       }
     };
+    const onKeyUp = (event: KeyboardEvent): void => {
+      if (event.code !== 'F5' && event.code !== 'F6') return;
+      this.bossJumpKeys.delete(event.code);
+      this.bossJumpLatched = false;
+    };
     window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
     this.removeVisibilityWatch = watchVisibility(document, (hidden) => {
       if (hidden) {
         this.sound.pauseAll();
@@ -209,6 +218,7 @@ export class BootScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.removeVisibilityWatch?.();
       window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
     });
 
     this.deps.attachDebug?.({
@@ -257,6 +267,28 @@ export class BootScene extends Phaser.Scene {
     this.showFlow();
     this.playTransitionWipe();
     this.render(0);
+  }
+
+  /** Routes events from a fixed step or the boss shortcut through the normal presentation path. */
+  private handleEvents(events: ReturnType<Sim['drainEvents']>): void {
+    if (resultsCommandFor(events)) {
+      const view = this.sim?.snapshot();
+      if (view) {
+        this.result = { score: view.score, level: view.level };
+        this.deps.saves.recordScore(this.result);
+      }
+      this.command('results');
+      this.playCue('music_game_over');
+    }
+    const musicTransition = musicTransitionFor(events);
+    if (musicTransition) this.setMusic(`music_${musicTransition}`);
+    if (events.some((event) => event.type === 'BossStarted' || event.type === 'PlayerHit'))
+      this.duckMusic();
+    const timing = this.presenter?.handle(events);
+    if (!timing) return;
+    this.hitStopMs = Math.max(this.hitStopMs, timing.hitStopMs);
+    this.slowMotionMs = Math.max(this.slowMotionMs, timing.slowMotionMs);
+    this.slowScale = Math.min(this.slowScale, timing.slowScale);
   }
 
   private showFlow(): void {

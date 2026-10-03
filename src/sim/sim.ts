@@ -11,7 +11,7 @@ import {
   updatePlayer,
   updateWave,
 } from './systems.ts';
-import { createWorld, type Mover, type Phase, type World } from './world.ts';
+import { createWorld, jumpToBossLevel, type Mover, type Phase, type World } from './world.ts';
 
 /** A moving entity in a {@link SimView}; `prev*` is its position one tick earlier (smoothing). */
 export interface MoverView {
@@ -217,6 +217,8 @@ export interface Sim {
   step(input: InputFrame): void;
   /** Returns a frozen snapshot of the current state; presentation must never mutate it. */
   snapshot(): Readonly<SimView>;
+  /** Immediately starts the current or next recurring boss encounter. */
+  jumpToBossLevel(): void;
   /**
    * Returns the events emitted since the previous call. The returned array is reused and only
    * valid until the next `drainEvents()` call (no per-tick allocation).
@@ -250,6 +252,9 @@ export function createSim(content: Content, seed: number): Sim {
     },
     snapshot() {
       return view(world);
+    },
+    jumpToBossLevel() {
+      jumpToBossLevel(world);
     },
     drainEvents() {
       drained.length = 0;

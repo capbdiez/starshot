@@ -10,9 +10,11 @@ import {
   createWorld,
   ENEMY_BULLET_POOL,
   isBossLevel,
+  jumpToBossLevel,
   spawnWave,
   waveForLevel,
 } from '../../src/sim/world.ts';
+import { createSim } from '../../src/sim/index.ts';
 import { realContent } from './helpers.ts';
 
 describe('P3 endless progression', () => {
@@ -100,6 +102,32 @@ describe('P3 endless progression', () => {
 
     expect(cleanBossLevels).toEqual([10, 20, 30, 40, 50, 60, 70, 80, 90, 100]);
     expect(noisyBossLevels).toEqual(cleanBossLevels);
+  });
+
+  it('jumps directly to the current or next boss level and starts its boss encounter', () => {
+    const sim = createSim(realContent, 42);
+
+    sim.jumpToBossLevel();
+    expect(sim.snapshot().level).toBe(10);
+    expect(sim.snapshot().boss).toBeDefined();
+    expect(sim.drainEvents()).toContainEqual(
+      expect.objectContaining({ type: 'BossStarted', level: 10 }),
+    );
+
+    sim.jumpToBossLevel();
+    expect(sim.snapshot().level).toBe(10);
+    expect(sim.drainEvents()).toContainEqual(
+      expect.objectContaining({ type: 'BossStarted', level: 10 }),
+    );
+
+    const world = createWorld(realContent, 42);
+    world.level = 14;
+    jumpToBossLevel(world);
+    expect(world.level).toBe(20);
+    expect(world.boss.active).toBe(true);
+    expect(world.events).toContainEqual(
+      expect.objectContaining({ type: 'BossStarted', level: 20 }),
+    );
   });
 
   it('uses one deterministic 50/50 roll per level transition and never lowers difficulty', () => {
