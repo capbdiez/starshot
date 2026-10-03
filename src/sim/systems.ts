@@ -3,6 +3,8 @@ import {
   WORLD_WIDTH,
   hasInput,
   InputBit,
+  trigAtan2,
+  trigCos,
   trigSin,
   type InputFrame,
 } from '../shared/index.ts';
@@ -42,6 +44,7 @@ function launch(
   vx: number,
   vy: number,
   variant: Mover['variant'] = 'enemy_bullet',
+  turnRateDegrees = 0,
 ): void {
   m.id = newId(world);
   m.active = true;
@@ -52,6 +55,25 @@ function launch(
   m.vx = vx;
   m.vy = vy;
   m.variant = variant;
+  m.turnRateDegrees = turnRateDegrees;
+}
+
+/** Steers guided hostile projectiles toward the current player position without changing their speed. */
+export function updateGuidedBullets(world: World): void {
+  for (const bullet of world.bullets) {
+    if (!bullet.active || bullet.turnRateDegrees <= 0) continue;
+    const speed = Math.hypot(bullet.vx, bullet.vy);
+    if (speed === 0) continue;
+    const current = trigAtan2(bullet.vy, bullet.vx);
+    const target = trigAtan2(world.player.y - bullet.y, world.player.x - bullet.x);
+    let difference = target - current;
+    if (difference > Math.PI) difference -= Math.PI * 2;
+    if (difference < -Math.PI) difference += Math.PI * 2;
+    const maximum = (bullet.turnRateDegrees * Math.PI) / 180;
+    const heading = current + Math.max(-maximum, Math.min(maximum, difference));
+    bullet.vx = trigCos(heading) * speed;
+    bullet.vy = trigSin(heading) * speed;
+  }
 }
 
 /** Horizontal movement, weapon-level autofire and bomb activation. */
@@ -317,7 +339,16 @@ export function updateBoss(world: World): void {
     )) {
       const bullet = findFree(world.bullets);
       if (!bullet) break;
-      launch(world, bullet, boss.x, boss.y, velocity.vx, velocity.vy, phase.projectile.variant);
+      launch(
+        world,
+        bullet,
+        boss.x,
+        boss.y,
+        velocity.vx,
+        velocity.vy,
+        phase.projectile.variant,
+        phase.projectile.turnRateDegrees,
+      );
       world.events.push({ type: 'EnemyFired', id: bullet.id, x: bullet.x, y: bullet.y });
     }
     boss.fireTimer = scaledBossFireInterval(phase.fireIntervalTicks, world.difficulty);

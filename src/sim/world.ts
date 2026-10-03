@@ -28,6 +28,8 @@ export interface Mover {
   vy: number;
   /** Read-only presentation variant; normal enemies always use `enemy_bullet`. */
   variant: ProjectileVariant | 'enemy_bullet';
+  /** Maximum guidance turn in degrees per tick; zero preserves the launch velocity. */
+  turnRateDegrees: number;
 }
 
 export interface Grunt {
@@ -137,6 +139,7 @@ function mover(): Mover {
     vx: 0,
     vy: 0,
     variant: 'enemy_bullet',
+    turnRateDegrees: 0,
   };
 }
 

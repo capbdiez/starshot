@@ -20,12 +20,12 @@
     [5, 300]
   ],
   "expected": {
-    "hash": "ef11cc8a",
+    "hash": "9df3f5aa",
     "tick": 4145,
     "lives": 1,
     "level": 1,
     "kills": 11,
     "gameOvers": 4
   },
-  "reason": "P4.1 adds the selected pooled hostile-projectile variant to the deterministic hash. This replay retains the same tick, lives, level, kills and game-over count."
+  "reason": "P4.2 adds each pooled projectile's guidance turn rate to the deterministic hash. This replay retains the same tick, lives, level, kills and game-over count."
 }

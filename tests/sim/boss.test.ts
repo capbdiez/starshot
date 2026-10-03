@@ -6,7 +6,8 @@ import {
   scaledBossPhaseHp,
 } from '../../src/sim/difficulty.ts';
 import { createSim } from '../../src/sim/index.ts';
-import { moveMovers, updateEnemyFire } from '../../src/sim/systems.ts';
+import { moveMovers, updateEnemyFire, updateGuidedBullets } from '../../src/sim/systems.ts';
+import { patternVelocities } from '../../src/sim/patterns.ts';
 import { createWorld, ENEMY_BULLET_POOL, spawnBoss } from '../../src/sim/world.ts';
 import { B, F, filesWith, ofType, run } from './helpers.ts';
 
@@ -89,6 +90,26 @@ function advanceToBoss(seed = 7) {
   throw new Error('level-10 boss did not start');
 }
 
+function launchBossPhase(phaseIndex: number) {
+  const world = createWorld(bossTestContent(), 7);
+  world.level = 10;
+  spawnBoss(world);
+  world.boss.phase = phaseIndex;
+  world.boss.tellTimer = 1;
+  updateEnemyFire(world);
+  const phase = world.content.bosses['overlord']?.phases[phaseIndex];
+  if (!phase) throw new Error('boss phase fixture missing');
+  return { world, phase, bullets: world.bullets.filter((bullet) => bullet.active) };
+}
+
+function heading(vx: number, vy: number): number {
+  return Math.atan2(vy, vx);
+}
+
+function angleDifference(target: number, current: number): number {
+  return Math.atan2(Math.sin(target - current), Math.cos(target - current));
+}
+
 function defeatBossAt(seed: number, difficulty: number): void {
   const { sim, events: stageEvents } = advanceToBoss(seed);
   expect(sim.snapshot().difficulty).toBe(difficulty);
@@ -131,6 +152,61 @@ describe('P4 Overlord projectile expansion', () => {
       .enemyBullets.find((candidate) => candidate.variant === 'boss_bullet');
     expect(bullet).toBeDefined();
     expect(Object.isFrozen(bullet)).toBe(true);
+  });
+
+  it('keeps form one unguided and preserves forms two and three launch patterns', () => {
+    const first = launchBossPhase(0);
+    const firstVelocity = first.bullets[0];
+    if (!firstVelocity) throw new Error('form-one bullet missing');
+    const before = { vx: firstVelocity.vx, vy: firstVelocity.vy };
+    updateGuidedBullets(first.world);
+    expect(first.bullets).toHaveLength(1);
+    expect(firstVelocity.turnRateDegrees).toBe(0);
+    expect(firstVelocity).toMatchObject(before);
+
+    for (const phaseIndex of [1, 2]) {
+      const { world, phase, bullets } = launchBossPhase(phaseIndex);
+      const expected = patternVelocities(
+        phase.pattern,
+        world.boss.x,
+        world.boss.y,
+        world.player.x,
+        world.player.y,
+      );
+      expect(bullets).toHaveLength(phase.pattern.count);
+      expect(bullets.map(({ vx, vy }) => ({ vx, vy }))).toEqual(expected);
+      expect(
+        bullets.every((bullet) => bullet.turnRateDegrees === phase.projectile.turnRateDegrees),
+      ).toBe(true);
+      expect(bullets.every((bullet) => bullet.variant === 'boss_guided_bullet')).toBe(true);
+    }
+  });
+
+  it('curves guided bullets by no more than their configured turn rate without changing speed', () => {
+    const { world, phase, bullets } = launchBossPhase(1);
+    const before = bullets.map((bullet) => ({
+      heading: heading(bullet.vx, bullet.vy),
+      speed: Math.hypot(bullet.vx, bullet.vy),
+    }));
+
+    updateGuidedBullets(world);
+
+    const maximum = (phase.projectile.turnRateDegrees * Math.PI) / 180;
+    const target = heading(world.player.x - world.boss.x, world.player.y - world.boss.y);
+    bullets.forEach((bullet, index) => {
+      const initial = before[index];
+      if (!initial) throw new Error('initial guided velocity missing');
+      expect(
+        Math.abs(angleDifference(heading(bullet.vx, bullet.vy), initial.heading)),
+      ).toBeLessThanOrEqual(maximum + 1e-12);
+      expect(Math.hypot(bullet.vx, bullet.vy)).toBeCloseTo(initial.speed, 12);
+      expect(Math.abs(angleDifference(target, heading(bullet.vx, bullet.vy)))).toBeLessThanOrEqual(
+        Math.abs(angleDifference(target, initial.heading)),
+      );
+    });
+    expect(
+      bullets.some((bullet, index) => heading(bullet.vx, bullet.vy) !== before[index]?.heading),
+    ).toBe(true);
   });
 
   it('preserves the enemy_bullet variant for normal-enemy fire', () => {
@@ -181,10 +257,13 @@ describe('P4 Overlord projectile expansion', () => {
       world.level = 10;
       world.difficulty = 999;
       spawnBoss(world);
+      world.boss.phase = 2;
+      world.boss.fireTimer = 0;
       let peakBullets = 0;
 
       for (let tick = 0; tick < 10_000; tick += 1) {
         world.tick += 1;
+        updateGuidedBullets(world);
         moveMovers(world.bullets);
         updateEnemyFire(world);
         peakBullets = Math.max(peakBullets, world.bullets.filter((bullet) => bullet.active).length);

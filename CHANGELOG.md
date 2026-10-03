@@ -6,6 +6,7 @@ All notable changes to Starshot are documented here.
 
 ### Changed
 
+- P4.2 activates deterministic, speed-preserving guided fire for Overlord forms two and three: their authored spread and ring launch geometry now curves toward the player at data-configured, bounded turn rates, while form-one and normal-enemy fire remain unguided.
 - P4.1 validates data-authored Overlord projectile variants, guidance settings, and final-form barrage settings; hostile bullets now carry their selected variant through the fixed pool and read-only snapshot while retaining existing movement and collision behavior.
 - P3 replaces the finite campaign with endless deterministic levels, recurring tenth-level Overlord encounters, and level-based local scores.
 - P3.3 scales normal-wave enemy durability, fire cadence, and dive cadence from difficulty at runtime, with readable timing floors and unchanged authored content.

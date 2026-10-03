@@ -5,6 +5,7 @@ import { fnv1a32, pushFloat } from './hash.ts';
 import {
   moveMovers,
   resolveCollisions,
+  updateGuidedBullets,
   updateEnemyFire,
   updateGameOver,
   updatePlayer,
@@ -199,7 +200,7 @@ function stateWords(world: World): number[] {
     pushFloat(words, g.y);
   }
   for (const m of [...world.shots, ...world.bullets, ...world.pickups]) {
-    words.push(m.id, m.active ? 1 : 0);
+    words.push(m.id, m.active ? 1 : 0, m.turnRateDegrees);
     for (let i = 0; i < m.variant.length; i += 1) words.push(m.variant.charCodeAt(i));
     pushFloat(words, m.x);
     pushFloat(words, m.y);
@@ -237,6 +238,7 @@ export function createSim(content: Content, seed: number): Sim {
     step(input) {
       world.tick += 1;
       moveMovers(world.shots);
+      updateGuidedBullets(world);
       moveMovers(world.bullets);
       moveMovers(world.pickups);
       if (updateGameOver(world)) return;
