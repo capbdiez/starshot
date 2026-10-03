@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { loadContent } from '../../src/content/index.ts';
+import { assetManifestSchema, loadContent } from '../../src/content/index.ts';
 import { SPRITE_ART } from '../../tools/art/sprites.ts';
 import { findPaletteViolations, parsePalette } from '../../tools/lib/palette.ts';
 import { buildSheet, gridImage } from '../../tools/lib/pixel-art.ts';
@@ -36,6 +36,24 @@ describe('final M1 sprite art', () => {
         'player_shot',
       ].sort(),
     );
+  });
+
+  it('registers distinct animated art for every configured boss projectile variant', () => {
+    const variants = ['boss_bullet', 'boss_guided_bullet', 'boss_barrage_bullet'] as const;
+    expect(variants.map((key) => content.sprites[key]?.size)).toEqual([
+      { w: 6, h: 6 },
+      { w: 8, h: 8 },
+      { w: 10, h: 10 },
+    ]);
+    for (const key of variants) expect(SPRITE_ART[key]?.idle).toHaveLength(2);
+  });
+
+  it('commits every boss projectile variant to the generated atlas manifest', () => {
+    const manifest = assetManifestSchema.parse(JSON.parse(readFileSync(PATHS.manifest, 'utf8')));
+    for (const key of ['boss_bullet', 'boss_guided_bullet', 'boss_barrage_bullet']) {
+      expect(manifest.sprites[key]?.placeholder).toBe(false);
+      expect(manifest.sprites[key]?.clips['idle']).toHaveLength(2);
+    }
   });
 
   it('matches content sizes and clip frame counts and uses only palette colours', () => {

@@ -60,6 +60,26 @@ function source(manifest: AssetManifest, key: string): SpriteSource {
   return { atlas: entry.atlas, frame };
 }
 
+/** Returns the unique projectile sprite keys required by normal enemies and every boss phase. */
+export function projectileSpriteKeys(content: Content): readonly string[] {
+  return [
+    content.gameplay.enemyBullet.sprite,
+    ...Object.values(content.bosses).flatMap((boss) =>
+      boss.phases.flatMap((phase) => [
+        phase.projectile.variant,
+        ...(phase.barrage ? [phase.barrage.variant] : []),
+      ]),
+    ),
+  ].filter((sprite, index, all) => all.indexOf(sprite) === index);
+}
+
+/** Visual transform applied uniformly to every hostile projectile when high contrast is enabled. */
+export function hostileBulletTransform(
+  highContrast: boolean,
+): Readonly<{ tint?: number; scale: number }> {
+  return highContrast ? { tint: 0xffffff, scale: 1.5 } : { scale: 1 };
+}
+
 /** Formats absolute progression state for the compact gameplay HUD. */
 export function hudProgressText(level: number, difficulty: number, bossActive: boolean): string {
   return bossActive
@@ -140,17 +160,9 @@ export class Presenter {
       animationKey(g.playerShot.sprite, 'idle'),
       DEPTH.shot,
     );
-    const bulletSprites = [
-      g.enemyBullet.sprite,
-      ...Object.values(content.bosses).flatMap((boss) =>
-        boss.phases.flatMap((phase) => [
-          phase.projectile.variant,
-          ...(phase.barrage ? [phase.barrage.variant] : []),
-        ]),
-      ),
-    ].filter((sprite, index, all) => all.indexOf(sprite) === index);
+    // Each variant owns a SpriteLayer, retaining its atlas source while IDs are recycled.
     this.bullets = new Map(
-      bulletSprites.map((sprite) => [
+      projectileSpriteKeys(content).map((sprite) => [
         sprite,
         new SpriteLayer(
           scene,
@@ -262,8 +274,10 @@ export class Presenter {
         .get(b.variant)
         ?.place(b.id, smooth(b.prevX, b.x, alpha), smooth(b.prevY, b.y, alpha));
       if (!bullet) continue;
-      if (this.settings.highContrastBullets) bullet.setTint(0xffffff).setScale(1.5);
-      else bullet.clearTint().setScale(1);
+      const transform = hostileBulletTransform(this.settings.highContrastBullets);
+      if (transform.tint === undefined) bullet.clearTint();
+      else bullet.setTint(transform.tint);
+      bullet.setScale(transform.scale);
     }
     for (const layer of this.bullets.values()) layer.end();
     this.pickups.begin();

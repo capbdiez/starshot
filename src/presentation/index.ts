@@ -13,4 +13,10 @@ export {
 } from './fx/event-fx.ts';
 export { StageBackground } from './background/stage-background.ts';
 export { Trauma } from './fx/trauma.ts';
-export { Presenter, type FxTiming, type PresentationSettings } from './presenter.ts';
+export {
+  hostileBulletTransform,
+  projectileSpriteKeys,
+  Presenter,
+  type FxTiming,
+  type PresentationSettings,
+} from './presenter.ts';

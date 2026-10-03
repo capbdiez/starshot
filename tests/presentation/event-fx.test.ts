@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { loadContent } from '../../src/content/index.ts';
+import { hostileBulletTransform, projectileSpriteKeys } from '../../src/presentation/presenter.ts';
 import { planFxBatch, reactionsFor, smooth } from '../../src/presentation/fx/event-fx.ts';
+import { readContentFiles } from '../../tools/lib/repo.ts';
 
 const fx = {
   PlayerFired: { sfx: 'sfx_shot' },
@@ -60,6 +63,27 @@ describe('quality-tier FX planning', () => {
     expect(planFxBatch(reactions.reactions, { ...settings, flashReduction: true }, 400)).toEqual([
       expect.objectContaining({ effect: 'boss', particles: 221 }),
     ]);
+  });
+});
+
+describe('P4.4 boss projectile presentation', () => {
+  const content = loadContent(readContentFiles());
+
+  it('creates pooled presentation layers for normal and every configured boss projectile variant', () => {
+    expect(projectileSpriteKeys(content)).toEqual([
+      'enemy_bullet',
+      'boss_bullet',
+      'boss_guided_bullet',
+      'boss_barrage_bullet',
+    ]);
+  });
+
+  it('applies the high-contrast accessibility treatment to every hostile projectile variant', () => {
+    for (const key of projectileSpriteKeys(content)) {
+      expect(key).toMatch(/^(enemy|boss)_/);
+      expect(hostileBulletTransform(true)).toEqual({ tint: 0xffffff, scale: 1.5 });
+      expect(hostileBulletTransform(false)).toEqual({ scale: 1 });
+    }
   });
 });
 
