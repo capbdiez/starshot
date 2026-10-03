@@ -20,12 +20,12 @@
     [5, 300]
   ],
   "expected": {
-    "hash": "9df3f5aa",
+    "hash": "3aeaf39a",
     "tick": 4145,
     "lives": 1,
     "level": 1,
     "kills": 11,
     "gameOvers": 4
   },
-  "reason": "P4.2 adds each pooled projectile's guidance turn rate to the deterministic hash. This replay retains the same tick, lives, level, kills and game-over count."
+  "reason": "P4.3 adds the Overlord's one-shot barrage state to the deterministic hash. This replay retains the same tick, lives, level, kills and game-over count."
 }

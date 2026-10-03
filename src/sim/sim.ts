@@ -167,6 +167,7 @@ function stateWords(world: World): number[] {
     world.boss.phase,
     world.boss.tellTimer,
     world.boss.fireTimer,
+    world.boss.barrageFired ? 1 : 0,
     p.alive ? 1 : 0,
     p.dir & 0xff,
     p.fireCooldown,

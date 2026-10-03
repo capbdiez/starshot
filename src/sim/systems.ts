@@ -282,13 +282,47 @@ function damageBossPart(world: World, part: World['boss']['parts'][number], amou
   world.events.push({ type: 'BossPartDestroyed', id: part.id, x: part.x, y: part.y });
 }
 
+function launchBarrage(
+  world: World,
+  phase: NonNullable<World['content']['bosses'][string]>['phases'][number],
+): void {
+  const barrage = phase.barrage;
+  if (!barrage) return;
+  for (const velocity of patternVelocities(
+    barrage.pattern,
+    world.boss.x,
+    world.boss.y,
+    world.player.x,
+    world.player.y,
+  )) {
+    const bullet = findFree(world.bullets);
+    if (!bullet) break;
+    launch(world, bullet, world.boss.x, world.boss.y, velocity.vx, velocity.vy, barrage.variant);
+    world.events.push({ type: 'EnemyFired', id: bullet.id, x: bullet.x, y: bullet.y });
+  }
+}
+
 function damageBoss(world: World, amount: number): void {
   const boss = world.boss;
   if (!boss.active || boss.parts.some((part) => part.alive)) return;
   const spec = world.content.bosses[boss.key];
   const phase = spec?.phases[boss.phase];
   if (!spec || !phase) return;
+  const previousHp = boss.hp;
   boss.hp -= amount;
+  const threshold = phase.barrage
+    ? scaledBossPhaseHp(phase.hp, world.difficulty) * phase.barrage.healthThreshold
+    : 0;
+  if (
+    phase.barrage &&
+    !boss.barrageFired &&
+    boss.hp > 0 &&
+    previousHp > threshold &&
+    boss.hp <= threshold
+  ) {
+    boss.barrageFired = true;
+    launchBarrage(world, phase);
+  }
   if (boss.hp > 0) return;
   if (boss.phase < spec.phases.length - 1) {
     boss.phase += 1;
@@ -298,6 +332,7 @@ function damageBoss(world: World, amount: number): void {
       spec.phases[boss.phase]?.fireIntervalTicks ?? 0,
       world.difficulty,
     );
+    boss.barrageFired = false;
     world.events.push({
       type: 'BossPhaseChanged',
       phase: boss.phase + 1,

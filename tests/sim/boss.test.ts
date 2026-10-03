@@ -6,7 +6,13 @@ import {
   scaledBossPhaseHp,
 } from '../../src/sim/difficulty.ts';
 import { createSim } from '../../src/sim/index.ts';
-import { moveMovers, updateEnemyFire, updateGuidedBullets } from '../../src/sim/systems.ts';
+import {
+  moveMovers,
+  resolveCollisions,
+  updateEnemyFire,
+  updateGuidedBullets,
+  updatePlayer,
+} from '../../src/sim/systems.ts';
 import { patternVelocities } from '../../src/sim/patterns.ts';
 import { createWorld, ENEMY_BULLET_POOL, spawnBoss } from '../../src/sim/world.ts';
 import { B, F, filesWith, ofType, run } from './helpers.ts';
@@ -207,6 +213,93 @@ describe('P4 Overlord projectile expansion', () => {
     expect(
       bullets.some((bullet, index) => heading(bullet.vx, bullet.vy) !== before[index]?.heading),
     ).toBe(true);
+  });
+
+  it('fires one configured non-guided barrage when final-form HP crosses its threshold', () => {
+    const world = createWorld(bossTestContent(1), 7);
+    world.level = 10;
+    spawnBoss(world);
+    world.boss.parts.forEach((part) => {
+      part.alive = false;
+    });
+    world.boss.phase = 2;
+    world.boss.hp = 3;
+    const phase = world.content.bosses['overlord']?.phases[2];
+    if (!phase?.barrage) throw new Error('barrage fixture missing');
+
+    updatePlayer(world, B);
+    updatePlayer(world, 0);
+    updatePlayer(world, B);
+    const barrage = world.bullets.filter((bullet) => bullet.active);
+    expect(barrage).toHaveLength(phase.barrage.pattern.count);
+    expect(barrage.map(({ vx, vy }) => ({ vx, vy }))).toEqual(
+      patternVelocities(
+        phase.barrage.pattern,
+        world.boss.x,
+        world.boss.y,
+        world.player.x,
+        world.player.y,
+      ),
+    );
+    expect(barrage.every((bullet) => bullet.variant === 'boss_barrage_bullet')).toBe(true);
+    expect(barrage.every((bullet) => bullet.turnRateDegrees === 0)).toBe(true);
+
+    updateEnemyFire(world);
+    expect(world.boss.barrageFired).toBe(true);
+    expect(world.bullets.filter((bullet) => bullet.active)).toHaveLength(
+      phase.barrage.pattern.count,
+    );
+  });
+
+  it('resets barrage state on boss spawn and phase changes, and clears it on defeat', () => {
+    const world = createWorld(bossTestContent(1), 7);
+    world.level = 10;
+    spawnBoss(world);
+    world.boss.barrageFired = true;
+    spawnBoss(world);
+    expect(world.boss.barrageFired).toBe(false);
+
+    world.boss.parts.forEach((part) => {
+      part.alive = false;
+    });
+    world.boss.barrageFired = true;
+    world.boss.hp = 1;
+    updatePlayer(world, B);
+    expect(world.boss.phase).toBe(1);
+    expect(world.boss.barrageFired).toBe(false);
+
+    world.boss.phase = 2;
+    world.boss.hp = 1;
+    const bullet = world.bullets[0];
+    if (!bullet) throw new Error('bullet fixture missing');
+    bullet.active = true;
+    updatePlayer(world, 0);
+    updatePlayer(world, B);
+    expect(world.boss.active).toBe(false);
+    expect(world.bullets.every((bullet) => !bullet.active)).toBe(true);
+  });
+
+  it('stops a barrage safely when the fixed bullet pool is constrained', () => {
+    const world = createWorld(bossTestContent(1), 7);
+    world.level = 10;
+    spawnBoss(world);
+    world.boss.parts.forEach((part) => {
+      part.alive = false;
+    });
+    world.boss.phase = 2;
+    world.boss.hp = 2;
+    for (const bullet of world.bullets.slice(0, ENEMY_BULLET_POOL - 4)) bullet.active = true;
+    const shot = world.shots[0];
+    if (!shot) throw new Error('shot fixture missing');
+    shot.active = true;
+    shot.x = world.boss.x;
+    shot.y = world.boss.y;
+
+    resolveCollisions(world);
+    expect(world.bullets.filter((bullet) => bullet.active)).toHaveLength(ENEMY_BULLET_POOL);
+    expect(
+      world.bullets.filter((bullet) => bullet.active && bullet.variant === 'boss_barrage_bullet'),
+    ).toHaveLength(4);
   });
 
   it('preserves the enemy_bullet variant for normal-enemy fire', () => {
