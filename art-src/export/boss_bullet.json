@@ -1,0 +1,37 @@
+{
+  "frames": [
+    {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 6
+      },
+      "sourceSize": {
+        "w": 6,
+        "h": 6
+      }
+    },
+    {
+      "frame": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 6
+      },
+      "sourceSize": {
+        "w": 6,
+        "h": 6
+      }
+    }
+  ],
+  "meta": {
+    "frameTags": [
+      {
+        "name": "idle",
+        "from": 0,
+        "to": 1
+      }
+    ]
+  }
+}

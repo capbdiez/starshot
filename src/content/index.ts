@@ -14,7 +14,7 @@ export {
 } from './schemas/asset-manifest.ts';
 export { SFX_KEY_PATTERN, fxKindSchema, type FxEntry, type FxKind } from './schemas/fx.ts';
 export { type Gameplay } from './schemas/gameplay.ts';
-export { type BossPartSpec, type BossSpec } from './schemas/bosses.ts';
+export { type BossPartSpec, type BossSpec, type ProjectileVariant } from './schemas/bosses.ts';
 export { type BulletPattern, type EnemySpec } from './schemas/enemies.ts';
 export { type StageEnvironment } from './schemas/environments.ts';
 export { type StageSpec, type WaveSpec } from './schemas/waves.ts';

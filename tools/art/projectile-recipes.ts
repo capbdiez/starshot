@@ -76,4 +76,62 @@ export const PROJECTILE_ART: SpriteArt = {
       ['.pppp.', 'pPWWPp', 'pPWWPp', 'pPWWPp', 'pPWWPp', '.pppp.'],
     ],
   },
+  boss_bullet: {
+    idle: [
+      ['..pp..', '.pPPp.', 'pPYYPp', 'pPYYPp', '.pPPp.', '..pp..'],
+      ['.pppp.', 'pPYYPp', 'pPYYPp', 'pPYYPp', 'pPYYPp', '.pppp.'],
+    ],
+  },
+  boss_guided_bullet: {
+    idle: [
+      [
+        '...YY...',
+        '..YPPY..',
+        '.YPWWPY.',
+        'YPWMMWPY',
+        '.YPWWPY.',
+        '..YPPY..',
+        '...YY...',
+        '........',
+      ],
+      [
+        '....Y...',
+        '..YPPY..',
+        '.YPWWPY.',
+        'YPWMMWPY',
+        '.YPWWPY.',
+        '..YPPY..',
+        '...Y....',
+        '........',
+      ],
+    ],
+  },
+  boss_barrage_bullet: {
+    idle: [
+      [
+        '....OO....',
+        '..OOOOOO..',
+        '.OOYYYYOO.',
+        '.OYYWWYYO.',
+        'OOYWWWWYOO',
+        'OOYWWWWYOO',
+        '.OYYWWYYO.',
+        '.OOYYYYOO.',
+        '..OOOOOO..',
+        '....OO....',
+      ],
+      [
+        '....OO....',
+        '..OOYYOO..',
+        '.OYYYYYYO.',
+        '.OYYWWYYO.',
+        'OYYWWWWYYO',
+        'OYYWWWWYYO',
+        '.OYYWWYYO.',
+        '.OYYYYYYO.',
+        '..OOYYOO..',
+        '....OO....',
+      ],
+    ],
+  },
 };

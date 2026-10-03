@@ -1,5 +1,101 @@
 {
   "frames": {
+    "boss_barrage_bullet/idle/0": {
+      "frame": {
+        "x": 138,
+        "y": 51,
+        "w": 10,
+        "h": 10
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 10,
+        "h": 10
+      },
+      "sourceSize": {
+        "w": 10,
+        "h": 10
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "boss_barrage_bullet/idle/1": {
+      "frame": {
+        "x": 149,
+        "y": 51,
+        "w": 10,
+        "h": 10
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 10,
+        "h": 10
+      },
+      "sourceSize": {
+        "w": 10,
+        "h": 10
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "boss_bullet/idle/0": {
+      "frame": {
+        "x": 186,
+        "y": 51,
+        "w": 6,
+        "h": 6
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 6
+      },
+      "sourceSize": {
+        "w": 6,
+        "h": 6
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "boss_bullet/idle/1": {
+      "frame": {
+        "x": 193,
+        "y": 51,
+        "w": 6,
+        "h": 6
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 6
+      },
+      "sourceSize": {
+        "w": 6,
+        "h": 6
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
     "boss_cannon/death/0": {
       "frame": {
         "x": 332,
@@ -504,6 +600,54 @@
         "y": 0.5
       }
     },
+    "boss_guided_bullet/idle/0": {
+      "frame": {
+        "x": 160,
+        "y": 51,
+        "w": 8,
+        "h": 8
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 8
+      },
+      "sourceSize": {
+        "w": 8,
+        "h": 8
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "boss_guided_bullet/idle/1": {
+      "frame": {
+        "x": 169,
+        "y": 51,
+        "w": 8,
+        "h": 8
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 8
+      },
+      "sourceSize": {
+        "w": 8,
+        "h": 8
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
     "boss_wing/death/0": {
       "frame": {
         "x": 909,
@@ -698,7 +842,7 @@
     },
     "enemy_bullet/idle/0": {
       "frame": {
-        "x": 146,
+        "x": 200,
         "y": 51,
         "w": 6,
         "h": 6
@@ -722,7 +866,7 @@
     },
     "enemy_bullet/idle/1": {
       "frame": {
-        "x": 153,
+        "x": 207,
         "y": 51,
         "w": 6,
         "h": 6
@@ -2330,7 +2474,7 @@
     },
     "player_shot/idle/0": {
       "frame": {
-        "x": 138,
+        "x": 178,
         "y": 51,
         "w": 3,
         "h": 8
@@ -2354,7 +2498,7 @@
     },
     "player_shot/idle/1": {
       "frame": {
-        "x": 142,
+        "x": 182,
         "y": 51,
         "w": 3,
         "h": 8

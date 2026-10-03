@@ -20,12 +20,12 @@
     [5, 300]
   ],
   "expected": {
-    "hash": "dbdc92b9",
+    "hash": "3aeaf39a",
     "tick": 4145,
     "lives": 1,
     "level": 1,
     "kills": 11,
     "gameOvers": 4
   },
-  "reason": "P3 adds absolute level and difficulty to deterministic simulation state and the hash. This replay retains the same tick, lives, level, kills and game-over count."
+  "reason": "P4 adds pooled hostile projectile variant, steering and barrage state to the deterministic hash. This replay retains the same tick, lives, level, kills and game-over count."
 }

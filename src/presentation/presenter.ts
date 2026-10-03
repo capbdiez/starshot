@@ -74,7 +74,7 @@ export function hudProgressText(level: number, difficulty: number, bossActive: b
 export class Presenter {
   private readonly grunts: Map<string, SpriteLayer>;
   private readonly shots: SpriteLayer;
-  private readonly bullets: SpriteLayer;
+  private readonly bullets: Map<string, SpriteLayer>;
   private readonly pickups: SpriteLayer;
   private readonly bossSprites: Map<string, SpriteLayer>;
   private readonly player: Phaser.GameObjects.Sprite;
@@ -140,11 +140,25 @@ export class Presenter {
       animationKey(g.playerShot.sprite, 'idle'),
       DEPTH.shot,
     );
-    this.bullets = new SpriteLayer(
-      scene,
-      source(manifest, g.enemyBullet.sprite),
-      animationKey(g.enemyBullet.sprite, 'idle'),
-      DEPTH.bullet,
+    const bulletSprites = [
+      g.enemyBullet.sprite,
+      ...Object.values(content.bosses).flatMap((boss) =>
+        boss.phases.flatMap((phase) => [
+          phase.projectile.variant,
+          ...(phase.barrage ? [phase.barrage.variant] : []),
+        ]),
+      ),
+    ].filter((sprite, index, all) => all.indexOf(sprite) === index);
+    this.bullets = new Map(
+      bulletSprites.map((sprite) => [
+        sprite,
+        new SpriteLayer(
+          scene,
+          source(manifest, sprite),
+          animationKey(sprite, 'idle'),
+          DEPTH.bullet,
+        ),
+      ]),
     );
     this.pickups = new SpriteLayer(
       scene,
@@ -242,17 +256,16 @@ export class Presenter {
     for (const s of view.shots)
       this.shots.place(s.id, smooth(s.prevX, s.x, alpha), smooth(s.prevY, s.y, alpha));
     this.shots.end();
-    this.bullets.begin();
+    for (const layer of this.bullets.values()) layer.begin();
     for (const b of view.enemyBullets) {
-      const bullet = this.bullets.place(
-        b.id,
-        smooth(b.prevX, b.x, alpha),
-        smooth(b.prevY, b.y, alpha),
-      );
+      const bullet = this.bullets
+        .get(b.variant)
+        ?.place(b.id, smooth(b.prevX, b.x, alpha), smooth(b.prevY, b.y, alpha));
+      if (!bullet) continue;
       if (this.settings.highContrastBullets) bullet.setTint(0xffffff).setScale(1.5);
       else bullet.clearTint().setScale(1);
     }
-    this.bullets.end();
+    for (const layer of this.bullets.values()) layer.end();
     this.pickups.begin();
     for (const pickup of view.pickups)
       this.pickups.place(

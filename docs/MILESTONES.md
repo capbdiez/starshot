@@ -522,7 +522,7 @@ The release and graphics milestones above remain historical. M9–M12 make the e
 | P1 | PWA & offline install | Web app manifest, service worker/cache policy, install UX, offline-update QA |
 | P2 | Online leaderboards | Supabase anonymous auth, `LeaderboardPort`, edge function that verifies replays, RLS |
 | P3.1–P3.8 | Endless progression program | Infinite levels, deterministic 50/50 difficulty growth, recurring boss every 10 levels, UI/persistence, balance |
-| P4 | Content expansion | New enemies and bosses, daily seed, capturing enemies |
+| P4 | Overlord projectile expansion | Guided phase attacks, final-form barrage, distinct boss bullets |
 | P5 | Desktop / mobile stores | Electron + steamworks.js build (ADR), achievements; Capacitor mobile builds |
 
 ---
@@ -652,4 +652,74 @@ Post-MVP program. P3 replaces the finite five-stage completion path with an endl
 - Full validation passes before release.
 
 **Testing:** `npm run typecheck`, `npm run lint`, `npm run lint:deps`, `npm test`, `npm run check:assets`, `npm run test:e2e`, `npm run build`, and `npm run release:check`; manual high-level desktop/mobile playtest and accessibility review.
+
+---
+
+## P4 — Overlord Projectile Expansion
+
+Post-MVP boss-combat program. P4 gives the recurring three-form Overlord distinct, readable projectile behavior without changing the authored phase patterns, weak points, encounter schedule, or fixed-pool safety guarantees. Each sub-milestone inherits the Global Definition of Done and ships as a playable preview build.
+
+### P4.1 — Data-Driven Boss Projectile Variants
+
+**Scope**
+- Extend validated boss-phase content with projectile variant, guided-behavior, and near-death-barrage configuration.
+- Add pooled simulation state for hostile projectile variants and expose the selected variant in the read-only simulation snapshot.
+- Preserve the existing `enemy_bullet` behavior for normal enemies and retain deterministic hashes for equal content, seed, and input.
+
+**Out of scope:** changing boss phase patterns, firing cadence, weak points, collision rules, or adding new boss forms.
+
+**Acceptance criteria**
+- Boss projectile configuration is schema-validated and all gameplay tuning remains in content files.
+- Projectile variants remain bounded by the existing enemy-bullet pool and retain existing collision behavior.
+- Normal enemies continue to fire their current projectile unchanged.
+
+**Testing:** content-loader validation for invalid projectile configuration; pooled-projectile state and snapshot tests; deterministic hash regression; bullet-pool capacity test.
+
+---
+
+### P4.2 — Guided Projectiles in Forms Two and Three
+
+**Scope**
+- Configure Overlord forms two and three to launch guided bullets.
+- Apply deterministic, bounded per-tick steering toward the player after launch.
+- Preserve each form's existing pattern geometry, projectile count, speed, attack tell, and fire interval: form two remains a spread and form three remains a ring.
+
+**Acceptance criteria**
+- Form one projectiles remain non-guided.
+- Forms two and three retain their authored initial spread/ring velocities and counts, then curve toward the player at the configured bounded rate.
+- Guided movement is deterministic and remains readable at high difficulty.
+
+**Testing:** phase-specific firing tests; initial-pattern count/velocity regression tests; guided-trajectory and maximum-turn-rate tests; high-difficulty pool-safety regression.
+
+---
+
+### P4.3 — Final-Form Near-Death Barrage
+
+**Scope**
+- Add a configurable low-health threshold to the final Overlord form.
+- Fire one large non-guided bullet barrage when final-form HP first crosses that threshold, while leaving the normal phase-three ring attack loop active.
+- Reset the barrage state on boss spawn and phase changes; preserve boss-defeat projectile clearing.
+
+**Acceptance criteria**
+- The barrage triggers exactly once per final-form encounter, before defeat, and never in forms one or two.
+- Barrage projectiles are non-guided and use configured count, speed, and pattern values.
+- If pool capacity is constrained, spawning stops safely without exceeding the fixed enemy-bullet pool.
+
+**Testing:** threshold-crossing and one-shot trigger tests; non-guided barrage trajectory test; phase/reset regression; constrained-pool and boss-defeat clearing tests.
+
+---
+
+### P4.4 — Distinct, Readable Boss Bullet Visuals
+
+**Scope**
+- Add generated, palette-compliant projectile art and animation content for normal Overlord fire, guided phase-two/three fire, and the final-form barrage.
+- Regenerate the exported sheets, atlas, and asset manifest through the existing art pipeline.
+- Render projectile variants through pooled presentation layers while preserving high-contrast-bullet accessibility behavior.
+
+**Acceptance criteria**
+- Players can distinguish guided bullets from the final-form barrage at gameplay scale, while hostile bullets remain readable against all boss backgrounds.
+- Every new sprite is registered in animation content, generated-art recipes, atlas data, manifest data, and credits as required by asset gates.
+- Existing normal-enemy bullets and all boss attack effects/audio continue to render correctly.
+
+**Testing:** asset/atlas/manifest gate coverage; presenter variant-selection tests; high-contrast regression; boss-level screenshot review and full validation suite.
 

@@ -1,4 +1,4 @@
-import type { Content } from '../content/index.ts';
+import type { Content, ProjectileVariant } from '../content/index.ts';
 import { WORLD_WIDTH } from '../shared/index.ts';
 import type { SimEvent } from './events.ts';
 import {
@@ -26,6 +26,10 @@ export interface Mover {
   /** Velocity in px per tick. */
   vx: number;
   vy: number;
+  /** Read-only presentation variant; normal enemies always use `enemy_bullet`. */
+  variant: ProjectileVariant | 'enemy_bullet';
+  /** Maximum guidance turn in degrees per tick; zero leaves the launch velocity unchanged. */
+  turnRateDegrees: number;
 }
 
 export interface Grunt {
@@ -84,6 +88,8 @@ export interface Boss {
   phase: number;
   tellTimer: number;
   fireTimer: number;
+  /** Whether the current phase's optional low-health barrage has already fired. */
+  barrageFired: boolean;
   readonly parts: BossPart[];
 }
 
@@ -125,7 +131,18 @@ export interface World {
 }
 
 function mover(): Mover {
-  return { id: 0, active: false, x: 0, y: 0, prevX: 0, prevY: 0, vx: 0, vy: 0 };
+  return {
+    id: 0,
+    active: false,
+    x: 0,
+    y: 0,
+    prevX: 0,
+    prevY: 0,
+    vx: 0,
+    vy: 0,
+    variant: 'enemy_bullet',
+    turnRateDegrees: 0,
+  };
 }
 
 /** Allocates every pool once, then resets to a fresh game. */
@@ -177,6 +194,7 @@ export function createWorld(content: Content, seed: number): World {
       phase: 0,
       tellTimer: 0,
       fireTimer: 0,
+      barrageFired: false,
       parts: [],
     },
     grunts: Array.from(
@@ -310,6 +328,7 @@ export function spawnBoss(world: World): void {
   boss.hp = scaledBossPhaseHp(spec.phases[0]?.hp ?? 0, world.difficulty);
   boss.tellTimer = 0;
   boss.fireTimer = scaledBossFireInterval(spec.phases[0]?.fireIntervalTicks ?? 0, world.difficulty);
+  boss.barrageFired = false;
   boss.parts.length = 0;
   for (const part of spec.parts) {
     boss.parts.push({

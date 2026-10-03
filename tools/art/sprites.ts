@@ -13,7 +13,7 @@ export const RECIPE_METADATA: readonly RecipeRecord[] = [
   { id: 'player_ship', version: 2, seed: 0x504, detailScale: 2 },
   { id: 'enemy_roster', version: 2, seed: 0xe305, detailScale: 2 },
   { id: 'boss_parts', version: 2, seed: 0xb055, detailScale: 2 },
-  { id: 'projectiles_pickup', version: 2, seed: 0xa14, detailScale: 2 },
+  { id: 'projectiles_pickup', version: 3, seed: 0xa14, detailScale: 2 },
   { id: 'explosion_fx', version: 1, seed: 0xf10, detailScale: 2 },
 ];
 

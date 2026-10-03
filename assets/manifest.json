@@ -8,6 +8,26 @@
     }
   ],
   "sprites": {
+    "boss_barrage_bullet": {
+      "atlas": "main",
+      "placeholder": false,
+      "clips": {
+        "idle": [
+          "boss_barrage_bullet/idle/0",
+          "boss_barrage_bullet/idle/1"
+        ]
+      }
+    },
+    "boss_bullet": {
+      "atlas": "main",
+      "placeholder": false,
+      "clips": {
+        "idle": [
+          "boss_bullet/idle/0",
+          "boss_bullet/idle/1"
+        ]
+      }
+    },
     "boss_cannon": {
       "atlas": "main",
       "placeholder": false,
@@ -48,6 +68,16 @@
           "boss_core/death/5",
           "boss_core/death/6",
           "boss_core/death/7"
+        ]
+      }
+    },
+    "boss_guided_bullet": {
+      "atlas": "main",
+      "placeholder": false,
+      "clips": {
+        "idle": [
+          "boss_guided_bullet/idle/0",
+          "boss_guided_bullet/idle/1"
         ]
       }
     },

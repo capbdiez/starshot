@@ -71,7 +71,7 @@ describe('G3 raster-art toolkit', () => {
     expect(death).toHaveLength(8);
     expect(death[0]).not.toEqual(death[7]);
     expect(playerRecipe.version).toBe(2);
-    expect(projectileRecipe.version).toBe(2);
+    expect(projectileRecipe.version).toBe(3);
     expect(projectileRecipe.detailScale).toBe(2);
 
     const playerPixels = idle[0]?.join('') ?? '';

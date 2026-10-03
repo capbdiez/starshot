@@ -110,6 +110,31 @@ describe('content loader', () => {
     );
   });
 
+  it('rejects invalid boss projectile configuration', () => {
+    const bad = structuredClone(real) as Record<string, unknown>;
+    const bosses = bad['bosses.json'] as { bosses: { phases: Record<string, unknown>[] }[] };
+    const boss = bosses.bosses[0];
+    if (!boss) throw new Error('boss fixture missing');
+    boss.phases[1] = {
+      ...boss.phases[1],
+      projectile: { variant: 'boss_guided_bullet', turnRateDegrees: 99 },
+    };
+    expect(issuesOf(bad).join()).toMatch(
+      /bosses\.json: bosses\.0\.phases\.1\.projectile\.turnRateDegrees/,
+    );
+  });
+
+  it('rejects a barrage outside the final boss phase', () => {
+    const bad = structuredClone(real) as Record<string, unknown>;
+    const bosses = bad['bosses.json'] as { bosses: { phases: Record<string, unknown>[] }[] };
+    const boss = bosses.bosses[0];
+    if (!boss) throw new Error('boss fixture missing');
+    boss.phases[0] = { ...boss.phases[0], barrage: boss.phases[2]?.barrage };
+    expect(issuesOf(bad).join()).toMatch(
+      /bosses\.json: bosses\.0\.phases\.0\.barrage: is only allowed/,
+    );
+  });
+
   it('rejects invalid presentation environment data', () => {
     const bad = structuredClone(real) as Record<string, unknown>;
     const environments = bad['environments/stages.json'] as {

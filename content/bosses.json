@@ -33,18 +33,26 @@
         {
           "hp": 18,
           "pattern": { "type": "aimed", "speed": 2.5, "count": 1 },
+          "projectile": { "variant": "boss_bullet", "turnRateDegrees": 0 },
           "tellTicks": 24,
           "fireIntervalTicks": 105
         },
         {
           "hp": 24,
           "pattern": { "type": "spread", "speed": 2.7, "count": 3, "angle": 32 },
+          "projectile": { "variant": "boss_guided_bullet", "turnRateDegrees": 3 },
           "tellTicks": 20,
           "fireIntervalTicks": 90
         },
         {
           "hp": 30,
           "pattern": { "type": "ring", "speed": 2.4, "count": 6 },
+          "projectile": { "variant": "boss_guided_bullet", "turnRateDegrees": 2.5 },
+          "barrage": {
+            "healthThreshold": 0.35,
+            "pattern": { "type": "ring", "speed": 3.1, "count": 12 },
+            "variant": "boss_barrage_bullet"
+          },
           "tellTicks": 16,
           "fireIntervalTicks": 75
         }

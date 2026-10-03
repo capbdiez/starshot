@@ -5,6 +5,7 @@ import { fnv1a32, pushFloat } from './hash.ts';
 import {
   moveMovers,
   resolveCollisions,
+  updateGuidedBullets,
   updateEnemyFire,
   updateGameOver,
   updatePlayer,
@@ -15,6 +16,8 @@ import { createWorld, type Mover, type Phase, type World } from './world.ts';
 /** A moving entity in a {@link SimView}; `prev*` is its position one tick earlier (smoothing). */
 export interface MoverView {
   readonly id: number;
+  /** Sprite variant selected by the simulation; normal enemy bullets retain `enemy_bullet`. */
+  readonly variant: Mover['variant'];
   readonly x: number;
   readonly y: number;
   readonly prevX: number;
@@ -74,7 +77,16 @@ export interface SimView {
 function moverViews(pool: readonly Mover[]): MoverView[] {
   return pool
     .filter((m) => m.active)
-    .map((m) => Object.freeze({ id: m.id, x: m.x, y: m.y, prevX: m.prevX, prevY: m.prevY }));
+    .map((m) =>
+      Object.freeze({
+        id: m.id,
+        variant: m.variant,
+        x: m.x,
+        y: m.y,
+        prevX: m.prevX,
+        prevY: m.prevY,
+      }),
+    );
 }
 
 function view(world: World): Readonly<SimView> {
@@ -155,6 +167,7 @@ function stateWords(world: World): number[] {
     world.boss.phase,
     world.boss.tellTimer,
     world.boss.fireTimer,
+    world.boss.barrageFired ? 1 : 0,
     p.alive ? 1 : 0,
     p.dir & 0xff,
     p.fireCooldown,
@@ -188,7 +201,8 @@ function stateWords(world: World): number[] {
     pushFloat(words, g.y);
   }
   for (const m of [...world.shots, ...world.bullets, ...world.pickups]) {
-    words.push(m.id, m.active ? 1 : 0);
+    words.push(m.id, m.active ? 1 : 0, m.turnRateDegrees);
+    for (let i = 0; i < m.variant.length; i += 1) words.push(m.variant.charCodeAt(i));
     pushFloat(words, m.x);
     pushFloat(words, m.y);
     pushFloat(words, m.vx);
@@ -225,6 +239,7 @@ export function createSim(content: Content, seed: number): Sim {
     step(input) {
       world.tick += 1;
       moveMovers(world.shots);
+      updateGuidedBullets(world);
       moveMovers(world.bullets);
       moveMovers(world.pickups);
       if (updateGameOver(world)) return;

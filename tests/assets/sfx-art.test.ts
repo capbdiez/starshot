@@ -20,8 +20,11 @@ describe('final M1 sprite art', () => {
   it('covers the player ship, all four enemy roster entries and both bullet types', () => {
     expect(Object.keys(SPRITE_ART).sort()).toEqual(
       [
+        'boss_barrage_bullet',
+        'boss_bullet',
         'boss_cannon',
         'boss_core',
+        'boss_guided_bullet',
         'boss_wing',
         'enemy_bullet',
         'enemy_elite',
