@@ -50,10 +50,10 @@
         },
         {
           "hp": 30,
-          "pattern": { "type": "ring", "speed": 2.4, "count": 6 },
+          "pattern": { "type": "ring", "speed": 2.4, "count": 4 },
           "projectile": {
             "variant": "boss_guided_bullet",
-            "turnRateDegrees": 1,
+            "turnRateDegrees": 0.5,
             "lifetimeTicks": 300
           },
           "barrage": {
