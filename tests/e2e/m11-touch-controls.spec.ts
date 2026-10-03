@@ -38,10 +38,10 @@ test('M11 touch controls drive mobile title, play, pause, resume, and settings f
   expect(box).not.toBeNull();
   if (box) {
     await Promise.all([
-      page.touchscreen.tap(box.x + box.width * 0.125, box.y + box.height * 0.8),
-      page.touchscreen.tap(box.x + box.width * 0.625, box.y + box.height * 0.8),
+      page.touchscreen.tap(box.x + box.width * 0.125, box.y + box.height * (914 / 960)),
+      page.touchscreen.tap(box.x + box.width * 0.625, box.y + box.height * (914 / 960)),
     ]);
-    await page.touchscreen.tap(box.x + box.width * 0.875, box.y + box.height * 0.8);
+    await page.touchscreen.tap(box.x + box.width * 0.875, box.y + box.height * (914 / 960));
   }
 
   await tapPresentation(page, 498, 42);

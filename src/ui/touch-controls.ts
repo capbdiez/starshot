@@ -6,7 +6,7 @@ import {
   WORLD_HEIGHT,
   WORLD_WIDTH,
 } from '../shared/index.ts';
-import { drawDisplayText, UI_COLOUR } from './ui-art.ts';
+import { UI_COLOUR } from './ui-art.ts';
 
 /** Capability surface used to avoid showing touch controls on ordinary desktop pointers. */
 export interface TouchControlCapabilities {
@@ -48,27 +48,30 @@ export interface TouchControlLayout {
   };
 }
 
-const CONTROL_WIDTH = 44;
-const CONTROL_HEIGHT = 36;
+/** Compact icon controls remain distinct while leaving the lower play field visible. */
+const CONTROL_SIZE = 28;
+const PAUSE_WIDTH = 22;
+const PAUSE_HEIGHT = 18;
 const EDGE = 9;
+type ControlIcon = 'left' | 'right' | 'fire' | 'bomb' | 'pause';
 
 /**
  * Fixed lower-corner controls leave the score HUD and upper gameplay field readable. Their world
  * coordinates are transformed by the fixed 2× camera into the 540×960 presentation buffer.
  */
 export function touchControlLayout(width = WORLD_WIDTH, height = WORLD_HEIGHT): TouchControlLayout {
-  const y = height - EDGE - CONTROL_HEIGHT / 2;
+  const y = height - EDGE - CONTROL_SIZE / 2;
   return {
-    left: { x: EDGE + CONTROL_WIDTH / 2, y, width: CONTROL_WIDTH, height: CONTROL_HEIGHT },
-    right: { x: EDGE * 2 + CONTROL_WIDTH * 1.5, y, width: CONTROL_WIDTH, height: CONTROL_HEIGHT },
-    fire: {
-      x: width - EDGE * 2 - CONTROL_WIDTH * 1.5,
-      y,
-      width: CONTROL_WIDTH,
-      height: CONTROL_HEIGHT,
+    left: { x: width / 8, y, width: CONTROL_SIZE, height: CONTROL_SIZE },
+    right: { x: (width * 3) / 8, y, width: CONTROL_SIZE, height: CONTROL_SIZE },
+    fire: { x: (width * 5) / 8, y, width: CONTROL_SIZE, height: CONTROL_SIZE },
+    bomb: { x: (width * 7) / 8, y, width: CONTROL_SIZE, height: CONTROL_SIZE },
+    pause: {
+      x: width - EDGE - PAUSE_WIDTH / 2,
+      y: EDGE + PAUSE_HEIGHT / 2,
+      width: PAUSE_WIDTH,
+      height: PAUSE_HEIGHT,
     },
-    bomb: { x: width - EDGE - CONTROL_WIDTH / 2, y, width: CONTROL_WIDTH, height: CONTROL_HEIGHT },
-    pause: { x: width - 21, y: 21, width: 30, height: 21 },
   };
 }
 
@@ -96,11 +99,11 @@ export class TouchControls {
       PRESENTATION_WIDTH / PRESENTATION_SCALE,
       PRESENTATION_HEIGHT / PRESENTATION_SCALE,
     );
-    this.addControl(scene, layout.left, 'LEFT');
-    this.addControl(scene, layout.right, 'RIGHT');
-    this.addControl(scene, layout.fire, 'FIRE');
-    this.addControl(scene, layout.bomb, 'BOMB');
-    this.addControl(scene, layout.pause, 'PAUSE', onPause);
+    this.addControl(scene, layout.left, 'left');
+    this.addControl(scene, layout.right, 'right');
+    this.addControl(scene, layout.fire, 'fire');
+    this.addControl(scene, layout.bomb, 'bomb');
+    this.addControl(scene, layout.pause, 'pause', onPause);
   }
 
   /** Whether this browser exposes a coarse primary pointer and touch capability. */
@@ -116,26 +119,18 @@ export class TouchControls {
   private addControl(
     scene: Phaser.Scene,
     bounds: TouchControlLayout[keyof TouchControlLayout],
-    label: string,
+    icon: ControlIcon,
     action?: () => void,
   ): void {
     const graphics = scene.add.graphics();
+    const left = bounds.x - bounds.width / 2;
+    const top = bounds.y - bounds.height / 2;
     graphics
-      .fillStyle(UI_COLOUR.panel, 0.72)
-      .fillRect(
-        bounds.x - bounds.width / 2,
-        bounds.y - bounds.height / 2,
-        bounds.width,
-        bounds.height,
-      )
-      .lineStyle(2, UI_COLOUR.cyan, 0.9)
-      .strokeRect(
-        bounds.x - bounds.width / 2,
-        bounds.y - bounds.height / 2,
-        bounds.width,
-        bounds.height,
-      );
-    drawDisplayText(graphics, label, bounds.x, bounds.y - 4, 2, UI_COLOUR.white, true);
+      .fillStyle(UI_COLOUR.panel, 0.64)
+      .fillRect(left, top, bounds.width, bounds.height)
+      .lineStyle(1, UI_COLOUR.cyan, 0.9)
+      .strokeRect(left, top, bounds.width, bounds.height);
+    this.drawIcon(graphics, bounds.x, bounds.y, icon);
     this.container.add(graphics);
     if (!action) return;
     const hit = scene.add
@@ -143,5 +138,40 @@ export class TouchControls {
       .setInteractive({ useHandCursor: true });
     hit.on('pointerdown', action);
     this.container.add(hit);
+  }
+
+  private drawIcon(
+    graphics: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    icon: ControlIcon,
+  ): void {
+    graphics.fillStyle(UI_COLOUR.white, 1);
+    if (icon === 'left' || icon === 'right') {
+      const direction = icon === 'left' ? -1 : 1;
+      graphics.fillTriangle(
+        x + direction * 7,
+        y,
+        x - direction * 4,
+        y - 7,
+        x - direction * 4,
+        y + 7,
+      );
+      return;
+    }
+    if (icon === 'fire') {
+      graphics.lineStyle(2, UI_COLOUR.white, 1).strokeCircle(x, y, 6);
+      graphics.fillCircle(x, y, 2);
+      graphics.fillRect(x - 1, y - 10, 2, 4).fillRect(x - 1, y + 6, 2, 4);
+      graphics.fillRect(x - 10, y - 1, 4, 2).fillRect(x + 6, y - 1, 4, 2);
+      return;
+    }
+    if (icon === 'bomb') {
+      graphics.fillCircle(x, y + 2, 7);
+      graphics.lineStyle(2, UI_COLOUR.white, 1).lineBetween(x + 4, y - 4, x + 8, y - 9);
+      graphics.fillStyle(UI_COLOUR.amber, 1).fillRect(x + 8, y - 11, 2, 2);
+      return;
+    }
+    graphics.fillRect(x - 5, y - 6, 3, 12).fillRect(x + 2, y - 6, 3, 12);
   }
 }

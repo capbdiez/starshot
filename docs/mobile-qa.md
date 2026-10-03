@@ -25,7 +25,7 @@ Complete for each matrix row in **both portrait and landscape**. Record a failur
 | Check | iPhone/iOS Safari result + observation | Android/Chrome result + observation |
 | --- | --- | --- |
 | Cold boot reaches title with no console/page errors |  |  |
-| Touch starts a run; simultaneous move + fire and bomb work |  |  |
+| Touch starts a run; compact icon-only controls are readable, and simultaneous move + fire and bomb work |  |  |
 | Pause, resume, game-over/results retry, and return to title work |  |  |
 | Safe-area fit leaves the complete canvas and critical HUD readable |  |  |
 | Rotation and browser-toolbar resize preserve a complete centered canvas |  |  |

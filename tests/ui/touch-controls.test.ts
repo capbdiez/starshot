@@ -26,8 +26,11 @@ describe('M11 touch-control HUD layout', () => {
     }
     expect(WORLD_WIDTH * PRESENTATION_SCALE).toBe(PRESENTATION_WIDTH);
     expect(WORLD_HEIGHT * PRESENTATION_SCALE).toBe(PRESENTATION_HEIGHT);
-    expect(layout.left.x).toBeLessThan(WORLD_WIDTH / 2);
-    expect(layout.fire.x).toBeGreaterThan(WORLD_WIDTH / 2);
+    expect(layout.left).toMatchObject({ x: WORLD_WIDTH / 8, width: 28, height: 28 });
+    expect(layout.right).toMatchObject({ x: (WORLD_WIDTH * 3) / 8, width: 28, height: 28 });
+    expect(layout.fire).toMatchObject({ x: (WORLD_WIDTH * 5) / 8, width: 28, height: 28 });
+    expect(layout.bomb).toMatchObject({ x: (WORLD_WIDTH * 7) / 8, width: 28, height: 28 });
+    expect(layout.pause).toMatchObject({ width: 22, height: 18 });
     expect(layout.pause.y).toBeLessThan(layout.fire.y);
   });
 
