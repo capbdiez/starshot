@@ -6,12 +6,7 @@ import {
   scaledBossPhaseHp,
 } from '../../src/sim/difficulty.ts';
 import { createSim } from '../../src/sim/index.ts';
-import {
-  moveMovers,
-  updateEnemyFire,
-  updateGuidedBullets,
-  updatePlayer,
-} from '../../src/sim/systems.ts';
+import { moveMovers, updateEnemyFire } from '../../src/sim/systems.ts';
 import { createWorld, ENEMY_BULLET_POOL, spawnBoss } from '../../src/sim/world.ts';
 import { B, F, filesWith, ofType, run } from './helpers.ts';
 
@@ -128,82 +123,29 @@ function defeatBossAt(seed: number, difficulty: number): void {
 }
 
 describe('P4 Overlord projectile expansion', () => {
-  it('validates variants in snapshots and preserves normal-enemy bullets', () => {
+  it('exposes the configured boss projectile variant in a frozen snapshot', () => {
+    const { sim } = advanceToBoss();
+    run(sim, 40);
+    const bullet = sim
+      .snapshot()
+      .enemyBullets.find((candidate) => candidate.variant === 'boss_bullet');
+    expect(bullet).toBeDefined();
+    expect(Object.isFrozen(bullet)).toBe(true);
+  });
+
+  it('preserves the enemy_bullet variant for normal-enemy fire', () => {
     const world = createWorld(bossTestContent(), 7);
-    world.level = 10;
-    spawnBoss(world);
-    world.boss.fireTimer = 0;
-    updateEnemyFire(world);
+    const enemy = world.grunts[0];
+    if (!enemy) throw new Error('enemy fixture missing');
+    enemy.entryTimer = 0;
+    enemy.tellTimer = 1;
     updateEnemyFire(world);
     expect(world.bullets.filter((bullet) => bullet.active).map((bullet) => bullet.variant)).toEqual(
-      ['boss_bullet'],
-    );
-
-    const normal = createWorld(bossTestContent(), 7);
-    const bullet = normal.bullets[0];
-    if (!bullet) throw new Error('bullet fixture missing');
-    bullet.active = true;
-    bullet.id = 1;
-    bullet.variant = 'enemy_bullet';
-    bullet.x = 20;
-    bullet.y = 20;
-    expect(bullet.variant).toBe('enemy_bullet');
-  });
-
-  it('keeps phase-two spread geometry at launch, then applies its bounded guidance', () => {
-    const world = createWorld(bossTestContent(), 7);
-    world.level = 10;
-    spawnBoss(world);
-    world.boss.phase = 1;
-    world.boss.tellTimer = 1;
-    const phase = world.content.bosses['overlord']?.phases[1];
-    if (!phase) throw new Error('phase fixture missing');
-    updateEnemyFire(world);
-    const bullets = world.bullets.filter((bullet) => bullet.active);
-    expect(bullets).toHaveLength(phase.pattern.count);
-    const before = bullets.map((bullet) => Math.atan2(bullet.vy, bullet.vx));
-    updateGuidedBullets(world);
-    bullets.forEach((bullet, index) => {
-      const turned = Math.abs(
-        Math.atan2(
-          Math.sin(Math.atan2(bullet.vy, bullet.vx) - (before[index] ?? 0)),
-          Math.cos(Math.atan2(bullet.vy, bullet.vx) - (before[index] ?? 0)),
-        ),
-      );
-      expect(turned).toBeLessThanOrEqual(
-        (phase.projectile.turnRateDegrees * Math.PI) / 180 + 1e-12,
-      );
-      expect(bullet.variant).toBe('boss_guided_bullet');
-    });
-  });
-
-  it('fires exactly one non-guided configured barrage after the final-form threshold', () => {
-    const world = createWorld(bossTestContent(1), 7);
-    world.level = 10;
-    spawnBoss(world);
-    world.boss.parts.forEach((part) => {
-      part.alive = false;
-    });
-    world.boss.phase = 2;
-    world.boss.hp = 3;
-    const phase = world.content.bosses['overlord']?.phases[2];
-    if (!phase?.barrage) throw new Error('barrage fixture missing');
-    updatePlayer(world, B);
-    updatePlayer(world, 0);
-    updatePlayer(world, B);
-    const barrage = world.bullets.filter(
-      (bullet) => bullet.active && bullet.variant === 'boss_barrage_bullet',
-    );
-    expect(barrage).toHaveLength(phase.barrage.pattern.count);
-    expect(barrage.every((bullet) => bullet.turnRateDegrees === 0)).toBe(true);
-    updatePlayer(world, 0);
-    updatePlayer(world, B);
-    expect(world.bullets.filter((bullet) => bullet.variant === 'boss_barrage_bullet')).toHaveLength(
-      phase.barrage.pattern.count,
+      ['enemy_bullet'],
     );
   });
 
-  it('produces identical guided-bullet hashes for equal content, seed, and input', () => {
+  it('produces identical variant-aware hashes for equal content, seed, and input', () => {
     const a = createSim(bossTestContent(), 19);
     const b = createSim(bossTestContent(), 19);
     run(a, 360, F);

@@ -20,12 +20,12 @@
     [5, 300]
   ],
   "expected": {
-    "hash": "3aeaf39a",
+    "hash": "ef11cc8a",
     "tick": 4145,
     "lives": 1,
     "level": 1,
     "kills": 11,
     "gameOvers": 4
   },
-  "reason": "P4 adds pooled hostile projectile variant, steering and barrage state to the deterministic hash. This replay retains the same tick, lives, level, kills and game-over count."
+  "reason": "P4.1 adds the selected pooled hostile-projectile variant to the deterministic hash. This replay retains the same tick, lives, level, kills and game-over count."
 }
